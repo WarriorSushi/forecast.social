@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { NAV_ITEMS, type NavItem } from "@/components/app/nav-items";
+import { getNavItems, type NavItem } from "@/components/app/nav-items";
 import { UserMenu } from "@/components/app/user-menu";
 import { cn } from "@/lib/utils";
 import type { CurrentProfile } from "@/lib/auth";
 
 export function AppRail({ profile }: { profile: CurrentProfile }) {
   const pathname = usePathname();
+  const items = getNavItems(profile.username);
 
   return (
     <aside className="hidden lg:flex w-[240px] shrink-0 sticky top-0 self-start h-screen flex-col py-8 pr-2">
@@ -21,11 +22,11 @@ export function AppRail({ profile }: { profile: CurrentProfile }) {
       </Link>
 
       <nav className="flex flex-col gap-1">
-        {NAV_ITEMS.map((item) => (
+        {items.map((item) => (
           <RailItem
             key={item.href}
             item={item}
-            active={isActive(pathname, item.href)}
+            active={isActive(pathname, item)}
           />
         ))}
       </nav>
@@ -69,8 +70,9 @@ function RailItem({ item, active }: { item: NavItem; active: boolean }) {
   );
 }
 
-function isActive(pathname: string | null, href: string) {
+function isActive(pathname: string | null, item: NavItem) {
   if (!pathname) return false;
-  if (href === "/") return pathname === "/";
-  return pathname === href || pathname.startsWith(`${href}/`);
+  if (pathname === item.href) return true;
+  if (pathname.startsWith(`${item.href}/`)) return true;
+  return item.alsoActiveOn?.some((p) => pathname === p || pathname.startsWith(`${p}/`)) ?? false;
 }

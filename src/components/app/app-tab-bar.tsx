@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { NAV_ITEMS, type NavItem } from "@/components/app/nav-items";
+import { getNavItems, type NavItem } from "@/components/app/nav-items";
 import { cn } from "@/lib/utils";
 
-export function AppTabBar() {
+export function AppTabBar({ username }: { username: string }) {
   const pathname = usePathname();
+  const items = getNavItems(username);
 
   return (
     <nav
@@ -15,11 +16,11 @@ export function AppTabBar() {
       className="lg:hidden fixed inset-x-0 bottom-0 z-30 backdrop-blur-[10px] bg-background/85 border-t border-border"
     >
       <div className="mx-auto max-w-[480px] grid grid-cols-4 h-16">
-        {NAV_ITEMS.map((item) => (
+        {items.map((item) => (
           <TabItem
             key={item.href}
             item={item}
-            active={isActive(pathname, item.href)}
+            active={isActive(pathname, item)}
           />
         ))}
       </div>
@@ -60,7 +61,9 @@ function TabItem({ item, active }: { item: NavItem; active: boolean }) {
   );
 }
 
-function isActive(pathname: string | null, href: string) {
+function isActive(pathname: string | null, item: NavItem) {
   if (!pathname) return false;
-  return pathname === href || pathname.startsWith(`${href}/`);
+  if (pathname === item.href) return true;
+  if (pathname.startsWith(`${item.href}/`)) return true;
+  return item.alsoActiveOn?.some((p) => pathname === p || pathname.startsWith(`${p}/`)) ?? false;
 }
