@@ -16,6 +16,12 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { AnimatedNumber } from "@/components/aceternity/animated-number";
+import {
+  BentoGrid,
+  BentoGridItem,
+} from "@/components/aceternity/bento-grid";
+import { SpotlightNew } from "@/components/aceternity/spotlight-new";
 
 export default function LandingPage() {
   return (
@@ -61,8 +67,10 @@ function SectionEyebrow({ children }: { children: React.ReactNode }) {
 ============================================================== */
 function Hero() {
   return (
-    <Container className="pt-12 sm:pt-20 lg:pt-28 pb-24 sm:pb-32 lg:pb-40">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-x-10 xl:gap-x-16 gap-y-16 lg:gap-y-0 items-start">
+    <section className="relative overflow-hidden">
+      <SpotlightNew />
+      <Container className="relative z-10 pt-12 sm:pt-20 lg:pt-28 pb-24 sm:pb-32 lg:pb-40">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-x-10 xl:gap-x-16 gap-y-16 lg:gap-y-0 items-start">
         <div className="lg:col-span-7 flex flex-col">
           <h1 className="font-display font-extrabold text-foreground text-[52px] sm:text-[80px] lg:text-[96px] xl:text-[112px] leading-[0.94] tracking-[-0.045em]">
             Be right.
@@ -104,7 +112,8 @@ function Hero() {
           <FannedCardStack />
         </div>
       </div>
-    </Container>
+      </Container>
+    </section>
   );
 }
 
@@ -114,33 +123,16 @@ function Hero() {
    Behind, fanned out: two receipt cards.
 ============================================================== */
 function FannedCardStack() {
-  // The composition is a true playing-card fan: three cards radiating
-  // from a common pivot at the bottom-center. The focal profile card sits
-  // straight up at the front; the two receipts splay symmetrically
-  // behind it at ±14°. Each layer has its own z-index so the focal card
-  // is fully readable while the receipts show 60-70% of their content.
+  // One-sided fan: the focal profile card sits straight up, two receipt
+  // cards spread to the right at progressively steeper angles, each one
+  // further behind the last. Reads like a hand of cards revealed to one
+  // side.
   return (
-    <div className="relative w-full mx-auto pt-12 pb-16 lg:pt-4">
-      {/* Back-left receipt card — full-sized, splayed left */}
+    <div className="relative w-full mx-auto pt-12 pb-20 lg:pt-4">
+      {/* Far-right receipt — most splayed, furthest back */}
       <div
         aria-hidden
-        className="absolute inset-x-0 top-8 sm:top-6 z-10 mx-auto w-[78%] max-w-[330px] origin-bottom rotate-[-14deg] -translate-x-[34%] sm:-translate-x-[36%]"
-      >
-        <ReceiptCard
-          handle="@quanttrader"
-          marketTitle="Fed pauses rates · May 2026 FOMC"
-          predictedPct={78}
-          actualOutcome="Resolved · Yes"
-          outcomeKind="correct"
-          delta="+18"
-          subtle
-        />
-      </div>
-
-      {/* Back-right receipt card — full-sized, splayed right */}
-      <div
-        aria-hidden
-        className="absolute inset-x-0 top-8 sm:top-6 z-20 mx-auto w-[78%] max-w-[330px] origin-bottom rotate-[14deg] translate-x-[34%] sm:translate-x-[36%]"
+        className="absolute inset-x-0 top-10 sm:top-8 z-10 mx-auto w-[78%] max-w-[330px] origin-bottom-left rotate-[18deg] translate-x-[36%] sm:translate-x-[40%]"
       >
         <ReceiptCard
           handle="@oddsbot"
@@ -153,7 +145,23 @@ function FannedCardStack() {
         />
       </div>
 
-      {/* Front profile card — the focal point, straight up */}
+      {/* Mid-right receipt — gentler angle, layered between */}
+      <div
+        aria-hidden
+        className="absolute inset-x-0 top-6 sm:top-5 z-20 mx-auto w-[78%] max-w-[330px] origin-bottom-left rotate-[9deg] translate-x-[18%] sm:translate-x-[22%]"
+      >
+        <ReceiptCard
+          handle="@quanttrader"
+          marketTitle="Fed pauses rates · May 2026 FOMC"
+          predictedPct={78}
+          actualOutcome="Resolved · Yes"
+          outcomeKind="correct"
+          delta="+18"
+          subtle
+        />
+      </div>
+
+      {/* Front profile card — focal, straight up */}
       <div className="relative z-30 w-full max-w-[400px] mx-auto">
         <ProfileCard />
       </div>
@@ -182,9 +190,10 @@ function ProfileCard() {
         <div className="flex flex-col gap-2">
           <p className="text-overline text-muted-foreground">forecast score</p>
           <div className="flex items-baseline gap-2">
-            <span className="font-display font-extrabold text-foreground text-[64px] sm:text-[72px] leading-none tabular-nums tracking-[-0.035em]">
-              2,471
-            </span>
+            <AnimatedNumber
+              to={2471}
+              className="font-display font-extrabold text-foreground text-[64px] sm:text-[72px] leading-none tabular-nums tracking-[-0.035em]"
+            />
             <span className="font-mono text-caption text-muted-foreground tabular-nums">
               / 3,000
             </span>
@@ -394,9 +403,11 @@ function ScoreShowcaseCard() {
               forecast score · @itoldyouso
             </p>
             <div className="flex items-baseline gap-3">
-              <span className="font-display font-extrabold text-foreground text-[88px] sm:text-[112px] leading-none tabular-nums tracking-[-0.04em]">
-                2,471
-              </span>
+              <AnimatedNumber
+                to={2471}
+                duration={1.4}
+                className="font-display font-extrabold text-foreground text-[88px] sm:text-[112px] leading-none tabular-nums tracking-[-0.04em]"
+              />
               <span className="font-mono text-body-sm text-muted-foreground tabular-nums">
                 / 3,000
               </span>
@@ -721,75 +732,100 @@ function Categories() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-          <CategoryCard
-            icon={<Atom className="size-5" strokeWidth={1.5} />}
-            name="Tech & AI"
-            example="Will GPT-5 launch before July 2026?"
-            volume="48 open"
+        {/* Bento grid: Tech & AI is the featured cell (2 cols × 2 rows),
+            other categories radiate around it. */}
+        <BentoGrid>
+          <BentoGridItem
+            className="md:col-span-2 md:row-span-2 bg-surface"
+            icon={<Atom className="size-6" strokeWidth={1.5} />}
+            title="Tech & AI"
+            description={
+              <span className="font-stylized italic text-body text-muted-foreground">
+                Will GPT-5 launch before July 2026?
+              </span>
+            }
+            footer={
+              <CategoryFooter
+                volume="48"
+                trend="+12 this week"
+              />
+            }
           />
-          <CategoryCard
+          <BentoGridItem
             icon={<Bitcoin className="size-5" strokeWidth={1.5} />}
-            name="Crypto"
-            example="BTC above $120K by EOY 2026?"
-            volume="36 open"
+            title="Crypto"
+            description={
+              <span className="font-stylized italic">
+                BTC above $120K by EOY 2026?
+              </span>
+            }
+            footer={<CategoryFooter volume="36" />}
           />
-          <CategoryCard
+          <BentoGridItem
             icon={<Trophy className="size-5" strokeWidth={1.5} />}
-            name="Sports"
-            example="Lakers win the 2026 NBA Finals?"
-            volume="62 open"
+            title="Sports"
+            description={
+              <span className="font-stylized italic">
+                Lakers win the 2026 NBA Finals?
+              </span>
+            }
+            footer={<CategoryFooter volume="62" />}
           />
-          <CategoryCard
+          <BentoGridItem
             icon={<Tv className="size-5" strokeWidth={1.5} />}
-            name="Pop culture"
-            example="Will Dune Part 3 hit $700M box office?"
-            volume="22 open"
+            title="Pop culture"
+            description={
+              <span className="font-stylized italic">
+                Dune Part 3 hits $700M box office?
+              </span>
+            }
+            footer={<CategoryFooter volume="22" />}
           />
-          <CategoryCard
+          <BentoGridItem
             icon={<Vote className="size-5" strokeWidth={1.5} />}
-            name="Politics"
-            example="UK general election by Q4 2026?"
-            volume="14 open"
+            title="Politics"
+            description={
+              <span className="font-stylized italic">
+                UK general election by Q4 2026?
+              </span>
+            }
+            footer={<CategoryFooter volume="14" />}
           />
-          <CategoryCard
+          <BentoGridItem
+            className="md:col-span-2"
             icon={<Zap className="size-5" strokeWidth={1.5} />}
-            name="Markets"
-            example="Fed pauses rates in May FOMC?"
-            volume="29 open"
+            title="Markets"
+            description={
+              <span className="font-stylized italic text-body text-muted-foreground">
+                Fed pauses rates in the May FOMC meeting?
+              </span>
+            }
+            footer={<CategoryFooter volume="29" trend="resolves in 17 days" />}
           />
-        </div>
+        </BentoGrid>
       </Container>
     </section>
   );
 }
 
-function CategoryCard({
-  icon,
-  name,
-  example,
+function CategoryFooter({
   volume,
+  trend,
 }: {
-  icon: React.ReactNode;
-  name: string;
-  example: string;
   volume: string;
+  trend?: string;
 }) {
   return (
-    <Card className="bg-surface border-border hover:border-border-strong transition-colors gap-0 py-0 rounded-2xl">
-      <CardContent className="px-6 py-6 flex flex-col gap-4 h-full">
-        <div className="flex items-center justify-between text-muted-foreground">
-          <span aria-hidden>{icon}</span>
-          <span className="font-mono text-caption">{volume}</span>
-        </div>
-        <p className="font-display text-title text-foreground -tracking-[0.015em]">
-          {name}
-        </p>
-        <p className="text-body-sm text-muted-foreground leading-[1.55] italic font-stylized">
-          {example}
-        </p>
-      </CardContent>
-    </Card>
+    <div className="flex items-baseline justify-between gap-3 border-t border-border pt-3">
+      <span className="font-mono text-caption text-muted-foreground">
+        {volume} open
+      </span>
+      {trend ? (
+        <span className="font-mono text-caption text-signal-positive">
+          {trend}
+        </span>
+      ) : null}
+    </div>
   );
 }
 
