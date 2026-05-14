@@ -66,7 +66,7 @@
    Theme — map design tokens to Tailwind v4 utilities
 ===================================================================== */
 @theme inline {
-  /* color */
+  /* color — design tokens */
   --color-background:           var(--background);
   --color-foreground:           var(--foreground);
   --color-surface:              var(--surface);
@@ -85,6 +85,18 @@
   --color-signal-negative-soft: var(--signal-negative-soft);
   --color-signal-neutral:       var(--signal-neutral);
   --color-ring:                 var(--ring);
+
+  /* shadcn token aliases — mechanical bindings so the primitive defaults
+     render against our DESIGN.md tokens. Do NOT introduce new design
+     decisions here. */
+  --color-card:                 var(--surface);
+  --color-card-foreground:      var(--foreground);
+  --color-popover:              var(--surface-elevated);
+  --color-popover-foreground:   var(--foreground);
+  --color-secondary:            var(--muted);
+  --color-secondary-foreground: var(--foreground);
+  --color-destructive:          var(--signal-negative);
+  --color-input:                var(--border);
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
