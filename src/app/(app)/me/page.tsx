@@ -1,14 +1,11 @@
-import { EmptyState } from "@/components/app/empty-state";
+import { redirect } from "next/navigation";
 
-export const metadata = { title: "Profile" };
+import { getCurrentProfile } from "@/lib/auth";
 
-export default function ProfilePage() {
-  return (
-    <EmptyState
-      overline="profile · phase 1"
-      title="No score yet."
-      body="A Forecast Score appears here once you've resolved at least five predictions. Until then your profile is unranked."
-      cta={{ label: "Back to feed", href: "/feed" }}
-    />
-  );
+export default async function MeRedirectPage() {
+  const profile = await getCurrentProfile();
+  // Layout gate guarantees we're authenticated + onboarded, so profile is
+  // definitely set here.
+  if (!profile) redirect("/sign-in");
+  redirect(`/u/${profile.username}`);
 }

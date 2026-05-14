@@ -25,13 +25,13 @@ Each phase ends with a checkpoint. **Stop at every checkpoint and ask for review
 
 **Goal:** A user can sign up, set a username, see an empty profile.
 
-1. Set up Supabase project. Configure email + Google + Apple providers.
+1. Set up Supabase project. **Auth settings (Phase 1 dev):** enable Email provider, disable "Confirm email," disable "Secure password change," disable Google/Apple (defer per `TECH_STACK.md` "Sign-in methods"). Capture `NEXT_PUBLIC_SUPABASE_URL`, anon key, service-role key, and the direct-postgres `DATABASE_URL` (Drizzle uses the direct connection, not the pooler).
 2. Install `@supabase/supabase-js`, `@supabase/ssr`, `drizzle-orm`, `drizzle-kit`, `postgres`.
 3. Build `lib/supabase/{server,client,admin}.ts` per `ARCHITECTURE.md`.
 4. Add `src/middleware.ts` to refresh sessions on every request.
 5. Author `lib/db/schema.ts` with `users` and `categories` tables. Generate and apply migration. Seed categories.
 6. Add the auth-user trigger from `DATABASE.md` so a `users` row appears on signup.
-7. Build `/sign-in` and `/sign-up` pages (magic link primary, OAuth buttons). Match design system. No shadcn defaults visible.
+7. Build `/sign-in` and `/sign-up` pages. **Phase 1:** email + password (`supabase.auth.signInWithPassword` / `signUp`) so the playwright MCP can drive the flow end-to-end. Form built on `react-hook-form` + zod, matching the design system — no shadcn defaults visible. Sign-up creates the auth.users row; the `handle_new_auth_user` trigger creates the matching `public.users` row.
 8. Build the **onboarding flow** — after first sign-in, user must pick a username (3–20 lower-alphanum + underscore) and display name before reaching `/feed`. Server-side validate uniqueness.
 9. Build a minimal `/u/[username]` profile page: avatar, display name, handle, bio, "Unranked" badge. Empty states for prediction history.
 10. Build `/settings` with: change display name, change bio, upload avatar (Supabase Storage), sign out.

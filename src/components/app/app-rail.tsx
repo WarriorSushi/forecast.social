@@ -3,35 +3,41 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { ThemeToggle } from "@/components/theme-toggle";
-import { NAV_ITEMS, type NavItem } from "@/components/app/nav-items";
+import { getNavItems, type NavItem } from "@/components/app/nav-items";
+import { UserMenu } from "@/components/app/user-menu";
 import { cn } from "@/lib/utils";
+import type { CurrentProfile } from "@/lib/auth";
 
-export function AppRail() {
+export function AppRail({ profile }: { profile: CurrentProfile }) {
   const pathname = usePathname();
+  const items = getNavItems(profile.username);
 
   return (
     <aside className="hidden lg:flex w-[240px] shrink-0 sticky top-0 self-start h-screen flex-col py-8 pr-2">
       <Link
         href="/"
-        className="font-display text-title leading-none mb-10 px-3 hover:opacity-90 transition-opacity"
+        className="font-stylized text-title font-semibold leading-none tracking-tight mb-10 px-3 hover:opacity-90 transition-opacity"
       >
         forecast<span className="text-accent">.</span>social
       </Link>
 
       <nav className="flex flex-col gap-1">
-        {NAV_ITEMS.map((item) => (
+        {items.map((item) => (
           <RailItem
             key={item.href}
             item={item}
-            active={isActive(pathname, item.href)}
+            active={isActive(pathname, item)}
           />
         ))}
       </nav>
 
-      <div className="mt-auto px-3 flex items-center gap-3">
-        <ThemeToggle />
-        <span className="text-overline text-muted-foreground">v0.1 · phase 0</span>
+      <div className="mt-auto -mx-1">
+        <UserMenu
+          username={profile.username}
+          displayName={profile.display_name}
+          email={profile.email}
+          avatarUrl={profile.avatar_url}
+        />
       </div>
     </aside>
   );
@@ -64,8 +70,9 @@ function RailItem({ item, active }: { item: NavItem; active: boolean }) {
   );
 }
 
-function isActive(pathname: string | null, href: string) {
+function isActive(pathname: string | null, item: NavItem) {
   if (!pathname) return false;
-  if (href === "/") return pathname === "/";
-  return pathname === href || pathname.startsWith(`${href}/`);
+  if (pathname === item.href) return true;
+  if (pathname.startsWith(`${item.href}/`)) return true;
+  return item.alsoActiveOn?.some((p) => pathname === p || pathname.startsWith(`${p}/`)) ?? false;
 }

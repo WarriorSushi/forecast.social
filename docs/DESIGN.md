@@ -4,56 +4,62 @@ The product looks like nothing else in its category. That is the brief.
 
 ## 1. Philosophy
 
-**Editorial confidence meets data terminal.**
+**Bold premium. Restrained, modern, confident.**
 
-Think: The Athletic's typography married to Bloomberg's information density, photographed by Pentagram, paced by Linear, animated like Cron. Cream paper, ink, phosphor accents. Numbers treated like headlines. Whitespace earned through restraint, not avoided through fear.
+Think: Stripe's marketing pages, Linear's product UI, Cash App's typographic confidence, Apple's negative space. Big sans display, oversized numbers, generous whitespace, surfaces distinguished by spacing more than chrome. No editorial flourishes — no italics-as-mood, no kicker overlines that feel like newspaper kickers, no cream paper.
 
-Two design failures to avoid:
+Three design failures to avoid:
 
-1. **AI-default sterility.** Indigo gradients, Inter everywhere, slate-900 backgrounds, glassmorphism nothing. We are explicitly *not* doing this.
-2. **Crypto-bro maximalism.** Glow effects, neon-on-black, "futuristic" fonts, animated everything. Also not us.
+1. **AI-default sterility.** Indigo gradients on slate-900, Inter everywhere, glassmorphism nothing. Not us.
+2. **Crypto-bro maximalism.** Glow effects, neon-on-black, "futuristic" fonts, animated everything. Not us.
+3. **Editorial / newspaper.** Cream paper, italic display serif everywhere, narrow column rules, "kicker" copy patterns. We tried this. The user rejected it. The design pivot is recorded in `phase-1.5/design-pivot`. Do not regress.
 
-We are warm, considered, slightly editorial in light mode; deep, premium, slightly clandestine in dark mode. Same product, two moods.
+We are cool, decisive, sans-only in product UI; lifted-neutral dark and near-white light. Same product, two moods, both unmistakably modern.
 
 ## 2. Typography
 
-Three faces, each with a clear job. Loaded via `next/font/google`.
+Three product faces. Geist is the workhorse; Bricolage Grotesque carries brand voice in two reserved moments.
 
-| Role            | Family               | Weights         | When                                                               |
-|-----------------|----------------------|-----------------|--------------------------------------------------------------------|
-| **Display**     | **Instrument Serif** | 400 + 400 italic | Hero numbers, page headlines, market titles, oversized scores.    |
-| **Body**        | **Geist**            | 400 / 500 / 600 / 700 | All UI text, buttons, labels, body copy.                    |
-| **Numeric / Mono** | **Geist Mono**    | 400 / 500 / 600 | Probabilities, scores, timestamps, tickers, code, percentages.    |
+| Role               | Family                          | Weights              | When                                                                                  |
+|--------------------|---------------------------------|----------------------|---------------------------------------------------------------------------------------|
+| **Display**        | **Geist** (700 / 800)           | 700 / 800            | Every hero headline, every section title, every oversized number.                     |
+| **Body**           | **Geist** (400 / 500 / 600)     | 400 / 500 / 600      | All body copy, buttons, labels.                                                       |
+| **Numeric / Mono** | **Geist Mono**                  | 500 / 600            | Probabilities, scores, timestamps, tickers, code, percentages.                        |
+| **Stylized**       | **Fraunces** (variable, roman)  | 400 / 500            | Two places only: (1) the `forecast.social` wordmark; (2) the hero sub-heading.        |
+
+Loaded via the `geist` package + `next/font/google` for Fraunces. Fraunces is a variable optical-sized serif — used **roman only, never italic**. That distinction matters: italic display serif everywhere is what made the prior pass read as newspaper; Fraunces roman at sub-heading size reads as modern editorial-display.
+
+**Fraunces's job** is to give the brand a beautiful, distinctive voice in a system that is otherwise sans-only and neutral. Two appearances per screen, max — the wordmark in the chrome, and the hero sub-heading. Anywhere else and we drift back into editorial. Share cards (Phase 6) also use Geist (800 at display sizes for the headline, Geist Mono for the number) plus Fraunces for the wordmark; no Fraunces in body copy of the card.
 
 ### Type scale (tailwind tokens)
 
 ```
-text-display-xl  → 96px / 0.95 / -0.04em / Instrument Serif
-text-display-lg  → 72px / 0.95 / -0.03em / Instrument Serif
-text-display-md  → 56px / 0.98 / -0.025em / Instrument Serif
-text-display-sm  → 40px / 1.0  / -0.02em / Instrument Serif
-text-headline    → 32px / 1.05 / -0.015em / Instrument Serif
-text-title       → 24px / 1.15 / -0.01em / Geist 600
-text-body-lg     → 18px / 1.5 / 0 / Geist 400
-text-body        → 16px / 1.55 / 0 / Geist 400
-text-body-sm     → 14px / 1.5 / 0 / Geist 400
-text-caption     → 13px / 1.4 / 0.01em / Geist 500
-text-overline    → 11px / 1.2 / 0.12em uppercase / Geist 600
+text-display-xl  → 112px / 0.92 / -0.045em / Geist 800
+text-display-lg  → 80px  / 0.94 / -0.035em / Geist 800
+text-display-md  → 56px  / 0.96 / -0.03em  / Geist 700
+text-display-sm  → 40px  / 1.0  / -0.025em / Geist 700
+text-headline    → 28px  / 1.1  / -0.02em  / Geist 700
+text-title       → 20px  / 1.2  / -0.015em / Geist 600
+text-body-lg     → 18px  / 1.55 / -0.005em / Geist 400
+text-body        → 16px  / 1.6  / -0.003em / Geist 400
+text-body-sm     → 14px  / 1.55 / 0        / Geist 400
+text-caption     → 13px  / 1.45 / 0        / Geist 500
+text-overline    → 11px  / 1.2  / 0.08em uppercase / Geist 600
 ```
 
-Monospace inherits the same scale but in **Geist Mono**, used for any digit-forward UI: scores, probabilities, deltas, timestamps.
+Monospace inherits the same scale but in **Geist Mono** (500 weight for stat displays, 400 for inline ticker text). Used for any digit-forward UI: scores, probabilities, deltas, timestamps.
 
 ### Rules
 
-- **Display serif only at 24px and up.** It looks silly small.
-- **Italic Instrument Serif is allowed for one or two-word flourishes** (a category label, a "Right!" stamp on a winning card). Use sparingly.
+- **Sans display at every size.** Geist 700/800 carries headlines. No italic, no serif.
 - **No font-smoothing tricks.** Default rendering.
-- **Tabular numerics on:** `font-variant-numeric: tabular-nums` everywhere a digit appears. Critical for tickers.
-- **Optical letter-spacing:** display sizes get tighter tracking (negative), small caps and overlines get wider tracking (positive).
+- **Tabular numerics on:** `font-variant-numeric: tabular-nums` everywhere a digit appears. Critical for tickers and scores.
+- **Letter-spacing scales with size.** Bigger display = tighter tracking. Overlines get +0.08em positive tracking; nothing else needs positive tracking.
+- **Display weight peaks at 800.** Don't go heavier (Geist Black would feel heavy / display-typeface adjacent). 800 keeps the Stripe/Linear feel.
 
 ## 3. Color
 
-OKLCH throughout. Two themes. Light is the default — flip the contract: many products default to dark and force light. We do the opposite to feel newspaper-warm out of the box.
+OKLCH throughout. Two themes. Cool neutral palette — no warm cream, no warm ink. Light defaults so first impressions feel airy; dark is genuinely lifted, not pure ink.
 
 ### Tokens (paste into `globals.css`)
 
@@ -64,57 +70,56 @@ OKLCH throughout. Two themes. Light is the default — flip the contract: many p
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Light — "Newsroom" */
-  --background:           oklch(97.5% 0.012 85);   /* warm cream paper */
-  --foreground:           oklch(15% 0.015 60);     /* deep ink */
-  --surface:              oklch(99% 0.008 85);     /* slightly brighter card */
-  --surface-elevated:     oklch(100% 0 0);         /* pure white for floating */
-  --border:               oklch(88% 0.012 75);     /* soft warm rule */
-  --border-strong:        oklch(78% 0.015 70);
-  --muted:                oklch(93% 0.012 80);
-  --muted-foreground:     oklch(45% 0.015 60);
+  /* Light — cool neutral */
+  --background:           oklch(98.5% 0.003 250);  /* near-white, faintest cool tint */
+  --foreground:           oklch(14% 0.012 260);    /* near-black, neutral cool */
+  --surface:              oklch(100% 0 0);         /* pure white card */
+  --surface-elevated:     oklch(100% 0 0);
+  --border:               oklch(92% 0.004 250);    /* hairline cool */
+  --border-strong:        oklch(85% 0.005 250);
+  --muted:                oklch(95.5% 0.004 250);
+  --muted-foreground:     oklch(48% 0.012 260);
 
-  --primary:              oklch(20% 0.02 60);      /* ink — primary is text-tier */
-  --primary-foreground:   oklch(97% 0.012 85);
+  --primary:              oklch(18% 0.015 260);    /* near-black */
+  --primary-foreground:   oklch(99% 0.002 250);
 
-  --accent:               oklch(64% 0.18 55);      /* solar — warm orange-gold accent */
-  --accent-foreground:    oklch(15% 0.015 60);
+  --accent:               oklch(58% 0.22 258);     /* vivid indigo-blue — used SPARINGLY */
+  --accent-foreground:    oklch(99% 0.005 258);
 
-  --signal-positive:      oklch(58% 0.18 145);     /* phosphor green — "called it" */
-  --signal-positive-soft: oklch(92% 0.06 145);
-  --signal-negative:      oklch(55% 0.20 25);      /* clay red — "missed" */
-  --signal-negative-soft: oklch(93% 0.06 25);
+  --signal-positive:      oklch(60% 0.18 150);     /* called it */
+  --signal-positive-soft: oklch(94% 0.04 150);
+  --signal-negative:      oklch(58% 0.21 25);      /* missed */
+  --signal-negative-soft: oklch(95% 0.04 25);
   --signal-neutral:       oklch(60% 0.04 250);
 
-  --ring:                 oklch(20% 0.02 60);
-  --radius:               0.625rem;
+  --ring:                 oklch(18% 0.015 260);
+  --radius:               0.75rem;                  /* slightly rounder than before */
 }
 
 .dark {
-  /* Dark — "Late Edition" */
-  --background:           oklch(13% 0.012 60);     /* deep ink, warmth retained */
-  --foreground:           oklch(94% 0.012 85);     /* warm off-white */
-  --surface:              oklch(16% 0.012 60);     /* card */
-  --surface-elevated:     oklch(19% 0.012 60);
-  --border:               oklch(24% 0.012 60);
-  --border-strong:        oklch(32% 0.012 60);
-  --muted:                oklch(20% 0.012 60);
-  --muted-foreground:     oklch(65% 0.012 60);
+  /* Dark — lifted neutral */
+  --background:           oklch(18% 0.005 260);    /* lifted base, cool neutral */
+  --foreground:           oklch(97% 0.003 250);    /* near-white, slightly cool */
+  --surface:              oklch(21% 0.005 260);    /* card sits clearly above base */
+  --surface-elevated:     oklch(25% 0.006 260);    /* floating menus */
+  --border:               oklch(29% 0.006 260);    /* visible but soft */
+  --border-strong:        oklch(38% 0.007 260);
+  --muted:                oklch(24% 0.005 260);
+  --muted-foreground:     oklch(70% 0.008 260);
 
-  --primary:              oklch(94% 0.012 85);
-  --primary-foreground:   oklch(13% 0.012 60);
+  --primary:              oklch(97% 0.003 250);
+  --primary-foreground:   oklch(18% 0.005 260);
 
-  --accent:               oklch(74% 0.16 70);      /* warmer in dark */
-  --accent-foreground:    oklch(13% 0.012 60);
+  --accent:               oklch(70% 0.20 258);     /* lifted indigo-blue for dark */
+  --accent-foreground:    oklch(18% 0.005 260);
 
-  --signal-positive:      oklch(72% 0.20 145);     /* brighter phosphor on dark */
-  --signal-positive-soft: oklch(28% 0.10 145);
-  --signal-negative:      oklch(68% 0.22 25);
-  --signal-negative-soft: oklch(28% 0.10 25);
-  --signal-neutral:       oklch(70% 0.04 250);
+  --signal-positive:      oklch(72% 0.19 150);
+  --signal-positive-soft: oklch(30% 0.08 150);
+  --signal-negative:      oklch(70% 0.22 25);
+  --signal-negative-soft: oklch(30% 0.08 25);
+  --signal-neutral:       oklch(72% 0.04 250);
 
-  --ring:                 oklch(94% 0.012 85);
-  --radius:               0.625rem;
+  --ring:                 oklch(97% 0.003 250);
 }
 
 @theme inline {
@@ -137,18 +142,22 @@ OKLCH throughout. Two themes. Light is the default — flip the contract: many p
   --color-signal-neutral:       var(--signal-neutral);
   --color-ring:                 var(--ring);
 
-  --font-display: "Instrument Serif", ui-serif, Georgia, serif;
-  --font-sans:    "Geist", ui-sans-serif, system-ui, sans-serif;
-  --font-mono:    "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  /* Three faces. font-stylized is Bricolage Grotesque, reserved for
+     the wordmark and the hero sub-heading. */
+  --font-display:  "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-sans:     "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-mono:     "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --font-stylized: "Fraunces", ui-serif, Georgia, serif;
 }
 ```
 
 ### Color usage rules
 
 - **`background` and `foreground` carry 90% of the UI.** Don't reach for accents.
-- **`accent` (solar) is for moments of warmth and brand.** The dot on the `i` in the logo, the highlighted overline on the active nav item, the streak flame badge. Not for primary buttons.
-- **Signal colors (positive/negative) are for outcomes only.** Never use them for "info" or "warning" or random UI states. A green pill means a right call. A red pill means a wrong call. Nothing else.
-- **No semantic gray ramp beyond `muted` / `muted-foreground` / `border` / `border-strong`.** If you find yourself needing a sixth gray, you are over-designing.
+- **`accent` is rare.** The dot on the `i` in the wordmark, the active-tab underline, the streak badge. Not on primary buttons. Use ≤ 3 times per screen.
+- **Primary buttons are filled near-black on light / near-white on dark.** No brand-color CTAs in v1.
+- **Signal colors (positive/negative) are for outcomes only.** Never for "info" / "warning" / random UI states. Green pill = correct call. Red pill = missed call. Nothing else.
+- **No semantic gray ramp beyond `muted` / `muted-foreground` / `border` / `border-strong`.** Six grays = over-designed.
 
 ## 4. Surface hierarchy
 
@@ -190,10 +199,10 @@ The product is shadcn primitives, restyled to our identity. Below are component-
 
 ```
 ┌────────────────────────────────────────────────┐
-│  CATEGORY • OVERLINE                  3d left  │
+│  CATEGORY                            3d left   │
 │                                                │
-│  Will GPT-5 launch before          Display 24  │
-│  July 1, 2026?                                 │
+│  Will GPT-5 launch before          Geist 700   │
+│  July 1, 2026?                     20-24px     │
 │                                                │
 │  ▁▂▃▅▆▇▇▆ consensus over 14 days   sparkline   │
 │                                                │
@@ -204,27 +213,28 @@ The product is shadcn primitives, restyled to our identity. Below are component-
 └────────────────────────────────────────────────┘
 ```
 
-- Category overline in `text-overline`, accent color.
-- Title in Instrument Serif at 24–28px.
+- Category overline in `text-overline` (uppercase, +0.08em tracking), muted-foreground.
+- Title in Geist 700 at 20–24px (`text-title`).
 - Sparkline as inline SVG, signal-positive when trending up, signal-negative trending down.
 - Predict CTA is a slider revealed inline, not a modal.
 
 ### Forecast Score (the brand asset)
 
-On a profile, the score takes a full screen-width display moment. Render at `text-display-xl` (96px) in **Instrument Serif italic** if the user is in the top 10%, regular otherwise. Below the number: a single line of `text-overline` reading the rank ("TOP 1% • TECH & AI"). To the right: a 6-point category radar in 64px.
+On a profile, the score takes a full screen-width display moment. Render at `text-display-xl` (112px) in **Geist 800** with tight letter-spacing. Below the number: a single line of `text-overline` reading the rank ("TOP 1% · TECH & AI"). To the right: a 6-point category radar in 64px.
 
 ### Share card (the receipt)
 
 A 1080×1080 PNG generated server-side via `@vercel/og` or `satori`. Includes:
 
-- The user's handle + Forecast Score badge.
-- The market title.
-- Their prediction probability + the consensus at the time + the actual outcome.
+- The user's handle + Forecast Score badge in Geist 700.
+- The market title in Geist 700 at display-md.
+- The score number in **Geist 800 at 240–280px**, tabular nums, dominating the upper third — this is the poster moment.
+- Their prediction probability + the consensus at the time + the actual outcome, set in Geist Mono.
 - A sparkline of the market's resolution path.
 - A small `forecast.social` wordmark, bottom-right.
-- Background: cream paper texture (light) or carbon black (dark) — user picks at share time.
+- Background: same cool neutral palette as the product (`background` token), no paper texture. Two themes match the product themes one-for-one.
 
-Treat the share card as a poster, not a screenshot. It is the marketing.
+Sans-only across the entire card. The poster feeling comes from typographic scale and negative space, not from a special typeface. Treat the share card as a poster, not a screenshot. It is the marketing.
 
 ### Inputs & sliders
 
@@ -281,7 +291,7 @@ Restrained. Motion should clarify, not decorate.
 
 Empty states are an opportunity. Each empty state has:
 
-- A short Instrument Serif line ("Nothing to call yet.")
+- A short Geist 700 line at `text-display-sm` ("Nothing to call yet.")
 - One body line of context ("Predictions you make will appear here.")
 - One CTA, ghost button.
 
@@ -291,15 +301,16 @@ Loading: skeleton bars in `muted`, not spinners. Never a full-page spinner.
 
 Before shipping any screen, verify:
 
-- [ ] Typography is mixed (serif display + sans body + mono numbers).
+- [ ] Display is **Geist 700/800**. No serif anywhere. Italic display is a red flag.
 - [ ] No purple gradients, no glassmorphism, no neon glow.
+- [ ] No cream / warm-paper backgrounds. Cool neutral palette only.
 - [ ] Numbers are in Geist Mono with tabular-nums.
-- [ ] Light mode is genuinely beautiful, not just "white background."
-- [ ] Dark mode is warm-deep, not flat slate.
-- [ ] Borders are visible but soft.
-- [ ] One accent color appears, used sparingly.
+- [ ] Light mode reads airy and near-white, not yellow-tinted.
+- [ ] Dark mode reads as a lifted neutral, not pure ink.
+- [ ] Borders are visible but soft (no thick rules, no shadow-as-border).
+- [ ] Accent appears ≤ 3 times on the screen, never on the primary CTA.
 - [ ] Hover and focus states are designed, not default.
-- [ ] Spacing is generous around display type.
-- [ ] The screen could appear in a Linear/Vercel/Arc Browser case study.
+- [ ] Spacing is generous around display type — Stripe-density, not magazine-density.
+- [ ] The screen could appear in a Stripe / Linear / Vercel / Cash App case study.
 
 If two or more checkboxes fail, redesign.

@@ -66,7 +66,10 @@ We use **Supabase Postgres for data and Supabase Auth for sessions.** Drizzle ow
 - App Router support via `@supabase/ssr` is solid in 2026.
 - We don't need Clerk's pre-built UI; our design language is too specific.
 
-Sign-in methods at launch: **Email magic link + Google OAuth + Apple OAuth**.
+Sign-in methods:
+
+- **Phase 1 (dev)** — Email + password, with "confirm email" disabled in the Supabase project. Reason: the AI agent needs to drive sign-in end-to-end in a browser via the playwright MCP at every checkpoint, and a magic-link flow would block on inbox access. A canonical test account (`test@test.com` / `testtest`) is created during Phase 1.
+- **Pre-launch** — Revisit. Either re-enable email confirmation and keep password, or migrate to magic link + Google OAuth (the original intent). Either path requires also turning the sign-in form into something a real user would trust — no `test@test.com` placeholder copy, real password strength rules, the works.
 
 ## Background jobs
 

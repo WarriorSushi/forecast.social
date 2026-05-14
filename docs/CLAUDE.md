@@ -28,7 +28,7 @@ Read in this order. Do not skip.
 - **No betting, no wagering, no real money flowing between users.** Ever.
 - **Probabilities, not yes/no.** Predictions are always 0–100%, not binary picks.
 - **Predictions are locked.** A user can re-predict (adding to their history) but can never edit a past prediction. The receipt is the product.
-- **Light and dark mode must both be beautiful.** Light is editorial, warm, confident. Dark is premium, deep, refined. See `DESIGN.md`. Never ship something that only looks good in dark.
+- **Light and dark mode must both be beautiful.** Bold premium in both: cool neutral palette, Geist 700/800 display, indigo accent used sparingly. Light is near-white and airy; dark is a lifted neutral, not pure ink. See `DESIGN.md`. Never ship something that only looks good in dark.
 - **Mobile-first.** Every screen designed for 390px before desktop.
 - **Numbers are heroes.** Forecast Scores, probabilities, streaks — these are the brand. Treat them with typographic respect.
 - **Server Components by default.** Drop to client only when interactivity demands it.

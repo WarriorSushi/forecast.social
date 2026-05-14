@@ -49,11 +49,11 @@ const SIGNAL_TOKENS = [
 
 const TYPE_SCALE = [
   { name: "display-xl",  className: "text-display-xl font-display",  sample: "2,471" },
-  { name: "display-lg",  className: "text-display-lg font-display",  sample: "Be right" },
-  { name: "display-md",  className: "text-display-md font-display",  sample: "Get famous" },
-  { name: "display-sm",  className: "text-display-sm font-display",  sample: "Receipts for everything" },
+  { name: "display-lg",  className: "text-display-lg font-display",  sample: "Be right." },
+  { name: "display-md",  className: "text-display-md font-display",  sample: "Get famous." },
+  { name: "display-sm",  className: "text-display-sm font-display",  sample: "Receipts for everything." },
   { name: "headline",    className: "text-headline font-display",    sample: "Will GPT-5 launch by July?" },
-  { name: "title",       className: "text-title font-sans font-semibold", sample: "Tech & AI" },
+  { name: "title",       className: "text-title font-sans",          sample: "Tech & AI" },
   { name: "body-lg",     className: "text-body-lg font-sans",        sample: "The track-record social network." },
   { name: "body",        className: "text-body font-sans",           sample: "Predict anything." },
   { name: "body-sm",     className: "text-body-sm font-sans",        sample: "Locked in at 73%." },
@@ -72,7 +72,7 @@ export default function DesignDebugPage() {
           <div className="flex items-center gap-4">
             <Link
               href="/"
-              className="font-display text-title leading-none hover:opacity-90 transition-opacity"
+              className="font-stylized text-title font-semibold leading-none tracking-tight hover:opacity-90 transition-opacity"
             >
               forecast<span className="text-accent">.</span>social
             </Link>
@@ -173,12 +173,16 @@ function TypographySection() {
           </div>
         ))}
         <Separator />
-        <div className="flex flex-wrap items-baseline gap-x-8 gap-y-4">
-          <p className="font-mono text-body tabular-nums text-foreground">
+        <div className="flex flex-col gap-3">
+          <p className="text-overline text-muted-foreground">
+            tabular numerics · Geist Mono
+          </p>
+          <p className="font-mono text-display-sm tabular-nums text-foreground font-medium tracking-tight">
             2,471 · 73% · 47-day streak
           </p>
-          <p className="font-display text-title italic text-foreground">
-            Italic Instrument Serif (allowed sparingly)
+          <p className="text-caption text-muted-foreground">
+            Product UI is sans-only. Share cards (Phase 6) use Geist 800 at
+            display sizes + Geist Mono for the score number.
           </p>
         </div>
       </div>

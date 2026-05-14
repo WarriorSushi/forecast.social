@@ -8,7 +8,7 @@ export function AppMobileHeader() {
       <div className="flex items-center justify-between h-14 px-5">
         <Link
           href="/"
-          className="font-display text-title leading-none hover:opacity-90 transition-opacity"
+          className="font-stylized text-title font-semibold leading-none tracking-tight hover:opacity-90 transition-opacity"
         >
           forecast<span className="text-accent">.</span>social
         </Link>
