@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { ThemeToggle } from "@/components/theme-toggle";
 import { NAV_ITEMS, type NavItem } from "@/components/app/nav-items";
+import { UserMenu } from "@/components/app/user-menu";
 import { cn } from "@/lib/utils";
+import type { CurrentProfile } from "@/lib/auth";
 
-export function AppRail() {
+export function AppRail({ profile }: { profile: CurrentProfile }) {
   const pathname = usePathname();
 
   return (
@@ -29,9 +30,13 @@ export function AppRail() {
         ))}
       </nav>
 
-      <div className="mt-auto px-3 flex items-center gap-3">
-        <ThemeToggle />
-        <span className="text-overline text-muted-foreground">v0.1 · phase 0</span>
+      <div className="mt-auto -mx-1">
+        <UserMenu
+          username={profile.username}
+          displayName={profile.display_name}
+          email={profile.email}
+          avatarUrl={profile.avatar_url}
+        />
       </div>
     </aside>
   );
