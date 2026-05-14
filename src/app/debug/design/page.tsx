@@ -49,11 +49,11 @@ const SIGNAL_TOKENS = [
 
 const TYPE_SCALE = [
   { name: "display-xl",  className: "text-display-xl font-display",  sample: "2,471" },
-  { name: "display-lg",  className: "text-display-lg font-display",  sample: "Be right" },
-  { name: "display-md",  className: "text-display-md font-display",  sample: "Get famous" },
-  { name: "display-sm",  className: "text-display-sm font-display",  sample: "Receipts for everything" },
+  { name: "display-lg",  className: "text-display-lg font-display",  sample: "Be right." },
+  { name: "display-md",  className: "text-display-md font-display",  sample: "Get famous." },
+  { name: "display-sm",  className: "text-display-sm font-display",  sample: "Receipts for everything." },
   { name: "headline",    className: "text-headline font-display",    sample: "Will GPT-5 launch by July?" },
-  { name: "title",       className: "text-title font-sans font-semibold", sample: "Tech & AI" },
+  { name: "title",       className: "text-title font-sans",          sample: "Tech & AI" },
   { name: "body-lg",     className: "text-body-lg font-sans",        sample: "The track-record social network." },
   { name: "body",        className: "text-body font-sans",           sample: "Predict anything." },
   { name: "body-sm",     className: "text-body-sm font-sans",        sample: "Locked in at 73%." },
@@ -174,11 +174,11 @@ function TypographySection() {
         ))}
         <Separator />
         <div className="flex flex-wrap items-baseline gap-x-8 gap-y-4">
-          <p className="font-mono text-body tabular-nums text-foreground">
+          <p className="font-mono text-body tabular-nums text-foreground font-medium">
             2,471 · 73% · 47-day streak
           </p>
-          <p className="font-display text-title italic text-foreground">
-            Italic Instrument Serif (allowed sparingly)
+          <p className="font-serif text-headline text-muted-foreground italic">
+            Instrument Serif — reserved for share cards only
           </p>
         </div>
       </div>

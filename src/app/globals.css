@@ -4,62 +4,62 @@
 @custom-variant dark (&:is(.dark *));
 
 /* =====================================================================
-   Light — "Newsroom"
-   Warm paper, deep ink, solar accent. Editorial-confidence palette.
+   Light — cool neutral
+   Near-white with the faintest cool tint. No paper / no cream.
 ===================================================================== */
 :root {
-  --background:           oklch(97.5% 0.012 85);
-  --foreground:           oklch(15% 0.015 60);
-  --surface:              oklch(99% 0.008 85);
+  --background:           oklch(98.5% 0.003 250);
+  --foreground:           oklch(14% 0.012 260);
+  --surface:              oklch(100% 0 0);
   --surface-elevated:     oklch(100% 0 0);
-  --border:               oklch(88% 0.012 75);
-  --border-strong:        oklch(78% 0.015 70);
-  --muted:                oklch(93% 0.012 80);
-  --muted-foreground:     oklch(45% 0.015 60);
+  --border:               oklch(92% 0.004 250);
+  --border-strong:        oklch(85% 0.005 250);
+  --muted:                oklch(95.5% 0.004 250);
+  --muted-foreground:     oklch(48% 0.012 260);
 
-  --primary:              oklch(20% 0.02 60);
-  --primary-foreground:   oklch(97% 0.012 85);
+  --primary:              oklch(18% 0.015 260);
+  --primary-foreground:   oklch(99% 0.002 250);
 
-  --accent:               oklch(64% 0.18 55);
-  --accent-foreground:    oklch(15% 0.015 60);
+  --accent:               oklch(62% 0.19 50);
+  --accent-foreground:    oklch(14% 0.012 260);
 
-  --signal-positive:      oklch(58% 0.18 145);
-  --signal-positive-soft: oklch(92% 0.06 145);
-  --signal-negative:      oklch(55% 0.20 25);
-  --signal-negative-soft: oklch(93% 0.06 25);
+  --signal-positive:      oklch(60% 0.18 150);
+  --signal-positive-soft: oklch(94% 0.04 150);
+  --signal-negative:      oklch(58% 0.21 25);
+  --signal-negative-soft: oklch(95% 0.04 25);
   --signal-neutral:       oklch(60% 0.04 250);
 
-  --ring:                 oklch(20% 0.02 60);
-  --radius:               0.625rem;
+  --ring:                 oklch(18% 0.015 260);
+  --radius:               0.75rem;
 }
 
 /* =====================================================================
-   Dark — "Late Edition"
-   Deep ink, warm off-white, phosphor signals. Premium, refined.
+   Dark — lifted neutral
+   Two steps lighter than the previous "ink" base. Cool, not warm.
 ===================================================================== */
 .dark {
-  --background:           oklch(13% 0.012 60);
-  --foreground:           oklch(94% 0.012 85);
-  --surface:              oklch(16% 0.012 60);
-  --surface-elevated:     oklch(19% 0.012 60);
-  --border:               oklch(24% 0.012 60);
-  --border-strong:        oklch(32% 0.012 60);
-  --muted:                oklch(20% 0.012 60);
-  --muted-foreground:     oklch(65% 0.012 60);
+  --background:           oklch(18% 0.005 260);
+  --foreground:           oklch(97% 0.003 250);
+  --surface:              oklch(21% 0.005 260);
+  --surface-elevated:     oklch(25% 0.006 260);
+  --border:               oklch(29% 0.006 260);
+  --border-strong:        oklch(38% 0.007 260);
+  --muted:                oklch(24% 0.005 260);
+  --muted-foreground:     oklch(70% 0.008 260);
 
-  --primary:              oklch(94% 0.012 85);
-  --primary-foreground:   oklch(13% 0.012 60);
+  --primary:              oklch(97% 0.003 250);
+  --primary-foreground:   oklch(18% 0.005 260);
 
-  --accent:               oklch(74% 0.16 70);
-  --accent-foreground:    oklch(13% 0.012 60);
+  --accent:               oklch(72% 0.17 55);
+  --accent-foreground:    oklch(18% 0.005 260);
 
-  --signal-positive:      oklch(72% 0.20 145);
-  --signal-positive-soft: oklch(28% 0.10 145);
-  --signal-negative:      oklch(68% 0.22 25);
-  --signal-negative-soft: oklch(28% 0.10 25);
-  --signal-neutral:       oklch(70% 0.04 250);
+  --signal-positive:      oklch(72% 0.19 150);
+  --signal-positive-soft: oklch(30% 0.08 150);
+  --signal-negative:      oklch(70% 0.22 25);
+  --signal-negative-soft: oklch(30% 0.08 25);
+  --signal-neutral:       oklch(72% 0.04 250);
 
-  --ring:                 oklch(94% 0.012 85);
+  --ring:                 oklch(97% 0.003 250);
 }
 
 /* =====================================================================
@@ -87,8 +87,7 @@
   --color-ring:                 var(--ring);
 
   /* shadcn token aliases — mechanical bindings so the primitive defaults
-     render against our DESIGN.md tokens. Do NOT introduce new design
-     decisions here. */
+     render against our DESIGN.md tokens. */
   --color-card:                 var(--surface);
   --color-card-foreground:      var(--foreground);
   --color-popover:              var(--surface-elevated);
@@ -103,65 +102,74 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
-  /* font families — next/font injects --font-* variables on <html> */
-  --font-display: var(--font-instrument-serif), ui-serif, Georgia, serif;
+  /* font families — product UI is sans-only. font-display intentionally
+     resolves to Geist so existing `.font-display` className usages flow
+     through the weight from the type-scale token (800 on display-xl, 700
+     on display-md, etc.) without re-tagging every consumer. Serif is
+     reserved for share cards via the @font-face / family below. */
+  --font-display: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-sans:    var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono:    var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
+  --font-serif:   var(--font-instrument-serif), ui-serif, Georgia, serif;
 
-  /* type scale — Instrument Serif for display, Geist for everything else */
-  --text-display-xl: 96px;
-  --text-display-xl--line-height: 0.95;
-  --text-display-xl--letter-spacing: -0.04em;
-  --text-display-xl--font-weight: 400;
+  /* =====================================================================
+     Type scale — Bold premium direction. All display sizes are Geist
+     800/700. Letter-spacing tightens with size. Tabular nums default in
+     body — see base layer.
+  ===================================================================== */
+  --text-display-xl: 112px;
+  --text-display-xl--line-height: 0.92;
+  --text-display-xl--letter-spacing: -0.045em;
+  --text-display-xl--font-weight: 800;
 
-  --text-display-lg: 72px;
-  --text-display-lg--line-height: 0.95;
-  --text-display-lg--letter-spacing: -0.03em;
-  --text-display-lg--font-weight: 400;
+  --text-display-lg: 80px;
+  --text-display-lg--line-height: 0.94;
+  --text-display-lg--letter-spacing: -0.035em;
+  --text-display-lg--font-weight: 800;
 
   --text-display-md: 56px;
-  --text-display-md--line-height: 0.98;
-  --text-display-md--letter-spacing: -0.025em;
-  --text-display-md--font-weight: 400;
+  --text-display-md--line-height: 0.96;
+  --text-display-md--letter-spacing: -0.03em;
+  --text-display-md--font-weight: 700;
 
   --text-display-sm: 40px;
   --text-display-sm--line-height: 1;
-  --text-display-sm--letter-spacing: -0.02em;
-  --text-display-sm--font-weight: 400;
+  --text-display-sm--letter-spacing: -0.025em;
+  --text-display-sm--font-weight: 700;
 
-  --text-headline: 32px;
-  --text-headline--line-height: 1.05;
-  --text-headline--letter-spacing: -0.015em;
-  --text-headline--font-weight: 400;
+  --text-headline: 28px;
+  --text-headline--line-height: 1.1;
+  --text-headline--letter-spacing: -0.02em;
+  --text-headline--font-weight: 700;
 
-  --text-title: 24px;
-  --text-title--line-height: 1.15;
-  --text-title--letter-spacing: -0.01em;
+  --text-title: 20px;
+  --text-title--line-height: 1.2;
+  --text-title--letter-spacing: -0.015em;
   --text-title--font-weight: 600;
 
   --text-body-lg: 18px;
-  --text-body-lg--line-height: 1.5;
-  --text-body-lg--letter-spacing: 0;
+  --text-body-lg--line-height: 1.55;
+  --text-body-lg--letter-spacing: -0.005em;
   --text-body-lg--font-weight: 400;
 
   --text-body: 16px;
-  --text-body--line-height: 1.55;
-  --text-body--letter-spacing: 0;
+  --text-body--line-height: 1.6;
+  --text-body--letter-spacing: -0.003em;
   --text-body--font-weight: 400;
 
   --text-body-sm: 14px;
-  --text-body-sm--line-height: 1.5;
+  --text-body-sm--line-height: 1.55;
   --text-body-sm--letter-spacing: 0;
   --text-body-sm--font-weight: 400;
 
   --text-caption: 13px;
-  --text-caption--line-height: 1.4;
-  --text-caption--letter-spacing: 0.01em;
+  --text-caption--line-height: 1.45;
+  --text-caption--letter-spacing: 0;
   --text-caption--font-weight: 500;
 
   --text-overline: 11px;
   --text-overline--line-height: 1.2;
-  --text-overline--letter-spacing: 0.12em;
+  --text-overline--letter-spacing: 0.08em;
   --text-overline--font-weight: 600;
 }
 
@@ -185,28 +193,32 @@
     color: var(--foreground);
   }
 
-  /* Display serif is reserved for 24px+ headlines — use .font-display utility. */
+  /* font-display still resolves to Geist; the heavier weight comes from
+     the text-display-* utilities. Marker class for the rare case where a
+     consumer wants Geist 700 outside of a text-display-* size. */
   .font-display {
     font-family: var(--font-display);
   }
 
-  /* Mono inherits tabular nums automatically. */
+  .font-serif {
+    font-family: var(--font-serif);
+  }
+
   .font-mono {
     font-family: var(--font-mono);
   }
 
-  /* All overlines uppercase with wide tracking. */
+  /* All overlines uppercase. */
   .text-overline {
     text-transform: uppercase;
   }
 
-  /* Focus ring uses our token, not Tailwind's default blue. */
+  /* Focus ring uses our token. */
   *:focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 2px;
   }
 
-  /* Selection picks up our accent for a small brand moment. */
   ::selection {
     background: var(--accent);
     color: var(--accent-foreground);
