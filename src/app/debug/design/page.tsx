@@ -72,7 +72,7 @@ export default function DesignDebugPage() {
           <div className="flex items-center gap-4">
             <Link
               href="/"
-              className="font-display text-title leading-none hover:opacity-90 transition-opacity"
+              className="font-stylized text-title font-semibold leading-none tracking-tight hover:opacity-90 transition-opacity"
             >
               forecast<span className="text-accent">.</span>social
             </Link>
@@ -173,12 +173,16 @@ function TypographySection() {
           </div>
         ))}
         <Separator />
-        <div className="flex flex-wrap items-baseline gap-x-8 gap-y-4">
-          <p className="font-mono text-body tabular-nums text-foreground font-medium">
+        <div className="flex flex-col gap-3">
+          <p className="text-overline text-muted-foreground">
+            tabular numerics · Geist Mono
+          </p>
+          <p className="font-mono text-display-sm tabular-nums text-foreground font-medium tracking-tight">
             2,471 · 73% · 47-day streak
           </p>
-          <p className="font-serif text-headline text-muted-foreground italic">
-            Instrument Serif — reserved for share cards only
+          <p className="text-caption text-muted-foreground">
+            Product UI is sans-only. Share cards (Phase 6) use Geist 800 at
+            display sizes + Geist Mono for the score number.
           </p>
         </div>
       </div>

@@ -20,8 +20,8 @@
   --primary:              oklch(18% 0.015 260);
   --primary-foreground:   oklch(99% 0.002 250);
 
-  --accent:               oklch(62% 0.19 50);
-  --accent-foreground:    oklch(14% 0.012 260);
+  --accent:               oklch(58% 0.22 258);   /* vivid indigo-blue */
+  --accent-foreground:    oklch(99% 0.005 258);
 
   --signal-positive:      oklch(60% 0.18 150);
   --signal-positive-soft: oklch(94% 0.04 150);
@@ -50,7 +50,7 @@
   --primary:              oklch(97% 0.003 250);
   --primary-foreground:   oklch(18% 0.005 260);
 
-  --accent:               oklch(72% 0.17 55);
+  --accent:               oklch(70% 0.20 258);   /* vivid indigo-blue, lifted for dark */
   --accent-foreground:    oklch(18% 0.005 260);
 
   --signal-positive:      oklch(72% 0.19 150);
@@ -102,15 +102,17 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
-  /* font families — product UI is sans-only. font-display intentionally
-     resolves to Geist so existing `.font-display` className usages flow
-     through the weight from the type-scale token (800 on display-xl, 700
-     on display-md, etc.) without re-tagging every consumer. Serif is
-     reserved for share cards via the @font-face / family below. */
-  --font-display: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-sans:    var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono:    var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
-  --font-serif:   var(--font-instrument-serif), ui-serif, Georgia, serif;
+  /* Font families.
+     - sans / display: Geist (default for everything)
+     - mono: Geist Mono (digits, tickers, code)
+     - stylized: Bricolage Grotesque — reserved for the wordmark and
+       the hero sub-heading. A distinctive grotesque used sparingly to
+       give the brand a voice without falling into editorial.
+  */
+  --font-display:  var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-sans:     var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono:     var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
+  --font-stylized: var(--font-fraunces), ui-serif, Georgia, serif;
 
   /* =====================================================================
      Type scale — Bold premium direction. All display sizes are Geist
@@ -200,8 +202,8 @@
     font-family: var(--font-display);
   }
 
-  .font-serif {
-    font-family: var(--font-serif);
+  .font-stylized {
+    font-family: var(--font-stylized);
   }
 
   .font-mono {

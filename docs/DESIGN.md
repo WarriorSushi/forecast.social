@@ -18,14 +18,18 @@ We are cool, decisive, sans-only in product UI; lifted-neutral dark and near-whi
 
 ## 2. Typography
 
-Two product faces, plus one reserved face for share cards. Loaded via `next/font/google` / the `geist` package.
+Three product faces. Geist is the workhorse; Bricolage Grotesque carries brand voice in two reserved moments.
 
-| Role               | Family               | Weights         | When                                                               |
-|--------------------|----------------------|-----------------|--------------------------------------------------------------------|
-| **Display**        | **Geist** (700 / 800) | 700 / 800       | Every hero headline, every section title, every oversized number.  |
-| **Body**           | **Geist** (400 / 500 / 600) | 400 / 500 / 600 | All body copy, buttons, labels.                                  |
-| **Numeric / Mono** | **Geist Mono**       | 500 / 600       | Probabilities, scores, timestamps, tickers, code, percentages.     |
-| Reserved           | Instrument Serif     | 400             | Share cards only (Phase 6). **Not** used in product UI.            |
+| Role               | Family                          | Weights              | When                                                                                  |
+|--------------------|---------------------------------|----------------------|---------------------------------------------------------------------------------------|
+| **Display**        | **Geist** (700 / 800)           | 700 / 800            | Every hero headline, every section title, every oversized number.                     |
+| **Body**           | **Geist** (400 / 500 / 600)     | 400 / 500 / 600      | All body copy, buttons, labels.                                                       |
+| **Numeric / Mono** | **Geist Mono**                  | 500 / 600            | Probabilities, scores, timestamps, tickers, code, percentages.                        |
+| **Stylized**       | **Fraunces** (variable, roman)  | 400 / 500            | Two places only: (1) the `forecast.social` wordmark; (2) the hero sub-heading.        |
+
+Loaded via the `geist` package + `next/font/google` for Fraunces. Fraunces is a variable optical-sized serif — used **roman only, never italic**. That distinction matters: italic display serif everywhere is what made the prior pass read as newspaper; Fraunces roman at sub-heading size reads as modern editorial-display.
+
+**Fraunces's job** is to give the brand a beautiful, distinctive voice in a system that is otherwise sans-only and neutral. Two appearances per screen, max — the wordmark in the chrome, and the hero sub-heading. Anywhere else and we drift back into editorial. Share cards (Phase 6) also use Geist (800 at display sizes for the headline, Geist Mono for the number) plus Fraunces for the wordmark; no Fraunces in body copy of the card.
 
 ### Type scale (tailwind tokens)
 
@@ -52,7 +56,6 @@ Monospace inherits the same scale but in **Geist Mono** (500 weight for stat dis
 - **Tabular numerics on:** `font-variant-numeric: tabular-nums` everywhere a digit appears. Critical for tickers and scores.
 - **Letter-spacing scales with size.** Bigger display = tighter tracking. Overlines get +0.08em positive tracking; nothing else needs positive tracking.
 - **Display weight peaks at 800.** Don't go heavier (Geist Black would feel heavy / display-typeface adjacent). 800 keeps the Stripe/Linear feel.
-- **One Instrument Serif moment, ever:** the share card hero. Anywhere else regresses to the editorial direction we left behind.
 
 ## 3. Color
 
@@ -80,8 +83,8 @@ OKLCH throughout. Two themes. Cool neutral palette — no warm cream, no warm in
   --primary:              oklch(18% 0.015 260);    /* near-black */
   --primary-foreground:   oklch(99% 0.002 250);
 
-  --accent:               oklch(62% 0.19 50);      /* warm coral-orange — used SPARINGLY */
-  --accent-foreground:    oklch(14% 0.012 260);
+  --accent:               oklch(58% 0.22 258);     /* vivid indigo-blue — used SPARINGLY */
+  --accent-foreground:    oklch(99% 0.005 258);
 
   --signal-positive:      oklch(60% 0.18 150);     /* called it */
   --signal-positive-soft: oklch(94% 0.04 150);
@@ -107,7 +110,7 @@ OKLCH throughout. Two themes. Cool neutral palette — no warm cream, no warm in
   --primary:              oklch(97% 0.003 250);
   --primary-foreground:   oklch(18% 0.005 260);
 
-  --accent:               oklch(72% 0.17 55);      /* brighter on dark */
+  --accent:               oklch(70% 0.20 258);     /* lifted indigo-blue for dark */
   --accent-foreground:    oklch(18% 0.005 260);
 
   --signal-positive:      oklch(72% 0.19 150);
@@ -139,13 +142,12 @@ OKLCH throughout. Two themes. Cool neutral palette — no warm cream, no warm in
   --color-signal-neutral:       var(--signal-neutral);
   --color-ring:                 var(--ring);
 
-  /* Product UI is sans-only. font-display still resolves to Geist (heavier
-     weight is enforced on the utility); font-serif is reserved for share
-     cards. */
-  --font-display: "Geist", ui-sans-serif, system-ui, sans-serif;
-  --font-sans:    "Geist", ui-sans-serif, system-ui, sans-serif;
-  --font-mono:    "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
-  --font-serif:   "Instrument Serif", ui-serif, Georgia, serif;
+  /* Three faces. font-stylized is Bricolage Grotesque, reserved for
+     the wordmark and the hero sub-heading. */
+  --font-display:  "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-sans:     "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-mono:     "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --font-stylized: "Fraunces", ui-serif, Georgia, serif;
 }
 ```
 
@@ -224,14 +226,15 @@ On a profile, the score takes a full screen-width display moment. Render at `tex
 
 A 1080×1080 PNG generated server-side via `@vercel/og` or `satori`. Includes:
 
-- The user's handle + Forecast Score badge.
-- The market title.
-- Their prediction probability + the consensus at the time + the actual outcome.
+- The user's handle + Forecast Score badge in Geist 700.
+- The market title in Geist 700 at display-md.
+- The score number in **Geist 800 at 240–280px**, tabular nums, dominating the upper third — this is the poster moment.
+- Their prediction probability + the consensus at the time + the actual outcome, set in Geist Mono.
 - A sparkline of the market's resolution path.
 - A small `forecast.social` wordmark, bottom-right.
-- Background: cream paper texture (light) or carbon black (dark) — user picks at share time.
+- Background: same cool neutral palette as the product (`background` token), no paper texture. Two themes match the product themes one-for-one.
 
-Treat the share card as a poster, not a screenshot. It is the marketing.
+Sans-only across the entire card. The poster feeling comes from typographic scale and negative space, not from a special typeface. Treat the share card as a poster, not a screenshot. It is the marketing.
 
 ### Inputs & sliders
 
@@ -298,7 +301,7 @@ Loading: skeleton bars in `muted`, not spinners. Never a full-page spinner.
 
 Before shipping any screen, verify:
 
-- [ ] Display is **Geist 700/800**, not a serif. Italic display is a red flag.
+- [ ] Display is **Geist 700/800**. No serif anywhere. Italic display is a red flag.
 - [ ] No purple gradients, no glassmorphism, no neon glow.
 - [ ] No cream / warm-paper backgrounds. Cool neutral palette only.
 - [ ] Numbers are in Geist Mono with tabular-nums.

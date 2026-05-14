@@ -12,7 +12,7 @@ export default function AuthLayout({
       <header className="px-5 sm:px-8 py-5 flex items-center justify-between">
         <Link
           href="/"
-          className="font-display text-title leading-none hover:opacity-90 transition-opacity"
+          className="font-stylized text-title font-semibold leading-none tracking-tight hover:opacity-90 transition-opacity"
         >
           forecast<span className="text-accent">.</span>social
         </Link>

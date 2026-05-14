@@ -13,7 +13,7 @@ export default function MarketingLayout({
         <div className="mx-auto w-full max-w-[1120px] flex items-center justify-between px-5 sm:px-8 h-14">
           <Link
             href="/"
-            className="font-display text-title leading-none hover:opacity-90 transition-opacity"
+            className="font-stylized text-title font-semibold leading-none tracking-tight hover:opacity-90 transition-opacity"
           >
             forecast<span className="text-accent">.</span>social
           </Link>
@@ -39,7 +39,7 @@ export default function MarketingLayout({
 
       <footer className="border-t border-border/60">
         <div className="mx-auto w-full max-w-[1120px] px-5 sm:px-8 py-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-body-sm text-muted-foreground">
-          <p className="font-display text-title text-foreground leading-none">
+          <p className="font-stylized text-title font-semibold text-foreground leading-none tracking-tight">
             forecast<span className="text-accent">.</span>social
           </p>
           <p className="text-overline">© 2026 · receipts for everything</p>
