@@ -96,7 +96,7 @@ export default async function ProfilePage({
         <p className="mt-3 text-body-sm text-muted-foreground max-w-md">
           A Forecast Score appears here after {" "}
           <span className="font-mono text-foreground">5</span> resolved
-          predictions. Until then your calls are still recorded — they just
+          predictions. Until then your calls are still recorded. They just
           don't score yet.
         </p>
       </section>

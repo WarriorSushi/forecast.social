@@ -19,10 +19,16 @@ export default function MarketingLayout({
           </Link>
           <nav className="flex items-center gap-1 sm:gap-2">
             <Link
-              href="/manifesto"
+              href="#how-it-works"
               className="hidden sm:inline-flex text-body-sm text-muted-foreground hover:text-foreground transition-colors px-3 h-9 items-center"
             >
-              Manifesto
+              How it works
+            </Link>
+            <Link
+              href="#faq"
+              className="hidden sm:inline-flex text-body-sm text-muted-foreground hover:text-foreground transition-colors px-3 h-9 items-center"
+            >
+              FAQ
             </Link>
             <Link
               href="/sign-in"

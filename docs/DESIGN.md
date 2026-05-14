@@ -12,7 +12,7 @@ Three design failures to avoid:
 
 1. **AI-default sterility.** Indigo gradients on slate-900, Inter everywhere, glassmorphism nothing. Not us.
 2. **Crypto-bro maximalism.** Glow effects, neon-on-black, "futuristic" fonts, animated everything. Not us.
-3. **Editorial / newspaper.** Cream paper, italic display serif everywhere, narrow column rules, "kicker" copy patterns. We tried this. The user rejected it. The design pivot is recorded in `phase-1.5/design-pivot`. Do not regress.
+3. **Editorial / newspaper.** Cream paper, italic display serif **everywhere**, narrow column rules, "kicker" copy patterns. We tried that and the user rejected it. Italic Instrument Serif has been re-introduced in exactly two surgical placements (wordmark + hero sub-heading) on top of a Bold premium sans system; that single moment of beauty is the brand voice. Italic serif as a layout-wide treatment is what we left behind. The design pivot is recorded in `phase-1.5/design-pivot`.
 
 We are cool, decisive, sans-only in product UI; lifted-neutral dark and near-white light. Same product, two moods, both unmistakably modern.
 
@@ -25,11 +25,11 @@ Three product faces. Geist is the workhorse; Bricolage Grotesque carries brand v
 | **Display**        | **Geist** (700 / 800)           | 700 / 800            | Every hero headline, every section title, every oversized number.                     |
 | **Body**           | **Geist** (400 / 500 / 600)     | 400 / 500 / 600      | All body copy, buttons, labels.                                                       |
 | **Numeric / Mono** | **Geist Mono**                  | 500 / 600            | Probabilities, scores, timestamps, tickers, code, percentages.                        |
-| **Stylized**       | **Fraunces** (variable, roman)  | 400 / 500            | Two places only: (1) the `forecast.social` wordmark; (2) the hero sub-heading.        |
+| **Stylized**       | **Instrument Serif** (italic)   | 400 italic           | Two places only: (1) the `forecast.social` wordmark; (2) the hero sub-heading. Plus the category-example italic snippet, used at body-sm.  |
 
-Loaded via the `geist` package + `next/font/google` for Fraunces. Fraunces is a variable optical-sized serif — used **roman only, never italic**. That distinction matters: italic display serif everywhere is what made the prior pass read as newspaper; Fraunces roman at sub-heading size reads as modern editorial-display.
+Loaded via the `geist` package + `next/font/google` for Instrument Serif. Italic is the chosen style — that's what gives the brand a single elegant moment inside an otherwise sans-only system. The Phase 1 rejection was about Instrument Serif used **everywhere** in italic with cream paper backdrops (newspaper feel); used in two surgical placements over a Bold premium sans system, it reads as personality, not as editorial.
 
-**Fraunces's job** is to give the brand a beautiful, distinctive voice in a system that is otherwise sans-only and neutral. Two appearances per screen, max — the wordmark in the chrome, and the hero sub-heading. Anywhere else and we drift back into editorial. Share cards (Phase 6) also use Geist (800 at display sizes for the headline, Geist Mono for the number) plus Fraunces for the wordmark; no Fraunces in body copy of the card.
+**Stylized's job** is to be the brand's punctuation of beauty. Two appearances per screen, max. Anywhere else and we drift back into editorial. Share cards (Phase 6) also use Geist (800 at display sizes for the headline, Geist Mono for the number) plus a single italic Instrument Serif wordmark; the rest of the card is sans.
 
 ### Type scale (tailwind tokens)
 
@@ -147,7 +147,7 @@ OKLCH throughout. Two themes. Cool neutral palette — no warm cream, no warm in
   --font-display:  "Geist", ui-sans-serif, system-ui, sans-serif;
   --font-sans:     "Geist", ui-sans-serif, system-ui, sans-serif;
   --font-mono:     "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
-  --font-stylized: "Fraunces", ui-serif, Georgia, serif;
+  --font-stylized: "Instrument Serif", ui-serif, Georgia, serif;
 }
 ```
 

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Fraunces } from "next/font/google";
+import { Instrument_Serif } from "next/font/google";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 
@@ -8,22 +8,21 @@ import { Providers } from "@/components/providers";
 import "./globals.css";
 
 /**
- * Fraunces — the "expressive" face. Variable optical-sized serif used in
- * just two places: the wordmark and the hero sub-heading. Roman weights
- * only (no italic) so it reads as modern editorial-display, not as
- * newspaper. Everything else is Geist. See DESIGN.md §2.
+ * Instrument Serif — the brand voice. Italic-only, used in exactly two
+ * places: the wordmark and the hero sub-heading. A single elegant moment
+ * inside an otherwise sans-only system. See DESIGN.md §2.
  */
-const fraunces = Fraunces({
-  variable: "--font-fraunces",
+const instrumentSerif = Instrument_Serif({
+  variable: "--font-instrument-serif",
   subsets: ["latin"],
+  weight: "400",
+  style: ["normal", "italic"],
   display: "swap",
-  axes: ["opsz", "SOFT"],
-  weight: "variable",
 });
 
 export const metadata: Metadata = {
   title: {
-    default: "forecast.social — be right. get famous.",
+    default: "forecast.social · be right. get famous.",
     template: "%s · forecast.social",
   },
   description:
@@ -37,7 +36,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${GeistSans.variable} ${GeistMono.variable} ${fraunces.variable} h-full`}
+      className={`${GeistSans.variable} ${GeistMono.variable} ${instrumentSerif.variable} h-full`}
     >
       <body className="min-h-full bg-background text-foreground">
         <Providers>{children}</Providers>

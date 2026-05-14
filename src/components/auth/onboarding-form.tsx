@@ -47,7 +47,7 @@ export function OnboardingForm({
         </div>
         <p className="text-caption text-muted-foreground">
           3–20 characters. Lowercase letters, numbers, and underscores.
-          Permanent — choose well.
+          Permanent. Choose well.
         </p>
       </div>
 

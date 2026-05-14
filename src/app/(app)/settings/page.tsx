@@ -62,7 +62,7 @@ export default async function SettingsPage() {
           <dd className="font-mono text-foreground">@{profile.username}</dd>
           <dt className="text-muted-foreground">Email</dt>
           <dd className="font-mono text-foreground break-all">
-            {profile.email ?? "—"}
+            {profile.email ?? "Not set"}
           </dd>
           <dt className="text-muted-foreground">Member since</dt>
           <dd className="font-mono text-foreground">
