@@ -1,11 +1,18 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 
 import { db } from "@/lib/db";
-import { categories, markets, users } from "@/lib/db/schema";
-import { Button } from "@/components/ui/button";
+import {
+  categories,
+  markets,
+  predictions,
+  users,
+} from "@/lib/db/schema";
+import { getCurrentProfile } from "@/lib/auth";
 import { ConsensusSparkline } from "@/components/markets/consensus-sparkline";
+import { PredictionSlider } from "@/components/markets/prediction-slider";
+import { PredictionsTimeline } from "@/components/markets/predictions-timeline";
 
 type Params = { slug: string };
 
@@ -29,7 +36,8 @@ export default async function MarketDetailPage({
   params: Promise<Params>;
 }) {
   const { slug } = await params;
-  const rows = await db
+
+  const [marketRow] = await db
     .select({
       market: markets,
       category_name: categories.name,
@@ -42,10 +50,53 @@ export default async function MarketDetailPage({
     .where(eq(markets.slug, slug))
     .limit(1);
 
-  if (rows.length === 0) {
+  if (!marketRow) {
     notFound();
   }
-  const { market, category_name, author_username } = rows[0];
+  const { market, category_name, author_username } = marketRow;
+
+  // Recent predictions for the timeline (latest 25).
+  const timeline = await db
+    .select({
+      id: predictions.id,
+      probability: predictions.probability,
+      created_at: predictions.created_at,
+      user_handle: users.username,
+      user_display_name: users.display_name,
+    })
+    .from(predictions)
+    .innerJoin(users, eq(predictions.user_id, users.id))
+    .where(eq(predictions.market_id, market.id))
+    .orderBy(desc(predictions.created_at))
+    .limit(25);
+
+  // Build a tiny consensus history: walk predictions in chronological
+  // order, maintaining a running map of each user's latest call. Sample
+  // 12 evenly-spaced snapshots across the market's lifespan.
+  const sparklinePoints = await buildConsensusSeries(market.id);
+
+  // Pre-position the slider: previous call → consensus → 50%.
+  const profile = await getCurrentProfile();
+  const myLatest =
+    profile != null
+      ? (
+          await db
+            .select({
+              id: predictions.id,
+              probability: predictions.probability,
+              created_at: predictions.created_at,
+            })
+            .from(predictions)
+            .where(
+              and(
+                eq(predictions.market_id, market.id),
+                eq(predictions.user_id, profile.id),
+              ),
+            )
+            .orderBy(desc(predictions.created_at))
+            .limit(1)
+        )[0] ?? null
+      : null;
 
   const consensusPct =
     market.consensus_probability != null
@@ -56,6 +107,14 @@ export default async function MarketDetailPage({
   const closesMs = new Date(market.closes_at).getTime();
   const isClosed = closesMs <= now;
   const resolved = market.resolved_at != null;
+  const canPredict = !!profile && !isClosed && !resolved;
+
+  const initialSliderValue =
+    myLatest != null
+      ? Math.round(myLatest.probability * 100)
+      : market.consensus_probability != null
+        ? Math.round(market.consensus_probability * 100)
+        : 50;
 
   return (
     <div className="mx-auto w-full max-w-[960px] py-10 sm:py-14">
@@ -106,7 +165,7 @@ export default async function MarketDetailPage({
         </div>
       </header>
 
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-10 mb-12">
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-10 mb-14">
         <div className="lg:col-span-7">
           <p className="text-overline text-muted-foreground mb-4">about</p>
           <div className="text-body-lg text-foreground leading-[1.6] whitespace-pre-wrap">
@@ -143,41 +202,103 @@ export default async function MarketDetailPage({
         </div>
 
         <aside className="lg:col-span-5">
-          <div className="rounded-2xl border border-border bg-surface p-6 sm:p-7 flex flex-col gap-5">
-            <p className="text-overline text-muted-foreground">consensus · 90d</p>
-            <ConsensusSparkline className="h-16" />
-            <Button
-              size="lg"
-              disabled
-              className="h-12 rounded-full"
-              aria-disabled
-              title="Predictions land in Phase 3"
-            >
-              Lock in your call
-            </Button>
-            <p className="text-caption text-muted-foreground">
-              The slider opens in Phase 3. For now, browse and follow.
-            </p>
+          <div className="rounded-2xl border border-border bg-surface p-6 sm:p-7 flex flex-col gap-6">
+            <div className="flex flex-col gap-3">
+              <p className="text-overline text-muted-foreground">
+                consensus · {market.prediction_count > 0 ? "live" : "no calls yet"}
+              </p>
+              <ConsensusSparkline
+                className="h-16"
+                points={sparklinePoints}
+              />
+            </div>
+
+            <div className="border-t border-border pt-6">
+              {!profile ? (
+                <SignInPrompt />
+              ) : (
+                <PredictionSlider
+                  marketId={market.id}
+                  initialValue={initialSliderValue}
+                  consensus={market.consensus_probability}
+                  hasPrevious={!!myLatest}
+                  disabled={!canPredict}
+                  disabledReason={
+                    resolved
+                      ? "This market has resolved."
+                      : isClosed
+                        ? "This market has closed."
+                        : undefined
+                  }
+                />
+              )}
+            </div>
           </div>
         </aside>
       </section>
 
       <section className="border-t border-border pt-10">
-        <p className="text-overline text-muted-foreground mb-4">
-          recent predictions
-        </p>
-        <div className="rounded-2xl border border-dashed border-border py-12 px-6 flex flex-col items-center text-center">
-          <p className="font-display text-headline text-muted-foreground">
-            No calls yet.
+        <div className="flex items-baseline justify-between mb-5">
+          <p className="text-overline text-muted-foreground">
+            recent predictions
           </p>
-          <p className="mt-2 text-body-sm text-muted-foreground max-w-md">
-            Predictions appear here as forecasters lock them in. The first
-            call belongs to whoever shows up first.
-          </p>
+          {timeline.length > 0 ? (
+            <span className="font-mono text-caption text-muted-foreground tabular-nums">
+              latest {timeline.length}
+            </span>
+          ) : null}
         </div>
+        <PredictionsTimeline entries={timeline} />
       </section>
     </div>
   );
+}
+
+/**
+ * Walk all predictions on a market chronologically, maintain a running
+ * "latest call per user" map, and sample the consensus at 12 evenly
+ * spaced points across the lifespan. Returns 0-1 values for the
+ * sparkline.
+ *
+ * No predictions yet → returns null so the sparkline renders its flat
+ * fallback.
+ */
+async function buildConsensusSeries(
+  marketId: string,
+): Promise<number[] | undefined> {
+  const rows = await db
+    .select({
+      user_id: predictions.user_id,
+      probability: predictions.probability,
+      created_at: predictions.created_at,
+    })
+    .from(predictions)
+    .where(eq(predictions.market_id, marketId))
+    .orderBy(asc(predictions.created_at));
+
+  if (rows.length === 0) return undefined;
+
+  const series: number[] = [];
+  const latest = new Map<string, number>();
+  for (const row of rows) {
+    latest.set(row.user_id, row.probability);
+    const avg =
+      Array.from(latest.values()).reduce((s, v) => s + v, 0) / latest.size;
+    series.push(avg);
+  }
+
+  // Down/up-sample to 12 evenly spaced points so the SVG path is concise.
+  const target = 12;
+  if (series.length <= target) {
+    if (series.length === 1) return [series[0], series[0]];
+    return series;
+  }
+  const step = (series.length - 1) / (target - 1);
+  const sampled: number[] = [];
+  for (let i = 0; i < target; i++) {
+    sampled.push(series[Math.round(i * step)]);
+  }
+  return sampled;
 }
 
 function Stat({
@@ -238,6 +359,23 @@ function StatusPill({
     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-caption font-mono bg-accent/12 text-accent">
       Open
     </span>
+  );
+}
+
+function SignInPrompt() {
+  return (
+    <div className="flex flex-col gap-3 text-body-sm text-muted-foreground">
+      <p>
+        Sign in to lock in a call. Calls are permanent and contribute to
+        your Forecast Score.
+      </p>
+      <Link
+        href="/sign-in"
+        className="inline-flex items-center text-foreground font-medium hover:underline"
+      >
+        Sign in →
+      </Link>
+    </div>
   );
 }
 

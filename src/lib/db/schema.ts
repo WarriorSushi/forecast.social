@@ -139,6 +139,54 @@ export const market_resolutions = pgTable(
 );
 
 /* =====================================================================
+   predictions — the immutable record
+
+   A row per submitted call. Users can re-predict on the same market;
+   each submission creates a new row. "Latest" prediction per user is
+   what counts for consensus and scoring. Brier and was_correct are
+   filled in when the market resolves (Phase 4).
+===================================================================== */
+export const predictions = pgTable(
+  "predictions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    market_id: uuid("market_id")
+      .notNull()
+      .references(() => markets.id, { onDelete: "cascade" }),
+    user_id: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    probability: real("probability").notNull(),
+    consensus_at_time: real("consensus_at_time"),
+    brier: real("brier"),
+    was_correct: boolean("was_correct"),
+    created_at: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    resolved_at: timestamp("resolved_at", { withTimezone: true }),
+  },
+  (table) => [
+    index("predictions_market_user_created_idx").on(
+      table.market_id,
+      table.user_id,
+      table.created_at,
+    ),
+    index("predictions_user_created_idx").on(
+      table.user_id,
+      table.created_at.desc(),
+    ),
+    index("predictions_market_created_idx").on(
+      table.market_id,
+      table.created_at.desc(),
+    ),
+    check(
+      "predictions_probability_range",
+      sql`${table.probability} >= 0 AND ${table.probability} <= 1`,
+    ),
+  ],
+);
+
+/* =====================================================================
    Inferred row types — used across server actions and components.
 ===================================================================== */
 export type User = typeof users.$inferSelect;
@@ -147,3 +195,5 @@ export type Category = typeof categories.$inferSelect;
 export type Market = typeof markets.$inferSelect;
 export type NewMarket = typeof markets.$inferInsert;
 export type MarketResolution = typeof market_resolutions.$inferSelect;
+export type Prediction = typeof predictions.$inferSelect;
+export type NewPrediction = typeof predictions.$inferInsert;

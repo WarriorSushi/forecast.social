@@ -22,6 +22,20 @@
       "when": 1778782067064,
       "tag": "0002_cold_doctor_faustus",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1778783368166,
+      "tag": "0003_predictions",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1778783400000,
+      "tag": "0004_rls_and_triggers",
+      "breakpoints": true
     }
   ]
 }
