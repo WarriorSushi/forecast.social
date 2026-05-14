@@ -15,6 +15,13 @@
       "when": 1778775839187,
       "tag": "0001_rls_trigger_seed",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1778782067064,
+      "tag": "0002_cold_doctor_faustus",
+      "breakpoints": true
     }
   ]
 }
