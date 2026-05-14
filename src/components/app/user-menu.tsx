@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
-import { ChevronsUpDown, LogOut, Monitor, Moon, Settings, Sun } from "lucide-react";
+import { ChevronsUpDown, LogOut, Moon, Settings, Sun } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -12,9 +12,6 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { signOut } from "@/server/actions/auth";
@@ -26,16 +23,12 @@ type Props = {
   avatarUrl: string | null;
 };
 
-const THEMES = [
-  { value: "system", label: "System", Icon: Monitor },
-  { value: "light", label: "Light", Icon: Sun },
-  { value: "dark", label: "Dark", Icon: Moon },
-] as const;
-
 export function UserMenu({ username, displayName, email, avatarUrl }: Props) {
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
   React.useEffect(() => setMounted(true), []);
+
+  const isDark = mounted ? resolvedTheme === "dark" : false;
 
   const initials = getInitials(displayName);
 
@@ -99,30 +92,19 @@ export function UserMenu({ username, displayName, email, avatarUrl }: Props) {
           </Link>
         </DropdownMenuItem>
 
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger>
-            {mounted && theme === "dark" ? (
-              <Moon className="size-4" />
-            ) : mounted && theme === "light" ? (
-              <Sun className="size-4" />
-            ) : (
-              <Monitor className="size-4" />
-            )}
-            Theme
-          </DropdownMenuSubTrigger>
-          <DropdownMenuSubContent>
-            {THEMES.map(({ value, label, Icon }) => (
-              <DropdownMenuItem
-                key={value}
-                onSelect={() => setTheme(value)}
-                data-active={mounted && theme === value ? "" : undefined}
-              >
-                <Icon className="size-4" />
-                {label}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuSubContent>
-        </DropdownMenuSub>
+        <DropdownMenuItem
+          onSelect={(event) => {
+            event.preventDefault();
+            setTheme(isDark ? "light" : "dark");
+          }}
+        >
+          {isDark ? (
+            <Sun className="size-4" />
+          ) : (
+            <Moon className="size-4" />
+          )}
+          {isDark ? "Light theme" : "Dark theme"}
+        </DropdownMenuItem>
 
         <DropdownMenuSeparator />
         <form action={signOut}>

@@ -22,11 +22,11 @@ export default function LandingPage() {
     <div className="w-full overflow-x-hidden">
       <Hero />
       <ScoreExplainer />
+      <NotBetting />
       <ReceiptShowcase />
       <HowItWorks />
       <Categories />
       <Leaderboard />
-      <NotBetting />
       <FAQ />
       <FinalCTA />
     </div>
@@ -114,42 +114,47 @@ function Hero() {
    Behind, fanned out: two receipt cards.
 ============================================================== */
 function FannedCardStack() {
+  // The composition is a true playing-card fan: three cards radiating
+  // from a common pivot at the bottom-center. The focal profile card sits
+  // straight up at the front; the two receipts splay symmetrically
+  // behind it at ±14°. Each layer has its own z-index so the focal card
+  // is fully readable while the receipts show 60-70% of their content.
   return (
-    <div className="relative w-full max-w-[400px] mx-auto pt-10 pb-14 lg:pt-2">
-      {/* Back-left receipt card */}
+    <div className="relative w-full mx-auto pt-12 pb-16 lg:pt-4">
+      {/* Back-left receipt card — full-sized, splayed left */}
       <div
         aria-hidden
-        className="absolute -left-8 sm:-left-14 lg:-left-12 -top-2 sm:top-2 w-[62%] z-0 origin-bottom-right rotate-[-13deg]"
+        className="absolute inset-x-0 top-8 sm:top-6 z-10 mx-auto w-[78%] max-w-[330px] origin-bottom rotate-[-14deg] -translate-x-[34%] sm:-translate-x-[36%]"
       >
         <ReceiptCard
           handle="@quanttrader"
-          marketTitle="Fed pauses rates in May 2026"
+          marketTitle="Fed pauses rates · May 2026 FOMC"
           predictedPct={78}
-          actualOutcome="Resolved Yes"
+          actualOutcome="Resolved · Yes"
           outcomeKind="correct"
           delta="+18"
           subtle
         />
       </div>
 
-      {/* Back-right receipt card */}
+      {/* Back-right receipt card — full-sized, splayed right */}
       <div
         aria-hidden
-        className="absolute -right-6 sm:-right-12 lg:-right-10 top-14 sm:top-16 w-[62%] z-10 origin-bottom-left rotate-[11deg]"
+        className="absolute inset-x-0 top-8 sm:top-6 z-20 mx-auto w-[78%] max-w-[330px] origin-bottom rotate-[14deg] translate-x-[34%] sm:translate-x-[36%]"
       >
         <ReceiptCard
           handle="@oddsbot"
           marketTitle="GPT-5 launches before July 2026"
           predictedPct={64}
-          actualOutcome="Resolving"
+          actualOutcome="Resolving · 41 days left"
           outcomeKind="pending"
-          delta="0"
+          delta="···"
           subtle
         />
       </div>
 
-      {/* Front profile card */}
-      <div className="relative z-20">
+      {/* Front profile card — the focal point, straight up */}
+      <div className="relative z-30 w-full max-w-[400px] mx-auto">
         <ProfileCard />
       </div>
     </div>
@@ -493,7 +498,7 @@ function PillarStat({
 ============================================================== */
 function ReceiptShowcase() {
   return (
-    <section className="border-t border-border/60">
+    <section className="border-t border-border/60 bg-muted/40">
       <Container className="py-24 sm:py-32">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-y-12 lg:gap-y-0 lg:gap-x-16 items-center">
           <div className="lg:col-span-5 lg:order-1">
@@ -936,7 +941,7 @@ function LeaderboardRow({
 ============================================================== */
 function NotBetting() {
   return (
-    <section className="border-t border-border/60 bg-muted/40">
+    <section className="border-t border-border/60">
       <Container className="py-24 sm:py-32">
         <div className="max-w-3xl">
           <SectionEyebrow>What this isn't</SectionEyebrow>
@@ -1014,7 +1019,7 @@ function ComparePanel({
 ============================================================== */
 function FAQ() {
   return (
-    <section id="faq" className="border-t border-border/60">
+    <section id="faq" className="border-t border-border/60 bg-muted/40">
       <Container className="py-24 sm:py-32">
         <div className="max-w-3xl mb-12 sm:mb-16">
           <SectionEyebrow>FAQ</SectionEyebrow>
