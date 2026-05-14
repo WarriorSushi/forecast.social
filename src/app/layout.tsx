@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { Instrument_Serif } from "next/font/google";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
+
+import { Providers } from "@/components/providers";
+
 import "./globals.css";
 
 const instrumentSerif = Instrument_Serif({
@@ -31,7 +34,7 @@ export default function RootLayout({
       className={`${GeistSans.variable} ${GeistMono.variable} ${instrumentSerif.variable} h-full`}
     >
       <body className="min-h-full bg-background text-foreground">
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

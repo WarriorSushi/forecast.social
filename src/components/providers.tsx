@@ -1,0 +1,27 @@
+"use client";
+
+import { ThemeProvider } from "next-themes";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "@/components/ui/sonner";
+
+export function Providers({ children }: { children: React.ReactNode }) {
+  return (
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+    >
+      <TooltipProvider delayDuration={200}>{children}</TooltipProvider>
+      <Toaster
+        position="bottom-right"
+        toastOptions={{
+          classNames: {
+            toast:
+              "!bg-surface-elevated !text-foreground !border !border-border",
+          },
+        }}
+      />
+    </ThemeProvider>
+  );
+}
