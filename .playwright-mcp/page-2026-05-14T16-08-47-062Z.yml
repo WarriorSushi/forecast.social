@@ -1,0 +1,90 @@
+- generic:
+  - generic:
+    - banner:
+      - generic:
+        - link:
+          - /url: /
+          - text: forecast.social
+        - navigation:
+          - link:
+            - /url: /sign-in
+            - text: Sign in
+          - button [expanded]:
+            - img
+    - generic:
+      - generic:
+        - generic:
+          - paragraph: the track-record social network
+          - heading [level=1]: Be right. Get famous.
+          - paragraph: Predict anything — tech launches, sports, crypto, pop culture — as a probability, not a hot take. Your accuracy compounds into a permanent, public Forecast Score. Receipts for every right call.
+          - generic:
+            - link:
+              - /url: /sign-up
+              - text: Get early access
+              - img
+            - link:
+              - /url: /manifesto
+              - text: Read the manifesto
+          - generic:
+            - generic:
+              - generic:
+                - paragraph: forecast score · @itoldyouso
+                - paragraph: 2,471
+              - generic:
+                - generic:
+                  - generic: Tech & AI
+                  - generic: 2,610
+                - generic:
+                  - generic: Crypto
+                  - generic: 2,380
+                - generic:
+                  - generic: Sports
+                  - generic: 1,920
+            - generic:
+              - generic: top 0.2%
+              - generic: 47-day streak
+        - generic:
+          - generic:
+            - heading [level=2]: Three moments. One scoreboard.
+          - generic:
+            - generic:
+              - generic:
+                - generic:
+                  - generic: "01"
+                  - generic:
+                    - img
+                - heading [level=3]: The Predict
+                - paragraph: Drag a slider from 0% to 100%. Submit, and the call is locked forever. No edits. No takebacks. The receipt is the product.
+            - generic:
+              - generic:
+                - generic:
+                  - generic: "02"
+                  - generic:
+                    - img
+                - heading [level=3]: The Score
+                - paragraph: Brier-scored, shrinkage-corrected, streak-multiplied. Your Forecast Score sits between 0 and 3,000. Per category. For life.
+            - generic:
+              - generic:
+                - generic:
+                  - generic: "03"
+                  - generic:
+                    - img
+                - heading [level=3]: The Receipt
+                - paragraph: Every correct call generates a shareable card with the timeline, the consensus, and your number. Built to screenshot.
+        - generic:
+          - paragraph: legal everywhere · halal by design
+          - paragraph: No wagering. No real money. Just reputation — earned one call at a time.
+    - contentinfo:
+      - generic:
+        - paragraph: forecast.social
+        - paragraph: © 2026 · receipts for everything
+  - region "Notifications alt+T"
+  - alert
+  - menu "Toggle theme" [active] [ref=e94]:
+    - menuitem "System" [ref=e95]:
+      - generic [ref=e97]: System
+    - menuitem "Light" [ref=e98]:
+      - generic [ref=e100]: Light
+    - menuitem "Dark" [ref=e101]:
+      - generic [ref=e103]: Dark
+      - img

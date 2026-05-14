@@ -1,0 +1,196 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - link "forecast.social" [ref=e6] [cursor=pointer]:
+            - /url: /
+          - generic [ref=e7]: / debug / design
+        - button "Toggle theme" [active] [ref=e8]:
+          - img
+    - generic [ref=e9]:
+      - generic [ref=e10]:
+        - paragraph [ref=e11]: design debug · v0
+        - heading "Every token. Every primitive. One page." [level=1] [ref=e12]
+        - paragraph [ref=e13]: The visual contract for the rest of the build. Toggle the theme in the top right — both modes must be beautiful.
+      - generic [ref=e14]:
+        - generic [ref=e15]:
+          - heading "Colors" [level=2] [ref=e16]
+          - generic [ref=e17]: "01"
+        - generic [ref=e18]:
+          - generic [ref=e19]:
+            - paragraph [ref=e20]: Surfaces & borders
+            - generic [ref=e21]:
+              - paragraph [ref=e24]: background
+              - paragraph [ref=e27]: foreground
+              - paragraph [ref=e30]: surface
+              - paragraph [ref=e33]: surface-elevated
+              - paragraph [ref=e36]: muted
+              - paragraph [ref=e39]: border
+              - paragraph [ref=e42]: border-strong
+          - generic [ref=e43]:
+            - paragraph [ref=e44]: Brand
+            - generic [ref=e45]:
+              - paragraph [ref=e48]: primary
+              - paragraph [ref=e51]: primary-foreground
+              - paragraph [ref=e54]: accent
+              - paragraph [ref=e57]: accent-foreground
+          - generic [ref=e58]:
+            - paragraph [ref=e59]: Signals
+            - generic [ref=e60]:
+              - paragraph [ref=e63]: signal-positive
+              - paragraph [ref=e66]: signal-positive-soft
+              - paragraph [ref=e69]: signal-negative
+              - paragraph [ref=e72]: signal-negative-soft
+              - paragraph [ref=e75]: signal-neutral
+      - generic [ref=e76]:
+        - generic [ref=e77]:
+          - heading "Typography" [level=2] [ref=e78]
+          - generic [ref=e79]: "02"
+        - generic [ref=e80]:
+          - generic [ref=e81]:
+            - paragraph [ref=e82]: display-xl
+            - paragraph [ref=e83]: 2,471
+          - generic [ref=e84]:
+            - paragraph [ref=e85]: display-lg
+            - paragraph [ref=e86]: Be right
+          - generic [ref=e87]:
+            - paragraph [ref=e88]: display-md
+            - paragraph [ref=e89]: Get famous
+          - generic [ref=e90]:
+            - paragraph [ref=e91]: display-sm
+            - paragraph [ref=e92]: Receipts for everything
+          - generic [ref=e93]:
+            - paragraph [ref=e94]: headline
+            - paragraph [ref=e95]: Will GPT-5 launch by July?
+          - generic [ref=e96]:
+            - paragraph [ref=e97]: title
+            - paragraph [ref=e98]: Tech & AI
+          - generic [ref=e99]:
+            - paragraph [ref=e100]: body-lg
+            - paragraph [ref=e101]: The track-record social network.
+          - generic [ref=e102]:
+            - paragraph [ref=e103]: body
+            - paragraph [ref=e104]: Predict anything.
+          - generic [ref=e105]:
+            - paragraph [ref=e106]: body-sm
+            - paragraph [ref=e107]: Locked in at 73%.
+          - generic [ref=e108]:
+            - paragraph [ref=e109]: caption
+            - paragraph [ref=e110]: 3 days left to resolve.
+          - generic [ref=e111]:
+            - paragraph [ref=e112]: overline
+            - paragraph [ref=e113]: top 0.2% · tech & ai
+          - generic [ref=e114]:
+            - paragraph [ref=e115]: 2,471 · 73% · 47-day streak
+            - paragraph [ref=e116]: Italic Instrument Serif (allowed sparingly)
+      - generic [ref=e117]:
+        - generic [ref=e118]:
+          - heading "Buttons" [level=2] [ref=e119]
+          - generic [ref=e120]: "03"
+        - generic [ref=e121]:
+          - generic [ref=e122]:
+            - paragraph [ref=e123]: Variants
+            - generic [ref=e124]:
+              - button "Primary" [ref=e125]
+              - button "Outline" [ref=e126]
+              - button "Secondary" [ref=e127]
+              - button "Ghost" [ref=e128]
+              - button "Destructive" [ref=e129]
+              - button "Link" [ref=e130]
+          - generic [ref=e131]:
+            - paragraph [ref=e132]: Sizes
+            - generic [ref=e133]:
+              - button "XS" [ref=e134]
+              - button "Small" [ref=e135]
+              - button "Default" [ref=e136]
+              - button "Large" [ref=e137]
+          - generic [ref=e138]:
+            - paragraph [ref=e139]: States
+            - generic [ref=e140]:
+              - button "Idle" [ref=e141]
+              - button "Disabled" [disabled]
+              - button "Focus ring"
+      - generic [ref=e142]:
+        - generic [ref=e143]:
+          - heading "Cards" [level=2] [ref=e144]
+          - generic [ref=e145]: "04"
+        - generic [ref=e146]:
+          - generic [ref=e147]:
+            - generic [ref=e148]:
+              - paragraph [ref=e149]: card · default
+              - generic [ref=e150]: Will GPT-5 launch before July?
+              - generic [ref=e151]: Tech & AI · 17 days left
+            - generic [ref=e152]: consensus 62% · 412 calls
+            - button "Predict" [ref=e154]
+          - generic [ref=e155]:
+            - generic [ref=e156]:
+              - paragraph [ref=e157]: card · won
+              - generic [ref=e158]: Bitcoin above $120K by EOY 2025
+              - generic [ref=e159]: Crypto · resolved Dec 31
+            - generic [ref=e160]:
+              - paragraph [ref=e161]: 78%
+              - paragraph [ref=e162]: your call
+            - button "Share receipt →" [ref=e164]
+          - generic [ref=e165]:
+            - generic [ref=e166]:
+              - paragraph [ref=e167]: card · missed
+              - generic [ref=e168]: Lakers win NBA Finals 2026
+              - generic [ref=e169]: Sports · resolved Jun 22
+            - generic [ref=e170]:
+              - paragraph [ref=e171]: 31%
+              - paragraph [ref=e172]: your call
+      - generic [ref=e173]:
+        - generic [ref=e174]:
+          - heading "Inputs" [level=2] [ref=e175]
+          - generic [ref=e176]: "05"
+        - generic [ref=e177]:
+          - generic [ref=e178]:
+            - generic [ref=e179]: Username
+            - textbox "Username" [ref=e180]:
+              - /placeholder: warriorsushi
+          - generic [ref=e181]:
+            - generic [ref=e182]: Email
+            - textbox "Email" [ref=e183]:
+              - /placeholder: you@forecast.social
+          - generic [ref=e184]:
+            - generic [ref=e185]: Disabled
+            - textbox "Disabled" [disabled]:
+              - /placeholder: Not editable
+          - generic [ref=e186]:
+            - generic [ref=e187]: With error
+            - textbox "With error" [ref=e188]:
+              - /placeholder: Already taken
+              - text: "@admin"
+      - generic [ref=e189]:
+        - generic [ref=e190]:
+          - heading "Badges & pills" [level=2] [ref=e191]
+          - generic [ref=e192]: "06"
+        - generic [ref=e193]:
+          - generic [ref=e194]: Default
+          - generic [ref=e195]: Secondary
+          - generic [ref=e196]: Outline
+          - generic [ref=e197]: Destructive
+          - generic [ref=e198]: correct
+          - generic [ref=e199]: missed
+          - generic [ref=e200]: pending
+          - generic [ref=e201]: TECH & AI
+      - generic [ref=e202]:
+        - generic [ref=e203]:
+          - heading "Avatars" [level=2] [ref=e204]
+          - generic [ref=e205]: "07"
+        - generic [ref=e206]:
+          - generic [ref=e207]:
+            - generic [ref=e209]: IT
+            - generic [ref=e210]: 48px
+          - generic [ref=e211]:
+            - generic [ref=e213]: IT
+            - generic [ref=e214]: 40px
+          - generic [ref=e215]:
+            - generic [ref=e217]: IT
+            - generic [ref=e218]: 32px
+      - generic [ref=e220]:
+        - heading "Loading skeletons" [level=2] [ref=e221]
+        - generic [ref=e222]: "08"
+  - region "Notifications alt+T"
+  - alert [ref=e232]

@@ -1,0 +1,35 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - complementary [ref=e4]:
+      - link "forecast.social" [ref=e5] [cursor=pointer]:
+        - /url: /
+      - navigation [ref=e6]:
+        - link "Feed" [ref=e7] [cursor=pointer]:
+          - /url: /feed
+          - img [ref=e9]
+          - generic [ref=e12]: Feed
+        - link "Markets" [ref=e13] [cursor=pointer]:
+          - /url: /markets
+          - img [ref=e15]
+          - generic [ref=e20]: Markets
+        - link "Predict" [ref=e21] [cursor=pointer]:
+          - /url: /predict
+          - img [ref=e23]
+          - generic [ref=e24]: Predict
+        - link "Profile" [ref=e25] [cursor=pointer]:
+          - /url: /me
+          - img [ref=e27]
+          - generic [ref=e31]: Profile
+      - generic [ref=e32]:
+        - button "Toggle theme" [ref=e33]:
+          - img
+        - generic [ref=e34]: v0.1 · phase 0
+    - main [ref=e35]:
+      - generic [ref=e36]:
+        - paragraph [ref=e37]: feed · phase 5
+        - heading "Nothing to call yet." [level=2] [ref=e38]
+        - paragraph [ref=e39]: Predictions from people you follow and trending markets will appear here once you start following forecasters.
+        - link "Browse markets →" [ref=e40] [cursor=pointer]:
+          - /url: /markets
+  - region "Notifications alt+T"
+  - alert [ref=e41]
