@@ -1,26 +1,202 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
+@custom-variant dark (&:is(.dark *));
+
+/* =====================================================================
+   Light — "Newsroom"
+   Warm paper, deep ink, solar accent. Editorial-confidence palette.
+===================================================================== */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background:           oklch(97.5% 0.012 85);
+  --foreground:           oklch(15% 0.015 60);
+  --surface:              oklch(99% 0.008 85);
+  --surface-elevated:     oklch(100% 0 0);
+  --border:               oklch(88% 0.012 75);
+  --border-strong:        oklch(78% 0.015 70);
+  --muted:                oklch(93% 0.012 80);
+  --muted-foreground:     oklch(45% 0.015 60);
+
+  --primary:              oklch(20% 0.02 60);
+  --primary-foreground:   oklch(97% 0.012 85);
+
+  --accent:               oklch(64% 0.18 55);
+  --accent-foreground:    oklch(15% 0.015 60);
+
+  --signal-positive:      oklch(58% 0.18 145);
+  --signal-positive-soft: oklch(92% 0.06 145);
+  --signal-negative:      oklch(55% 0.20 25);
+  --signal-negative-soft: oklch(93% 0.06 25);
+  --signal-neutral:       oklch(60% 0.04 250);
+
+  --ring:                 oklch(20% 0.02 60);
+  --radius:               0.625rem;
 }
 
+/* =====================================================================
+   Dark — "Late Edition"
+   Deep ink, warm off-white, phosphor signals. Premium, refined.
+===================================================================== */
+.dark {
+  --background:           oklch(13% 0.012 60);
+  --foreground:           oklch(94% 0.012 85);
+  --surface:              oklch(16% 0.012 60);
+  --surface-elevated:     oklch(19% 0.012 60);
+  --border:               oklch(24% 0.012 60);
+  --border-strong:        oklch(32% 0.012 60);
+  --muted:                oklch(20% 0.012 60);
+  --muted-foreground:     oklch(65% 0.012 60);
+
+  --primary:              oklch(94% 0.012 85);
+  --primary-foreground:   oklch(13% 0.012 60);
+
+  --accent:               oklch(74% 0.16 70);
+  --accent-foreground:    oklch(13% 0.012 60);
+
+  --signal-positive:      oklch(72% 0.20 145);
+  --signal-positive-soft: oklch(28% 0.10 145);
+  --signal-negative:      oklch(68% 0.22 25);
+  --signal-negative-soft: oklch(28% 0.10 25);
+  --signal-neutral:       oklch(70% 0.04 250);
+
+  --ring:                 oklch(94% 0.012 85);
+}
+
+/* =====================================================================
+   Theme — map design tokens to Tailwind v4 utilities
+===================================================================== */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* color */
+  --color-background:           var(--background);
+  --color-foreground:           var(--foreground);
+  --color-surface:              var(--surface);
+  --color-surface-elevated:     var(--surface-elevated);
+  --color-border:               var(--border);
+  --color-border-strong:        var(--border-strong);
+  --color-muted:                var(--muted);
+  --color-muted-foreground:     var(--muted-foreground);
+  --color-primary:              var(--primary);
+  --color-primary-foreground:   var(--primary-foreground);
+  --color-accent:               var(--accent);
+  --color-accent-foreground:    var(--accent-foreground);
+  --color-signal-positive:      var(--signal-positive);
+  --color-signal-positive-soft: var(--signal-positive-soft);
+  --color-signal-negative:      var(--signal-negative);
+  --color-signal-negative-soft: var(--signal-negative-soft);
+  --color-signal-neutral:       var(--signal-neutral);
+  --color-ring:                 var(--ring);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  /* font families — next/font injects --font-* variables on <html> */
+  --font-display: var(--font-instrument-serif), ui-serif, Georgia, serif;
+  --font-sans:    var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono:    var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* type scale — Instrument Serif for display, Geist for everything else */
+  --text-display-xl: 96px;
+  --text-display-xl--line-height: 0.95;
+  --text-display-xl--letter-spacing: -0.04em;
+  --text-display-xl--font-weight: 400;
+
+  --text-display-lg: 72px;
+  --text-display-lg--line-height: 0.95;
+  --text-display-lg--letter-spacing: -0.03em;
+  --text-display-lg--font-weight: 400;
+
+  --text-display-md: 56px;
+  --text-display-md--line-height: 0.98;
+  --text-display-md--letter-spacing: -0.025em;
+  --text-display-md--font-weight: 400;
+
+  --text-display-sm: 40px;
+  --text-display-sm--line-height: 1;
+  --text-display-sm--letter-spacing: -0.02em;
+  --text-display-sm--font-weight: 400;
+
+  --text-headline: 32px;
+  --text-headline--line-height: 1.05;
+  --text-headline--letter-spacing: -0.015em;
+  --text-headline--font-weight: 400;
+
+  --text-title: 24px;
+  --text-title--line-height: 1.15;
+  --text-title--letter-spacing: -0.01em;
+  --text-title--font-weight: 600;
+
+  --text-body-lg: 18px;
+  --text-body-lg--line-height: 1.5;
+  --text-body-lg--letter-spacing: 0;
+  --text-body-lg--font-weight: 400;
+
+  --text-body: 16px;
+  --text-body--line-height: 1.55;
+  --text-body--letter-spacing: 0;
+  --text-body--font-weight: 400;
+
+  --text-body-sm: 14px;
+  --text-body-sm--line-height: 1.5;
+  --text-body-sm--letter-spacing: 0;
+  --text-body-sm--font-weight: 400;
+
+  --text-caption: 13px;
+  --text-caption--line-height: 1.4;
+  --text-caption--letter-spacing: 0.01em;
+  --text-caption--font-weight: 500;
+
+  --text-overline: 11px;
+  --text-overline--line-height: 1.2;
+  --text-overline--letter-spacing: 0.12em;
+  --text-overline--font-weight: 600;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* =====================================================================
+   Base — body defaults, tabular numerics, focus rings
+===================================================================== */
+@layer base {
+  * {
+    border-color: var(--border);
   }
-}
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  html {
+    background: var(--background);
+    color: var(--foreground);
+  }
+
+  body {
+    font-family: var(--font-sans);
+    font-variant-numeric: tabular-nums;
+    background: var(--background);
+    color: var(--foreground);
+  }
+
+  /* Display serif is reserved for 24px+ headlines — use .font-display utility. */
+  .font-display {
+    font-family: var(--font-display);
+  }
+
+  /* Mono inherits tabular nums automatically. */
+  .font-mono {
+    font-family: var(--font-mono);
+  }
+
+  /* All overlines uppercase with wide tracking. */
+  .text-overline {
+    text-transform: uppercase;
+  }
+
+  /* Focus ring uses our token, not Tailwind's default blue. */
+  *:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  /* Selection picks up our accent for a small brand moment. */
+  ::selection {
+    background: var(--accent);
+    color: var(--accent-foreground);
+  }
 }
