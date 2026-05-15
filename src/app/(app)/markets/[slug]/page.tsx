@@ -13,6 +13,7 @@ import {
 } from "@/lib/db/schema";
 import { getCurrentProfile } from "@/lib/auth";
 import { ConsensusSparkline } from "@/components/markets/consensus-sparkline";
+import { LiveConsensus } from "@/components/markets/live-consensus";
 import { PredictionSlider } from "@/components/markets/prediction-slider";
 import { PredictionsTimeline } from "@/components/markets/predictions-timeline";
 import { ResolveMarketPanel } from "@/components/admin/resolve-market-panel";
@@ -169,16 +170,40 @@ export default async function MarketDetailPage({
         </h1>
 
         <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-6">
-          <Stat
-            label="consensus"
-            value={consensusPct != null ? `${consensusPct}%` : "—"}
-            tone="foreground"
-          />
-          <Stat
-            label="calls"
-            value={market.prediction_count.toLocaleString()}
-            tone="foreground"
-          />
+          <div>
+            <p className="text-overline text-muted-foreground">consensus</p>
+            <p className="mt-2 font-display text-headline tabular-nums text-foreground">
+              {resolved ? (
+                consensusPct != null ? (
+                  `${consensusPct}%`
+                ) : (
+                  "—"
+                )
+              ) : (
+                <LiveConsensus
+                  marketId={market.id}
+                  initialConsensus={market.consensus_probability}
+                  initialPredictionCount={market.prediction_count}
+                  renderMode="consensus"
+                />
+              )}
+            </p>
+          </div>
+          <div>
+            <p className="text-overline text-muted-foreground">calls</p>
+            <p className="mt-2 font-display text-headline tabular-nums text-foreground">
+              {resolved ? (
+                market.prediction_count.toLocaleString()
+              ) : (
+                <LiveConsensus
+                  marketId={market.id}
+                  initialConsensus={market.consensus_probability}
+                  initialPredictionCount={market.prediction_count}
+                  renderMode="count"
+                />
+              )}
+            </p>
+          </div>
           <Stat
             label="closes"
             value={formatDate(market.closes_at)}
