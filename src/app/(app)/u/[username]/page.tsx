@@ -5,9 +5,15 @@ import { notFound } from "next/navigation";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { db } from "@/lib/db";
-import { markets, predictions, users } from "@/lib/db/schema";
+import {
+  follows,
+  markets,
+  predictions,
+  users,
+} from "@/lib/db/schema";
 import { getCurrentProfile } from "@/lib/auth";
 import { ForecastScoreHero } from "@/components/profile/forecast-score-hero";
+import { FollowButton } from "@/components/profile/follow-button";
 import { VOLUME_GATE } from "@/lib/scoring/score";
 
 type Params = { username: string };
@@ -40,6 +46,36 @@ export default async function ProfilePage({
 
   const me = await getCurrentProfile();
   const isOwn = me?.id === profile.id;
+
+  // Follower / following counts and the viewer's relationship to this
+  // profile. All three queries are tiny — index hits on (followee_id)
+  // and the composite PK.
+  const [followerAgg] = await db
+    .select({ count: sql<number>`COUNT(*)` })
+    .from(follows)
+    .where(eq(follows.followee_id, profile.id));
+  const followerCount = Number(followerAgg?.count ?? 0);
+
+  const [followingAgg] = await db
+    .select({ count: sql<number>`COUNT(*)` })
+    .from(follows)
+    .where(eq(follows.follower_id, profile.id));
+  const followingCount = Number(followingAgg?.count ?? 0);
+
+  let viewerFollows = false;
+  if (me && !isOwn) {
+    const [existing] = await db
+      .select({ follower_id: follows.follower_id })
+      .from(follows)
+      .where(
+        and(
+          eq(follows.follower_id, me.id),
+          eq(follows.followee_id, profile.id),
+        ),
+      )
+      .limit(1);
+    viewerFollows = !!existing;
+  }
 
   // Resolved-prediction count gates the public Forecast Score. Only
   // counts non-invalid resolved markets, matching SCORING.md §8.
@@ -119,12 +155,36 @@ export default async function ProfilePage({
         </Avatar>
 
         <div className="flex-1 min-w-0 flex flex-col gap-2">
-          <h1 className="font-display text-headline sm:text-display-sm text-foreground leading-[1.05]">
-            {profile.display_name}
-          </h1>
-          <p className="font-mono text-body-sm text-muted-foreground">
-            @{profile.username}
-          </p>
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <h1 className="font-display text-headline sm:text-display-sm text-foreground leading-[1.05]">
+                {profile.display_name}
+              </h1>
+              <p className="font-mono text-body-sm text-muted-foreground mt-1">
+                @{profile.username}
+              </p>
+            </div>
+            {me && !isOwn ? (
+              <FollowButton
+                targetUserId={profile.id}
+                initialIsFollowing={viewerFollows}
+              />
+            ) : null}
+          </div>
+          <div className="mt-2 flex items-center gap-4 text-body-sm text-muted-foreground">
+            <span>
+              <span className="font-mono text-foreground tabular-nums">
+                {followerCount.toLocaleString()}
+              </span>{" "}
+              followers
+            </span>
+            <span>
+              <span className="font-mono text-foreground tabular-nums">
+                {followingCount.toLocaleString()}
+              </span>{" "}
+              following
+            </span>
+          </div>
           {profile.bio ? (
             <p className="mt-3 text-body text-foreground/90 max-w-lg">
               {profile.bio}

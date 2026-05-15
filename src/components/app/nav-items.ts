@@ -1,4 +1,5 @@
 import {
+  Bell,
   CircleUser,
   Compass,
   LayoutGrid,
@@ -36,10 +37,11 @@ export type NavItem = {
  */
 export function getNavItems(username: string): readonly NavItem[] {
   return [
-    { href: "/feed",        label: "Feed",        Icon: Compass },
-    { href: "/markets",     label: "Markets",     Icon: LayoutGrid },
-    { href: "/leaderboard", label: "Leaderboard", Icon: Trophy, desktopOnly: true },
-    { href: "/predict",     label: "Predict",     Icon: Plus, emphasised: true },
+    { href: "/feed",          label: "Feed",          Icon: Compass },
+    { href: "/markets",       label: "Markets",       Icon: LayoutGrid },
+    { href: "/leaderboard",   label: "Leaderboard",   Icon: Trophy, desktopOnly: true },
+    { href: "/notifications", label: "Notifications", Icon: Bell,   desktopOnly: true },
+    { href: "/predict",       label: "Predict",       Icon: Plus, emphasised: true },
     {
       href: `/u/${username}`,
       label: "Profile",

@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { and, asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, inArray } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import {
   categories,
+  comment_upvotes,
+  comments,
   markets,
   predictions,
   users,
@@ -14,6 +16,10 @@ import { ConsensusSparkline } from "@/components/markets/consensus-sparkline";
 import { PredictionSlider } from "@/components/markets/prediction-slider";
 import { PredictionsTimeline } from "@/components/markets/predictions-timeline";
 import { ResolveMarketPanel } from "@/components/admin/resolve-market-panel";
+import {
+  CommentsSection,
+  type CommentRow,
+} from "@/components/markets/comments-section";
 
 type Params = { slug: string };
 
@@ -258,8 +264,74 @@ export default async function MarketDetailPage({
         </div>
         <PredictionsTimeline entries={timeline} />
       </section>
+
+      <CommentsSection
+        marketId={market.id}
+        isSignedIn={!!profile}
+        comments={await loadComments(market.id, profile?.id)}
+      />
     </div>
   );
+}
+
+async function loadComments(
+  marketId: string,
+  myId: string | undefined,
+): Promise<CommentRow[]> {
+  // Top-level comments + replies, joined to author, sorted: tops by
+  // upvote_count desc + created_at desc, replies inline by created_at
+  // ascending. We sort in JS after loading since the result set is
+  // small and the order on replies is straightforward.
+  const rows = await db
+    .select({
+      id: comments.id,
+      body: comments.body,
+      upvote_count: comments.upvote_count,
+      created_at: comments.created_at,
+      parent_id: comments.parent_id,
+      user_username: users.username,
+      user_display_name: users.display_name,
+    })
+    .from(comments)
+    .innerJoin(users, eq(comments.user_id, users.id))
+    .where(eq(comments.market_id, marketId));
+
+  let upvotedSet = new Set<string>();
+  if (myId && rows.length > 0) {
+    const ids = rows.map((r) => r.id);
+    const myVotes = await db
+      .select({ comment_id: comment_upvotes.comment_id })
+      .from(comment_upvotes)
+      .where(
+        and(
+          eq(comment_upvotes.user_id, myId),
+          inArray(comment_upvotes.comment_id, ids),
+        ),
+      );
+    upvotedSet = new Set(myVotes.map((v) => v.comment_id));
+  }
+
+  const enriched: CommentRow[] = rows.map((r) => ({
+    ...r,
+    upvoted_by_me: upvotedSet.has(r.id),
+  }));
+
+  enriched.sort((a, b) => {
+    // Top-levels first, sort by upvotes desc then created_at desc.
+    if (!a.parent_id && !b.parent_id) {
+      if (b.upvote_count !== a.upvote_count)
+        return b.upvote_count - a.upvote_count;
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    }
+    // Replies inline asc by created.
+    if (a.parent_id && b.parent_id) {
+      return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+    }
+    // Mixed: top before reply for stability.
+    return a.parent_id ? 1 : -1;
+  });
+
+  return enriched;
 }
 
 /**

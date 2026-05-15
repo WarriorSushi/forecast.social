@@ -12,6 +12,7 @@ import {
   user_category_scores,
   users,
 } from "@/lib/db/schema";
+import { createNotification } from "@/lib/notifications";
 import {
   brier,
   computeForecastScore,
@@ -20,6 +21,8 @@ import {
   wasCorrect,
   type Prediction,
 } from "./score";
+
+const MILESTONES = [1500, 2000, 2500] as const;
 
 /**
  * Recomputes a user's score from scratch. Reads every resolved
@@ -127,6 +130,13 @@ export async function recomputeUserScore(userId: string): Promise<void> {
 
   const correctCount = streakRows.filter((r) => r.wasCorrect).length;
 
+  // Read the previous score so we can detect milestone crossings.
+  const [prev] = await db
+    .select({ forecast_score: users.forecast_score })
+    .from(users)
+    .where(eq(users.id, userId));
+  const previousScore = prev?.forecast_score ?? 0;
+
   await db
     .update(users)
     .set({
@@ -137,6 +147,22 @@ export async function recomputeUserScore(userId: string): Promise<void> {
       updated_at: new Date(),
     })
     .where(eq(users.id, userId));
+
+  // Milestone fan-out: a user who crosses 1500 / 2000 / 2500 upward gets
+  // a single notification per threshold per crossing. We only fire when
+  // the previous score was BELOW the threshold and the new one is AT or
+  // ABOVE; that gives idempotent behavior across re-resolutions.
+  if (ranked) {
+    for (const threshold of MILESTONES) {
+      if (previousScore < threshold && publicScore >= threshold) {
+        await createNotification(userId, {
+          kind: "score_milestone",
+          score: publicScore,
+          threshold,
+        });
+      }
+    }
+  }
 
   // Per-category scores.
   const byCategory = new Map<string, Prediction[]>();

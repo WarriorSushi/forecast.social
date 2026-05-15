@@ -1,13 +1,20 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { eq } from "drizzle-orm";
+import { and, desc, eq, lt } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "@/lib/db";
-import { markets, market_resolutions } from "@/lib/db/schema";
+import {
+  markets,
+  market_resolutions,
+  predictions,
+  users,
+} from "@/lib/db/schema";
 import { getCurrentProfile } from "@/lib/auth";
 import { recomputeUsersForMarket } from "@/lib/scoring/recompute";
+import { createNotification } from "@/lib/notifications";
+import { wasCorrect } from "@/lib/scoring/score";
 
 const schema = z.object({
   marketId: z.string().uuid("Invalid market reference."),
@@ -85,11 +92,54 @@ export async function resolveMarket(formData: FormData): Promise<ResolveResult> 
 
   const affectedUsers = await recomputeUsersForMarket(parsed.data.marketId);
 
+  // Notify each predictor: market resolved. Use their LATEST pre-close
+  // prediction since that's what scoring uses.
+  const [marketRow] = await db
+    .select({
+      id: markets.id,
+      slug: markets.slug,
+      title: markets.title,
+      closes_at: markets.closes_at,
+    })
+    .from(markets)
+    .where(eq(markets.id, parsed.data.marketId))
+    .limit(1);
+
+  if (marketRow && parsed.data.outcome !== "invalid") {
+    const allPreds = await db
+      .selectDistinctOn([predictions.user_id], {
+        user_id: predictions.user_id,
+        probability: predictions.probability,
+      })
+      .from(predictions)
+      .where(
+        and(
+          eq(predictions.market_id, parsed.data.marketId),
+          lt(predictions.created_at, marketRow.closes_at),
+        ),
+      )
+      .orderBy(predictions.user_id, desc(predictions.created_at));
+
+    for (const p of allPreds) {
+      const correct = wasCorrect(p.probability, parsed.data.outcome === "yes");
+      await createNotification(p.user_id, {
+        kind: "market_resolved",
+        market_slug: marketRow.slug,
+        market_title: marketRow.title,
+        outcome: parsed.data.outcome,
+        user_call: p.probability,
+        was_correct: correct,
+      });
+    }
+  }
+
   revalidatePath(`/markets/${market.slug}`);
   revalidatePath("/markets");
   revalidatePath("/leaderboard");
   revalidatePath("/feed");
+  revalidatePath("/notifications");
 
+  void users; // referenced via createNotification user lookups
   return {
     status: "ok",
     affectedUsers,

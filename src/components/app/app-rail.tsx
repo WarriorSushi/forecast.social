@@ -8,7 +8,13 @@ import { UserMenu } from "@/components/app/user-menu";
 import { cn } from "@/lib/utils";
 import type { CurrentProfile } from "@/lib/auth";
 
-export function AppRail({ profile }: { profile: CurrentProfile }) {
+export function AppRail({
+  profile,
+  unreadNotifications = 0,
+}: {
+  profile: CurrentProfile;
+  unreadNotifications?: number;
+}) {
   const pathname = usePathname();
   const items = getNavItems(profile.username);
 
@@ -27,6 +33,11 @@ export function AppRail({ profile }: { profile: CurrentProfile }) {
             key={item.href}
             item={item}
             active={isActive(pathname, item)}
+            badge={
+              item.href === "/notifications" && unreadNotifications > 0
+                ? unreadNotifications
+                : undefined
+            }
           />
         ))}
       </nav>
@@ -43,7 +54,15 @@ export function AppRail({ profile }: { profile: CurrentProfile }) {
   );
 }
 
-function RailItem({ item, active }: { item: NavItem; active: boolean }) {
+function RailItem({
+  item,
+  active,
+  badge,
+}: {
+  item: NavItem;
+  active: boolean;
+  badge?: number;
+}) {
   const { Icon, href, label } = item;
   return (
     <Link
@@ -65,7 +84,15 @@ function RailItem({ item, active }: { item: NavItem; active: boolean }) {
         )}
       />
       <Icon className="size-[18px] shrink-0" strokeWidth={1.75} />
-      <span className="text-body-sm">{label}</span>
+      <span className="text-body-sm flex-1">{label}</span>
+      {badge ? (
+        <span
+          aria-label={`${badge} unread`}
+          className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-accent text-accent-foreground font-mono text-[10px] font-semibold tabular-nums"
+        >
+          {badge > 99 ? "99+" : badge}
+        </span>
+      ) : null}
     </Link>
   );
 }

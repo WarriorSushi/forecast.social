@@ -3,6 +3,7 @@ import {
   check,
   index,
   integer,
+  jsonb,
   pgTable,
   primaryKey,
   real,
@@ -221,6 +222,119 @@ export const user_category_scores = pgTable(
 );
 
 /* =====================================================================
+   follows — directional social graph
+===================================================================== */
+export const follows = pgTable(
+  "follows",
+  {
+    follower_id: uuid("follower_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    followee_id: uuid("followee_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    created_at: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.follower_id, table.followee_id] }),
+    index("follows_followee_idx").on(table.followee_id),
+    check(
+      "follows_no_self",
+      sql`${table.follower_id} <> ${table.followee_id}`,
+    ),
+  ],
+);
+
+/* =====================================================================
+   comments — single-level threaded discussion per market
+   Plain text body, optional parent_id for one-level replies.
+===================================================================== */
+export const comments = pgTable(
+  "comments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    market_id: uuid("market_id")
+      .notNull()
+      .references(() => markets.id, { onDelete: "cascade" }),
+    user_id: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    parent_id: uuid("parent_id"),
+    body: text("body").notNull(),
+    upvote_count: integer("upvote_count").notNull().default(0),
+    created_at: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    edited_at: timestamp("edited_at", { withTimezone: true }),
+  },
+  (table) => [
+    index("comments_market_created_idx").on(
+      table.market_id,
+      table.created_at.desc(),
+    ),
+    index("comments_parent_idx").on(table.parent_id),
+    check(
+      "comments_body_length",
+      sql`length(${table.body}) > 0 AND length(${table.body}) <= 4000`,
+    ),
+  ],
+);
+
+/* =====================================================================
+   comment_upvotes — composite key, one upvote per user per comment
+===================================================================== */
+export const comment_upvotes = pgTable(
+  "comment_upvotes",
+  {
+    comment_id: uuid("comment_id")
+      .notNull()
+      .references(() => comments.id, { onDelete: "cascade" }),
+    user_id: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    created_at: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.comment_id, table.user_id] })],
+);
+
+/* =====================================================================
+   notifications — typed payload, per-user, read/unread state
+===================================================================== */
+export const notifications = pgTable(
+  "notifications",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    user_id: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    kind: text("kind", {
+      enum: [
+        "follow",
+        "market_resolved",
+        "bold_call",
+        "reply",
+        "score_milestone",
+      ],
+    }).notNull(),
+    payload: jsonb("payload").notNull(),
+    read_at: timestamp("read_at", { withTimezone: true }),
+    created_at: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("notifications_user_created_idx").on(
+      table.user_id,
+      table.created_at.desc(),
+    ),
+  ],
+);
+
+/* =====================================================================
    Inferred row types — used across server actions and components.
 ===================================================================== */
 export type User = typeof users.$inferSelect;
@@ -232,3 +346,10 @@ export type MarketResolution = typeof market_resolutions.$inferSelect;
 export type Prediction = typeof predictions.$inferSelect;
 export type NewPrediction = typeof predictions.$inferInsert;
 export type UserCategoryScore = typeof user_category_scores.$inferSelect;
+export type Follow = typeof follows.$inferSelect;
+export type Comment = typeof comments.$inferSelect;
+export type NewComment = typeof comments.$inferInsert;
+export type CommentUpvote = typeof comment_upvotes.$inferSelect;
+export type Notification = typeof notifications.$inferSelect;
+export type NewNotification = typeof notifications.$inferInsert;
+export type NotificationKind = Notification["kind"];
