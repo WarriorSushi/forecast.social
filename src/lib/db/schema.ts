@@ -4,6 +4,7 @@ import {
   index,
   integer,
   pgTable,
+  primaryKey,
   real,
   text,
   timestamp,
@@ -187,6 +188,39 @@ export const predictions = pgTable(
 );
 
 /* =====================================================================
+   user_category_scores — per-user, per-category breakdown
+
+   A user may be 2100 on Tech and 850 on Sports. SCORING.md §7 — same
+   formula as the global score, filtered to predictions in that
+   category. Maintained by the resolveMarket flow.
+===================================================================== */
+export const user_category_scores = pgTable(
+  "user_category_scores",
+  {
+    user_id: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    category_slug: text("category_slug")
+      .notNull()
+      .references(() => categories.slug),
+    score: integer("score").notNull().default(0),
+    resolved_count: integer("resolved_count").notNull().default(0),
+    correct_count: integer("correct_count").notNull().default(0),
+    avg_brier: real("avg_brier"),
+    updated_at: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.user_id, table.category_slug] }),
+    index("user_category_scores_category_score_idx").on(
+      table.category_slug,
+      table.score.desc(),
+    ),
+  ],
+);
+
+/* =====================================================================
    Inferred row types — used across server actions and components.
 ===================================================================== */
 export type User = typeof users.$inferSelect;
@@ -197,3 +231,4 @@ export type NewMarket = typeof markets.$inferInsert;
 export type MarketResolution = typeof market_resolutions.$inferSelect;
 export type Prediction = typeof predictions.$inferSelect;
 export type NewPrediction = typeof predictions.$inferInsert;
+export type UserCategoryScore = typeof user_category_scores.$inferSelect;

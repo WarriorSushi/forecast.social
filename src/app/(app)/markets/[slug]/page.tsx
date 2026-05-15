@@ -13,6 +13,7 @@ import { getCurrentProfile } from "@/lib/auth";
 import { ConsensusSparkline } from "@/components/markets/consensus-sparkline";
 import { PredictionSlider } from "@/components/markets/prediction-slider";
 import { PredictionsTimeline } from "@/components/markets/predictions-timeline";
+import { ResolveMarketPanel } from "@/components/admin/resolve-market-panel";
 
 type Params = { slug: string };
 
@@ -233,6 +234,13 @@ export default async function MarketDetailPage({
                 />
               )}
             </div>
+
+            {profile?.is_admin ? (
+              <ResolveMarketPanel
+                marketId={market.id}
+                alreadyResolved={resolved}
+              />
+            ) : null}
           </div>
         </aside>
       </section>

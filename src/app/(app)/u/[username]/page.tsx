@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, gt, isNotNull, ne, sql } from "drizzle-orm";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { db } from "@/lib/db";
 import { markets, predictions, users } from "@/lib/db/schema";
 import { getCurrentProfile } from "@/lib/auth";
+import { ForecastScoreHero } from "@/components/profile/forecast-score-hero";
+import { VOLUME_GATE } from "@/lib/scoring/score";
 
 type Params = { username: string };
 
@@ -38,6 +40,41 @@ export default async function ProfilePage({
 
   const me = await getCurrentProfile();
   const isOwn = me?.id === profile.id;
+
+  // Resolved-prediction count gates the public Forecast Score. Only
+  // counts non-invalid resolved markets, matching SCORING.md §8.
+  const [resolvedAgg] = await db
+    .select({
+      resolved_count: sql<number>`COUNT(DISTINCT ${markets.id})`.as("resolved_count"),
+    })
+    .from(predictions)
+    .innerJoin(markets, eq(predictions.market_id, markets.id))
+    .where(
+      and(
+        eq(predictions.user_id, profile.id),
+        isNotNull(markets.resolved_at),
+        ne(markets.outcome, "invalid"),
+      ),
+    );
+  const resolvedCount = Number(resolvedAgg?.resolved_count ?? 0);
+
+  // Rank: dense rank over users.forecast_score desc among ranked users.
+  // We pull the user's rank only if they're ranked themselves.
+  let rank: number | null = null;
+  let totalRanked = 0;
+  const isRanked = resolvedCount >= VOLUME_GATE && profile.forecast_score > 0;
+  if (isRanked) {
+    const [totalAgg] = await db
+      .select({ count: sql<number>`COUNT(*)` })
+      .from(users)
+      .where(gt(users.forecast_score, 0));
+    totalRanked = Number(totalAgg?.count ?? 0);
+    const [rankAgg] = await db
+      .select({ rank: sql<number>`COUNT(*) + 1` })
+      .from(users)
+      .where(gt(users.forecast_score, profile.forecast_score));
+    rank = Number(rankAgg?.rank ?? 1);
+  }
 
   // Profile prediction history — pulls the latest 25 calls across all
   // markets, with the market title + consensus snapshot for context.
@@ -100,27 +137,15 @@ export default async function ProfilePage({
           Forecast Score — Unranked until ≥ 5 resolved predictions
           (SCORING.md §8).
       ============================================================ */}
-      <section className="mt-10 sm:mt-12 border-t border-border pt-8">
-        <div className="flex items-baseline justify-between gap-4">
-          <p className="text-overline text-muted-foreground">forecast score</p>
-          {isOwn ? (
-            <Button asChild variant="ghost" size="sm" className="-mr-2">
-              <Link href="/settings">Edit profile</Link>
-            </Button>
-          ) : null}
-        </div>
-        <div className="mt-3 flex items-end gap-4">
-          <span className="font-display text-display-md text-muted-foreground">
-            Unranked
-          </span>
-        </div>
-        <p className="mt-3 text-body-sm text-muted-foreground max-w-md">
-          A Forecast Score appears here after {" "}
-          <span className="font-mono text-foreground">5</span> resolved
-          predictions. Until then your calls are still recorded. They just
-          don't score yet.
-        </p>
-      </section>
+      <ForecastScoreHero
+        score={profile.forecast_score}
+        rank={rank}
+        totalRanked={totalRanked}
+        resolvedCount={resolvedCount}
+        currentStreak={profile.current_streak}
+        longestStreak={profile.longest_streak}
+        isOwn={isOwn}
+      />
 
       {/* ============================================================
           Prediction history

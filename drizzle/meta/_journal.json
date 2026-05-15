@@ -36,6 +36,13 @@
       "when": 1778783400000,
       "tag": "0004_rls_and_triggers",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1778829684532,
+      "tag": "0005_known_spirit",
+      "breakpoints": true
     }
   ]
 }

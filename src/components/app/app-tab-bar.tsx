@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 
 export function AppTabBar({ username }: { username: string }) {
   const pathname = usePathname();
-  const items = getNavItems(username);
+  const items = getNavItems(username).filter((i) => !i.desktopOnly);
 
   return (
     <nav
