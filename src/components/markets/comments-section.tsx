@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { UserAvatar } from "@/components/app/user-avatar";
 import { CommentForm } from "./comment-form";
 import { UpvoteButton } from "./upvote-button";
 
@@ -10,6 +11,7 @@ export type CommentRow = {
   created_at: Date;
   user_username: string;
   user_display_name: string;
+  user_avatar_url: string | null;
   parent_id: string | null;
   upvoted_by_me: boolean;
 };
@@ -153,12 +155,24 @@ function CommentItem({
 
 function CommentHeader({ comment }: { comment: CommentRow }) {
   return (
-    <div className="flex items-baseline justify-between gap-4 mb-2">
+    <div className="flex items-center justify-between gap-4 mb-3">
       <Link
         href={`/u/${comment.user_username}`}
-        className="font-display text-body text-foreground hover:underline truncate"
+        className="flex items-center gap-2.5 group min-w-0"
       >
-        {comment.user_display_name}
+        <UserAvatar
+          url={comment.user_avatar_url}
+          displayName={comment.user_display_name}
+          size="sm"
+        />
+        <span className="flex flex-col min-w-0">
+          <span className="font-display text-body text-foreground group-hover:underline truncate">
+            {comment.user_display_name}
+          </span>
+          <span className="font-mono text-caption text-muted-foreground truncate">
+            @{comment.user_username}
+          </span>
+        </span>
       </Link>
       <span className="font-mono text-caption text-muted-foreground tabular-nums shrink-0">
         {relativeTime(comment.created_at)}

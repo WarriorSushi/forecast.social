@@ -359,6 +359,7 @@ async function loadComments(
       parent_id: comments.parent_id,
       user_username: users.username,
       user_display_name: users.display_name,
+      user_avatar_url: users.avatar_url,
     })
     .from(comments)
     .innerJoin(users, eq(comments.user_id, users.id))

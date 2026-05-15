@@ -7,6 +7,7 @@ import {
   user_category_scores,
   users,
 } from "@/lib/db/schema";
+import { UserAvatar } from "@/components/app/user-avatar";
 
 export const metadata = { title: "Leaderboard" };
 
@@ -29,6 +30,7 @@ export default async function LeaderboardPage({
     user_id: string;
     username: string;
     display_name: string;
+    avatar_url: string | null;
     score: number;
     resolved_count: number | null;
     streak: number;
@@ -41,6 +43,7 @@ export default async function LeaderboardPage({
         user_id: users.id,
         username: users.username,
         display_name: users.display_name,
+        avatar_url: users.avatar_url,
         score: users.forecast_score,
         resolved_count: sql<number>`NULL`.as("resolved_count"),
         streak: users.current_streak,
@@ -55,6 +58,7 @@ export default async function LeaderboardPage({
         user_id: user_category_scores.user_id,
         username: users.username,
         display_name: users.display_name,
+        avatar_url: users.avatar_url,
         score: user_category_scores.score,
         resolved_count: user_category_scores.resolved_count,
         streak: users.current_streak,
@@ -112,7 +116,7 @@ export default async function LeaderboardPage({
             return (
               <li
                 key={`${row.user_id}-${activeCategory}`}
-                className="grid grid-cols-[48px_1fr_72px_88px] sm:grid-cols-[64px_1fr_120px_120px_100px] items-center gap-3 sm:gap-5 px-5 py-4 border-b border-border last:border-b-0"
+                className="grid grid-cols-[40px_40px_1fr_72px_88px] sm:grid-cols-[56px_40px_1fr_120px_120px_100px] items-center gap-3 sm:gap-5 px-5 py-4 border-b border-border last:border-b-0"
               >
                 <span
                   className={
@@ -123,6 +127,11 @@ export default async function LeaderboardPage({
                 >
                   {String(rank).padStart(2, "0")}
                 </span>
+                <UserAvatar
+                  url={row.avatar_url}
+                  displayName={row.display_name}
+                  size="sm"
+                />
                 <Link
                   href={`/u/${row.username}`}
                   className="font-display text-body text-foreground hover:underline truncate"
