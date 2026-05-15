@@ -94,13 +94,24 @@ export default async function FeedPage() {
       .where(eq(predictions.user_id, me.id))
   ).map((r) => r.market_id);
 
+  // Filter to open, unresolved markets at the aggregate step so the
+  // top-N count actually reflects markets you can still call. Without
+  // this, resolved markets win the trending slots and the fallback
+  // fires unnecessarily.
   const trendingRaw = await db
     .select({
       market_id: predictions.market_id,
       hot_count: sql<number>`COUNT(*)`.as("hot_count"),
     })
     .from(predictions)
-    .where(gt(predictions.created_at, trendingCutoff))
+    .innerJoin(markets, eq(predictions.market_id, markets.id))
+    .where(
+      and(
+        gt(predictions.created_at, trendingCutoff),
+        isNull(markets.resolved_at),
+        gt(markets.closes_at, new Date()),
+      ),
+    )
     .groupBy(predictions.market_id)
     .orderBy(desc(sql`hot_count`))
     .limit(12);

@@ -563,7 +563,7 @@ function ShareCardMock() {
                 march 14, 2026 · 09:42 utc
               </p>
             </div>
-            <span className="font-stylized italic text-title text-foreground tracking-tight">
+            <span className="font-stylized text-title text-foreground tracking-tight">
               forecast<span className="text-accent">.</span>social
             </span>
           </div>
@@ -740,7 +740,7 @@ function Categories() {
             icon={<Atom className="size-6" strokeWidth={1.5} />}
             title="Tech & AI"
             description={
-              <span className="font-stylized italic text-body text-muted-foreground">
+              <span className="text-body text-muted-foreground">
                 Will GPT-5 launch before July 2026?
               </span>
             }
@@ -755,7 +755,7 @@ function Categories() {
             icon={<Bitcoin className="size-5" strokeWidth={1.5} />}
             title="Crypto"
             description={
-              <span className="font-stylized italic">
+              <span className="text-muted-foreground">
                 BTC above $120K by EOY 2026?
               </span>
             }
@@ -765,7 +765,7 @@ function Categories() {
             icon={<Trophy className="size-5" strokeWidth={1.5} />}
             title="Sports"
             description={
-              <span className="font-stylized italic">
+              <span className="text-muted-foreground">
                 Lakers win the 2026 NBA Finals?
               </span>
             }
@@ -775,7 +775,7 @@ function Categories() {
             icon={<Tv className="size-5" strokeWidth={1.5} />}
             title="Pop culture"
             description={
-              <span className="font-stylized italic">
+              <span className="text-muted-foreground">
                 Dune Part 3 hits $700M box office?
               </span>
             }
@@ -785,7 +785,7 @@ function Categories() {
             icon={<Vote className="size-5" strokeWidth={1.5} />}
             title="Politics"
             description={
-              <span className="font-stylized italic">
+              <span className="text-muted-foreground">
                 UK general election by Q4 2026?
               </span>
             }
@@ -796,7 +796,7 @@ function Categories() {
             icon={<Zap className="size-5" strokeWidth={1.5} />}
             title="Markets"
             description={
-              <span className="font-stylized italic text-body text-muted-foreground">
+              <span className="text-body text-muted-foreground">
                 Fed pauses rates in the May FOMC meeting?
               </span>
             }

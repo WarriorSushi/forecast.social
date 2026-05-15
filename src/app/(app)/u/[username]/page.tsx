@@ -291,7 +291,7 @@ export default async function ProfilePage({
                       href={`/api/share/prediction/${row.id}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="hidden sm:inline-flex items-center justify-center px-2 py-1 rounded-full text-caption font-mono bg-accent/8 text-accent hover:bg-accent/12 transition-colors"
+                      className="hidden sm:inline-flex items-center justify-center px-2 py-1 rounded-full text-caption font-mono bg-muted text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                     >
                       share ↗
                     </a>

@@ -57,6 +57,20 @@
       "when": 1778831250000,
       "tag": "0007_social_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1778831260000,
+      "tag": "0008_review_fixes",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1778831270000,
+      "tag": "0009_review_indexes",
+      "breakpoints": true
     }
   ]
 }

@@ -81,24 +81,24 @@ export function ForecastScoreHero({
 
       <div className="mt-5 flex flex-wrap items-center gap-3">
         {topBand ? (
-          <span className="inline-flex items-center px-3 py-1.5 rounded-full bg-accent/12 text-accent text-body-sm font-semibold tracking-tight">
+          <span className="inline-flex items-center px-3 py-1.5 rounded-full bg-accent/12 text-accent text-body-sm font-semibold tracking-tight tabular-nums">
             {topBand}
           </span>
         ) : (
-          <span className="inline-flex items-center px-3 py-1.5 rounded-full bg-muted text-muted-foreground text-body-sm font-medium">
+          <span className="inline-flex items-center px-3 py-1.5 rounded-full bg-muted text-muted-foreground text-body-sm font-medium tabular-nums">
             Rank {rank?.toLocaleString()} / {totalRanked.toLocaleString()}
           </span>
         )}
         {currentStreak > 0 ? (
-          <span className="text-body-sm text-signal-positive font-medium">
+          <span className="text-body-sm text-signal-positive font-medium tabular-nums">
             {currentStreak}-call streak
           </span>
         ) : longestStreak > 0 ? (
-          <span className="text-body-sm text-muted-foreground">
+          <span className="text-body-sm text-muted-foreground tabular-nums">
             best streak {longestStreak}
           </span>
         ) : null}
-        <span className="text-body-sm text-muted-foreground">
+        <span className="text-body-sm text-muted-foreground tabular-nums">
           {resolvedCount} resolved
         </span>
       </div>

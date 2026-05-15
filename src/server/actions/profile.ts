@@ -123,15 +123,20 @@ export async function updateProfile(
     redirect("/sign-in");
   }
 
-  await db
+  const [updated] = await db
     .update(users)
     .set({
       display_name: parsed.data.displayName,
       bio: parsed.data.bio ?? null,
     })
-    .where(eq(users.id, user.id));
+    .where(eq(users.id, user.id))
+    .returning({ username: users.username });
 
   revalidatePath("/settings");
-  revalidatePath(`/u/${user.id}`);
+  if (updated?.username) {
+    // Profile routes are keyed by handle, not by UUID; revalidating the
+    // UUID path was a no-op so profile edits never flushed the cache.
+    revalidatePath(`/u/${updated.username}`);
+  }
   return { ok: true, error: null };
 }

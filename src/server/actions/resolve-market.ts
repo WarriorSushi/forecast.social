@@ -73,22 +73,26 @@ export async function resolveMarket(formData: FormData): Promise<ResolveResult> 
 
   const now = new Date();
 
-  await db.insert(market_resolutions).values({
-    market_id: parsed.data.marketId,
-    outcome: parsed.data.outcome,
-    resolved_by: profile.id,
-    notes: parsed.data.notes,
-    resolved_at: now,
-  });
-
-  await db
-    .update(markets)
-    .set({
+  // Audit row + market state mutation must be atomic. Otherwise a crash
+  // between the two leaves the audit log inconsistent with the market.
+  await db.transaction(async (tx) => {
+    await tx.insert(market_resolutions).values({
+      market_id: parsed.data.marketId,
       outcome: parsed.data.outcome,
+      resolved_by: profile.id,
+      notes: parsed.data.notes,
       resolved_at: now,
-      updated_at: now,
-    })
-    .where(eq(markets.id, parsed.data.marketId));
+    });
+
+    await tx
+      .update(markets)
+      .set({
+        outcome: parsed.data.outcome,
+        resolved_at: now,
+        updated_at: now,
+      })
+      .where(eq(markets.id, parsed.data.marketId));
+  });
 
   const affectedUsers = await recomputeUsersForMarket(parsed.data.marketId);
 
