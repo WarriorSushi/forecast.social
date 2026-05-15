@@ -1,0 +1,19 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "regions": ["iad1"],
+  "functions": {
+    "src/app/api/share/market/[slug]/route.tsx": {
+      "maxDuration": 30
+    },
+    "src/app/api/share/user/[username]/route.tsx": {
+      "maxDuration": 30
+    },
+    "src/app/api/share/prediction/[id]/route.tsx": {
+      "maxDuration": 30
+    },
+    "src/app/api/health/route.ts": {
+      "maxDuration": 10
+    }
+  },
+  "crons": []
+}
