@@ -92,6 +92,20 @@
       "when": 1778837950000,
       "tag": "0012_enable_realtime",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1778838543011,
+      "tag": "0013_overrated_earthquake",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1778838545000,
+      "tag": "0014_invite_codes_rls",
+      "breakpoints": true
     }
   ]
 }
