@@ -19,6 +19,13 @@ const serverSchema = z.object({
   NODE_ENV: z
     .enum(["development", "production", "test"])
     .default("development"),
+  // Flip to "true" to require a valid invite code on signup. Default
+  // off so dev / preview can sign up freely; production sets this in
+  // Vercel env to enable the launch ramp.
+  INVITE_CODES_REQUIRED: z
+    .enum(["true", "false"])
+    .default("false")
+    .transform((v) => v === "true"),
 });
 
 const clientSchema = z.object({

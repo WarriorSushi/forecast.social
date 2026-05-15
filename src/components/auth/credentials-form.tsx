@@ -20,6 +20,10 @@ type Props = {
   title: string;
   /** Subtitle just under the title. */
   subtitle: string;
+  /** Show the invite-code field (sign-up only, when env requires it). */
+  showInviteCode?: boolean;
+  /** Initial invite-code value (from ?code= query param). */
+  initialInviteCode?: string;
 };
 
 export function CredentialsForm({
@@ -27,6 +31,8 @@ export function CredentialsForm({
   submitLabel,
   title,
   subtitle,
+  showInviteCode = false,
+  initialInviteCode = "",
 }: Props) {
   const [state, formAction] = useActionState(action, initialAuthState);
 
@@ -59,6 +65,18 @@ export function CredentialsForm({
           required
           placeholder="At least 8 characters"
         />
+
+        {showInviteCode ? (
+          <Field
+            id="invite_code"
+            name="invite_code"
+            label="Invite code"
+            type="text"
+            defaultValue={initialInviteCode}
+            required
+            placeholder="ABC23XYZ"
+          />
+        ) : null}
 
         {state.error ? (
           <p

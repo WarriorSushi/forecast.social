@@ -14,6 +14,8 @@ import {
 import { getCurrentProfile } from "@/lib/auth";
 import { ForecastScoreHero } from "@/components/profile/forecast-score-hero";
 import { FollowButton } from "@/components/profile/follow-button";
+import { JsonLd } from "@/components/seo/json-ld";
+import { env } from "@/lib/env";
 import { VOLUME_GATE } from "@/lib/scoring/score";
 
 type Params = { username: string };
@@ -144,18 +146,33 @@ export default async function ProfilePage({
     .orderBy(desc(predictions.created_at))
     .limit(25);
 
+  const baseUrl = env.NEXT_PUBLIC_SITE_URL.replace(/\/+$/, "");
+  const profileLd = {
+    "@context": "https://schema.org",
+    "@type": "ProfilePage",
+    mainEntity: {
+      "@type": "Person",
+      name: profile.display_name,
+      alternateName: `@${profile.username}`,
+      url: `${baseUrl}/u/${profile.username}`,
+      image: profile.avatar_url ?? undefined,
+      description: profile.bio ?? undefined,
+    },
+  };
+
   return (
     <div className="max-w-2xl">
+      <JsonLd data={profileLd} />
       {/* ============================================================
           Identity row
       ============================================================ */}
       <section className="flex items-start gap-5 sm:gap-7">
         <Avatar className="size-20 sm:size-24 rounded-md border border-border-strong shrink-0">
           {profile.avatar_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
+            /* eslint-disable-next-line @next/next/no-img-element */
             <img
               src={profile.avatar_url}
-              alt=""
+              alt={`${profile.display_name} avatar`}
               className="size-full object-cover rounded-md"
             />
           ) : (

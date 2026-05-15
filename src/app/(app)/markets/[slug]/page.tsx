@@ -21,6 +21,8 @@ import {
   CommentsSection,
   type CommentRow,
 } from "@/components/markets/comments-section";
+import { JsonLd } from "@/components/seo/json-ld";
+import { env } from "@/lib/env";
 
 type Params = { slug: string };
 
@@ -144,8 +146,29 @@ export default async function MarketDetailPage({
         ? Math.round(market.consensus_probability * 100)
         : 50;
 
+  const baseUrl = env.NEXT_PUBLIC_SITE_URL.replace(/\/+$/, "");
+  const marketLd = {
+    "@context": "https://schema.org",
+    "@type": "Question",
+    name: market.title,
+    text: market.description,
+    url: `${baseUrl}/markets/${market.slug}`,
+    dateCreated: market.created_at,
+    answerCount: market.prediction_count,
+    ...(market.resolved_at && market.outcome
+      ? {
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: market.outcome,
+            dateCreated: market.resolved_at,
+          },
+        }
+      : {}),
+  };
+
   return (
     <div className="mx-auto w-full max-w-[960px] py-10 sm:py-14">
+      <JsonLd data={marketLd} />
       <Link
         href="/markets"
         className="inline-flex items-center text-body-sm text-muted-foreground hover:text-foreground transition-colors mb-8"

@@ -1,10 +1,18 @@
 import Link from "next/link";
 
 import { EditProfileForm } from "@/components/app/edit-profile-form";
+import { AvatarUpload } from "@/components/profile/avatar-upload";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { getCurrentProfile } from "@/lib/auth";
 import { signOut } from "@/server/actions/auth";
+
+function getInitials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "??";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
 
 export const metadata = { title: "Settings" };
 
@@ -39,6 +47,11 @@ export default async function SettingsPage() {
             .
           </p>
         </div>
+        <AvatarUpload
+          userId={profile.id}
+          initialUrl={profile.avatar_url}
+          initialFallback={getInitials(profile.display_name)}
+        />
         <EditProfileForm
           defaultDisplayName={profile.display_name}
           defaultBio={profile.bio ?? ""}
