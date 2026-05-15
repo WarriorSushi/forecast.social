@@ -93,6 +93,7 @@ export default async function MarketDetailPage({
       created_at: predictions.created_at,
       user_handle: users.username,
       user_display_name: users.display_name,
+      user_avatar_url: users.avatar_url,
     })
     .from(predictions)
     .innerJoin(users, eq(predictions.user_id, users.id))

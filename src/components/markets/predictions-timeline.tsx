@@ -1,9 +1,11 @@
 import Link from "next/link";
 
+import { UserAvatar } from "@/components/app/user-avatar";
+
 /**
  * Recent-predictions list on the market page. Each row: handle, the
  * probability the user called, and a relative timestamp. Names link out
- * to the user's profile. Anonymous read — Phase 3 doesn't add comments.
+ * to the user's profile.
  */
 type TimelineEntry = {
   id: string;
@@ -11,6 +13,7 @@ type TimelineEntry = {
   created_at: Date;
   user_handle: string;
   user_display_name: string;
+  user_avatar_url: string | null;
 };
 
 export function PredictionsTimeline({
@@ -40,16 +43,19 @@ export function PredictionsTimeline({
         return (
           <li
             key={entry.id}
-            className="grid grid-cols-[1fr_72px_88px] sm:grid-cols-[1fr_120px_100px] items-center gap-3 sm:gap-5 px-5 py-4 border-b border-border last:border-b-0"
+            className="grid grid-cols-[32px_1fr_72px_72px] sm:grid-cols-[40px_1fr_120px_100px] items-center gap-3 sm:gap-5 px-5 py-4 border-b border-border last:border-b-0"
           >
-            <div className="min-w-0">
-              <Link
-                href={`/u/${entry.user_handle}`}
-                className="font-mono text-body-sm text-foreground hover:underline truncate"
-              >
-                @{entry.user_handle}
-              </Link>
-            </div>
+            <UserAvatar
+              url={entry.user_avatar_url}
+              displayName={entry.user_display_name}
+              size="sm"
+            />
+            <Link
+              href={`/u/${entry.user_handle}`}
+              className="font-mono text-body-sm text-foreground hover:underline truncate min-w-0"
+            >
+              @{entry.user_handle}
+            </Link>
             <span className="font-mono text-caption text-muted-foreground tabular-nums">
               {relativeTime(entry.created_at)}
             </span>

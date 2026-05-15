@@ -56,13 +56,20 @@ export default async function NotificationsPage() {
       </header>
 
       {rows.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-border py-16 px-6 flex flex-col items-center text-center">
-          <p className="font-display text-headline text-muted-foreground">
+        <div className="rounded-2xl border border-dashed border-border py-16 px-6 flex flex-col items-start gap-4 max-w-xl">
+          <h3 className="font-display text-display-sm text-foreground">
             You&apos;re caught up.
+          </h3>
+          <p className="text-body-lg text-muted-foreground">
+            New followers, market resolutions, replies, and score
+            milestones land here.
           </p>
-          <p className="mt-2 text-body-sm text-muted-foreground max-w-md">
-            New followers, resolutions, replies, and milestones land here.
-          </p>
+          <Link
+            href="/feed"
+            className="text-body-sm text-foreground font-medium hover:underline underline-offset-4"
+          >
+            Back to the feed →
+          </Link>
         </div>
       ) : (
         <ul className="rounded-2xl border border-border bg-surface overflow-hidden">

@@ -197,13 +197,19 @@ function SortLink({
 
 function EmptyState() {
   return (
-    <div className="border border-dashed border-border rounded-2xl py-16 px-6 flex flex-col items-center text-center">
-      <p className="font-display text-display-sm text-muted-foreground">
-        No open markets here yet.
+    <div className="border border-dashed border-border rounded-2xl py-16 px-6 flex flex-col items-start gap-4 max-w-xl">
+      <h3 className="font-display text-display-sm text-foreground">
+        No open markets here.
+      </h3>
+      <p className="text-body-lg text-muted-foreground">
+        Try another category, or check back soon for the next batch.
       </p>
-      <p className="mt-3 text-body-sm text-muted-foreground max-w-sm">
-        Try another category, or check back soon.
-      </p>
+      <Link
+        href="/markets/propose"
+        className="text-body-sm text-foreground font-medium hover:underline underline-offset-4"
+      >
+        Propose a market →
+      </Link>
     </div>
   );
 }

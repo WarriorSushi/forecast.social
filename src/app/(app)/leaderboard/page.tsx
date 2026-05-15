@@ -188,13 +188,20 @@ function Pill({
 
 function EmptyState() {
   return (
-    <div className="border border-dashed border-border rounded-2xl py-16 px-6 flex flex-col items-center text-center">
-      <p className="font-display text-display-sm text-muted-foreground">
+    <div className="border border-dashed border-border rounded-2xl py-16 px-6 flex flex-col items-start gap-4 max-w-xl">
+      <h3 className="font-display text-display-sm text-foreground">
         No ranked forecasters yet.
+      </h3>
+      <p className="text-body-lg text-muted-foreground">
+        Forecasters land here after 5 resolved predictions. Be one of
+        the first.
       </p>
-      <p className="mt-3 text-body-sm text-muted-foreground max-w-sm">
-        Forecasters appear here after 5 resolved predictions.
-      </p>
+      <Link
+        href="/markets"
+        className="text-body-sm text-foreground font-medium hover:underline underline-offset-4"
+      >
+        Browse markets →
+      </Link>
     </div>
   );
 }
