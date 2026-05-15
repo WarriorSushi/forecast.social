@@ -24,8 +24,19 @@ export async function generateMetadata({
   params: Promise<Params>;
 }) {
   const { username } = await params;
+  const ogImage = `/api/share/user/${username}`;
   return {
     title: `@${username}`,
+    openGraph: {
+      title: `@${username} · forecast.social`,
+      images: [{ url: ogImage, width: 1080, height: 1080 }],
+      type: "profile",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `@${username} · forecast.social`,
+      images: [ogImage],
+    },
   };
 }
 
@@ -255,7 +266,7 @@ export default async function ProfilePage({
               return (
                 <li
                   key={row.id}
-                  className="grid grid-cols-[1fr_72px_72px] sm:grid-cols-[1fr_88px_88px_96px] items-center gap-3 sm:gap-5 px-5 py-4 border-b border-border last:border-b-0"
+                  className="grid grid-cols-[1fr_72px_72px] sm:grid-cols-[1fr_88px_88px_96px_72px] items-center gap-3 sm:gap-5 px-5 py-4 border-b border-border last:border-b-0"
                 >
                   <Link
                     href={`/markets/${row.market_slug}`}
@@ -275,6 +286,18 @@ export default async function ProfilePage({
                     {callPct}%
                   </span>
                   <CallStatusPill status={status} />
+                  {status === "correct" ? (
+                    <a
+                      href={`/api/share/prediction/${row.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hidden sm:inline-flex items-center justify-center px-2 py-1 rounded-full text-caption font-mono bg-accent/8 text-accent hover:bg-accent/12 transition-colors"
+                    >
+                      share ↗
+                    </a>
+                  ) : (
+                    <span aria-hidden className="hidden sm:inline" />
+                  )}
                 </li>
               );
             })}

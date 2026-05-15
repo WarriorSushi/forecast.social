@@ -30,11 +30,31 @@ export async function generateMetadata({
 }) {
   const { slug } = await params;
   const [m] = await db
-    .select({ title: markets.title })
+    .select({
+      title: markets.title,
+      description: markets.description,
+    })
     .from(markets)
     .where(eq(markets.slug, slug))
     .limit(1);
-  return { title: m?.title ?? "Market" };
+  if (!m) return { title: "Market" };
+  const ogImage = `/api/share/market/${slug}`;
+  return {
+    title: m.title,
+    description: m.description.slice(0, 160),
+    openGraph: {
+      title: m.title,
+      description: m.description.slice(0, 160),
+      images: [{ url: ogImage, width: 1080, height: 1080 }],
+      type: "article",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: m.title,
+      description: m.description.slice(0, 160),
+      images: [ogImage],
+    },
+  };
 }
 
 export default async function MarketDetailPage({
