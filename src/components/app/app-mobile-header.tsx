@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { Settings } from "lucide-react";
 
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Button } from "@/components/ui/button";
 
 export function AppMobileHeader() {
   return (
@@ -12,7 +14,14 @@ export function AppMobileHeader() {
         >
           forecast<span className="text-accent">.</span>social
         </Link>
-        <ThemeToggle />
+        <div className="flex items-center gap-1">
+          <Button asChild variant="ghost" size="icon" aria-label="Settings">
+            <Link href="/settings">
+              <Settings className="size-4" strokeWidth={1.75} />
+            </Link>
+          </Button>
+          <ThemeToggle />
+        </div>
       </div>
     </header>
   );
