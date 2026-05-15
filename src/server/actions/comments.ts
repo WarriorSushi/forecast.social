@@ -8,6 +8,7 @@ import { db } from "@/lib/db";
 import { comment_upvotes, comments, markets, users } from "@/lib/db/schema";
 import { getCurrentProfile } from "@/lib/auth";
 import { createNotification } from "@/lib/notifications";
+import { rateLimit } from "@/lib/rate-limit";
 import type { PostCommentState } from "./comments.types";
 
 const postSchema = z.object({
@@ -27,6 +28,19 @@ export async function postComment(
 ): Promise<PostCommentState> {
   const me = await getCurrentProfile();
   if (!me) return { status: "error", message: "Sign in to comment." };
+
+  const limit = rateLimit({
+    actor: me.id,
+    action: "postComment",
+    max: 12,
+    windowMs: 60_000,
+  });
+  if (!limit.allowed) {
+    return {
+      status: "error",
+      message: "Too many comments. Take a breath.",
+    };
+  }
 
   const parsed = postSchema.safeParse({
     market_id: formData.get("market_id")?.toString(),

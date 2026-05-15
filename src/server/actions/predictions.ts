@@ -7,6 +7,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { markets, predictions } from "@/lib/db/schema";
 import { getCurrentProfile } from "@/lib/auth";
+import { rateLimit } from "@/lib/rate-limit";
 import type { SubmitPredictionState } from "./predictions.types";
 
 const submitSchema = z.object({
@@ -24,6 +25,19 @@ export async function submitPrediction(
   const profile = await getCurrentProfile();
   if (!profile) {
     return { status: "error", message: "Sign in to lock in a call." };
+  }
+
+  const limit = rateLimit({
+    actor: profile.id,
+    action: "submitPrediction",
+    max: 30,
+    windowMs: 60_000,
+  });
+  if (!limit.allowed) {
+    return {
+      status: "error",
+      message: "Slow down — too many calls. Try again in a minute.",
+    };
   }
 
   const rawProb = Number(formData.get("probability"));

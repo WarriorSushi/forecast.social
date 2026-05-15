@@ -21,12 +21,33 @@ const instrumentSerif = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL || "https://forecast.social",
+  ),
   title: {
     default: "forecast.social · be right. get famous.",
     template: "%s · forecast.social",
   },
   description:
     "The track-record social network. Predict anything. Build a permanent, public Forecast Score. Receipts for everything.",
+  applicationName: "forecast.social",
+  openGraph: {
+    title: "forecast.social — be right. get famous.",
+    description:
+      "The track-record social network. Predict anything as a probability. No wagering. No real money. Just reputation.",
+    type: "website",
+    siteName: "forecast.social",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "forecast.social — be right. get famous.",
+    description:
+      "The track-record social network. Predict anything as a probability. No wagering. No real money. Just reputation.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({

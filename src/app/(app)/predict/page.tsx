@@ -1,14 +1,12 @@
-import { EmptyState } from "@/components/app/empty-state";
+import { redirect } from "next/navigation";
 
-export const metadata = { title: "Predict" };
+export const dynamic = "force-dynamic";
 
+/**
+ * /predict is a shortcut into the market browsing experience. With the
+ * markets list live in Phase 2, predicting is "pick a market, drag the
+ * slider." The dedicated landing here would just duplicate /markets.
+ */
 export default function PredictPage() {
-  return (
-    <EmptyState
-      overline="predict · phase 3"
-      title="No market to call yet."
-      body="When markets are live, this is where you'll find one to predict. Drag the slider, lock the call. The receipt is the product."
-      cta={{ label: "Browse markets", href: "/markets" }}
-    />
-  );
+  redirect("/markets?sort=closing-soon");
 }
