@@ -61,9 +61,17 @@ export default async function MarketsListPage({
             Pick a probability.
           </h1>
         </div>
-        <p className="font-mono text-body-sm text-muted-foreground tabular-nums">
-          {rows.length} open · {SORTS[activeSort].toLowerCase()}
-        </p>
+        <div className="flex items-center gap-5">
+          <Link
+            href="/markets/propose"
+            className="text-body-sm text-foreground font-medium hover:underline"
+          >
+            Propose a market →
+          </Link>
+          <p className="font-mono text-body-sm text-muted-foreground tabular-nums">
+            {rows.length} open · {SORTS[activeSort].toLowerCase()}
+          </p>
+        </div>
       </header>
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">

@@ -215,9 +215,51 @@ function NotificationItem({
             >
               {payload.market_title}
             </Link>{" "}
-            <span className="font-mono tabular-nums text-accent">
+            <span className="font-mono tabular-nums text-foreground">
               {Math.round(payload.probability * 100)}%
             </span>
+          </>
+        }
+        when={createdAt}
+      />
+    );
+  }
+  if (payload.kind === "proposal_resolved") {
+    const verb =
+      payload.status === "approved"
+        ? "is live."
+        : payload.status === "rejected"
+          ? "was declined."
+          : "needs revision.";
+    const tone =
+      payload.status === "approved"
+        ? "text-signal-positive"
+        : payload.status === "rejected"
+          ? "text-signal-negative"
+          : "text-muted-foreground";
+    return (
+      <Row
+        body={
+          <>
+            <span className="text-muted-foreground">Your proposed market</span>{" "}
+            {payload.market_slug && payload.status === "approved" ? (
+              <Link
+                href={`/markets/${payload.market_slug}`}
+                className="font-display text-body text-foreground hover:underline"
+              >
+                {payload.title}
+              </Link>
+            ) : (
+              <span className="font-display text-body text-foreground">
+                {payload.title}
+              </span>
+            )}{" "}
+            <span className={tone}>{verb}</span>
+            {payload.rejection_reason ? (
+              <span className="block mt-1 text-caption text-muted-foreground italic">
+                {payload.rejection_reason}
+              </span>
+            ) : null}
           </>
         }
         when={createdAt}

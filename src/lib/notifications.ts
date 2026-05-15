@@ -42,6 +42,14 @@ export type NotificationPayload =
       market_slug: string;
       market_title: string;
       probability: number;
+    }
+  | {
+      kind: "proposal_resolved";
+      proposal_id: string;
+      title: string;
+      status: "approved" | "rejected" | "needs_revision";
+      rejection_reason: string | null;
+      market_slug: string | null;
     };
 
 export async function createNotification(

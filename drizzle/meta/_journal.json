@@ -71,6 +71,20 @@
       "when": 1778831270000,
       "tag": "0009_review_indexes",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1778837939390,
+      "tag": "0010_flawless_whiplash",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1778837942000,
+      "tag": "0011_proposals_rls_trigger",
+      "breakpoints": true
     }
   ]
 }

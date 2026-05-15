@@ -222,6 +222,65 @@ export const user_category_scores = pgTable(
 );
 
 /* =====================================================================
+   market_proposals — community-submitted markets pending admin review
+
+   Anyone signed in can propose a market. Admins approve/reject from
+   /admin/proposals. On approval, a trigger copies the row to markets
+   crediting the proposer in created_by.
+===================================================================== */
+export const market_proposals = pgTable(
+  "market_proposals",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    slug: text("slug").notNull(),
+    title: text("title").notNull(),
+    description: text("description").notNull(),
+    category_slug: text("category_slug")
+      .notNull()
+      .references(() => categories.slug),
+    proposed_by: uuid("proposed_by")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    resolution_source: text("resolution_source"),
+    closes_at: timestamp("closes_at", { withTimezone: true }).notNull(),
+    resolves_at: timestamp("resolves_at", { withTimezone: true }).notNull(),
+    rationale: text("rationale").notNull(),
+    status: text("status", {
+      enum: ["pending", "approved", "rejected", "needs_revision"],
+    })
+      .notNull()
+      .default("pending"),
+    reviewed_by: uuid("reviewed_by").references(() => users.id),
+    reviewed_at: timestamp("reviewed_at", { withTimezone: true }),
+    rejection_reason: text("rejection_reason"),
+    approved_market_id: uuid("approved_market_id").references(
+      () => markets.id,
+      { onDelete: "set null" },
+    ),
+    created_at: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updated_at: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("market_proposals_status_created_idx").on(
+      table.status,
+      table.created_at.desc(),
+    ),
+    index("market_proposals_proposer_created_idx").on(
+      table.proposed_by,
+      table.created_at.desc(),
+    ),
+    check(
+      "market_proposals_closes_before_resolves",
+      sql`${table.closes_at} <= ${table.resolves_at}`,
+    ),
+  ],
+);
+
+/* =====================================================================
    follows — directional social graph
 ===================================================================== */
 export const follows = pgTable(
@@ -318,6 +377,7 @@ export const notifications = pgTable(
         "bold_call",
         "reply",
         "score_milestone",
+        "proposal_resolved",
       ],
     }).notNull(),
     payload: jsonb("payload").notNull(),
@@ -353,3 +413,6 @@ export type CommentUpvote = typeof comment_upvotes.$inferSelect;
 export type Notification = typeof notifications.$inferSelect;
 export type NewNotification = typeof notifications.$inferInsert;
 export type NotificationKind = Notification["kind"];
+export type MarketProposal = typeof market_proposals.$inferSelect;
+export type NewMarketProposal = typeof market_proposals.$inferInsert;
+export type ProposalStatus = MarketProposal["status"];
