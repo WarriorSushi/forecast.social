@@ -21,7 +21,6 @@ import * as schema from "@/lib/db/schema";
  * fine at this level too.
  */
 declare global {
-  // eslint-disable-next-line no-var
   var __forecast_db__: ReturnType<typeof postgres> | undefined;
 }
 

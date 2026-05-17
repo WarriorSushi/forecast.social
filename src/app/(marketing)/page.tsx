@@ -980,7 +980,7 @@ function NotBetting() {
     <section className="border-t border-border/60">
       <Container className="py-24 sm:py-32">
         <div className="max-w-3xl">
-          <SectionEyebrow>What this isn't</SectionEyebrow>
+          <SectionEyebrow>What this isn&apos;t</SectionEyebrow>
           <h2 className="font-display text-display-md sm:text-display-lg text-foreground leading-[0.98] tracking-[-0.035em]">
             No wagering.{" "}
             <span className="text-muted-foreground">

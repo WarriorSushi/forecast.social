@@ -33,9 +33,9 @@ export default async function AdminMarketsPage() {
           Create a market.
         </h1>
         <p className="mt-3 text-body-lg text-muted-foreground max-w-xl">
-          New markets appear publicly the moment they're saved. Pick clean
-          resolution sources. Phrase questions so a future reader knows
-          exactly what Yes and No mean.
+          New markets appear publicly the moment they&apos;re saved. Pick
+          clean resolution sources. Phrase questions so a future reader
+          knows exactly what Yes and No mean.
         </p>
       </header>
 
@@ -107,6 +107,7 @@ function StatusPill({
   outcome: string | null;
   closesAt: Date;
 }) {
+  // eslint-disable-next-line react-hooks/purity -- intentional in RSC
   const now = Date.now();
   if (resolvedAt && outcome) {
     const tone =

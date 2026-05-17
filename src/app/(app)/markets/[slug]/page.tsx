@@ -134,6 +134,8 @@ export default async function MarketDetailPage({
       ? Math.round(market.consensus_probability * 100)
       : null;
 
+  // Server-component reads of Date.now() are per-request, not per-render.
+  // eslint-disable-next-line react-hooks/purity -- intentional in RSC
   const now = Date.now();
   const closesMs = new Date(market.closes_at).getTime();
   const isClosed = closesMs <= now;
@@ -498,6 +500,7 @@ function StatusPill({
       </span>
     );
   }
+  // eslint-disable-next-line react-hooks/purity -- intentional in RSC
   if (new Date(closesAt).getTime() < Date.now()) {
     return (
       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-caption font-mono bg-muted text-muted-foreground">

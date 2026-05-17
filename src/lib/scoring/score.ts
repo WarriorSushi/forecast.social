@@ -187,7 +187,6 @@ if (process.env.NODE_ENV !== "production") {
   try {
     selfCheck();
   } catch (err) {
-    // eslint-disable-next-line no-console
     console.error("scoring self-check failed:", err);
     throw err;
   }

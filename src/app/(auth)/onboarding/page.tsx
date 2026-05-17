@@ -44,8 +44,8 @@ export default async function OnboardingPage() {
           Pick a handle.
         </h1>
         <p className="text-body text-muted-foreground">
-          This is how the world will know you when you're right. Pick something
-          you'll still want next year.
+          This is how the world will know you when you&apos;re right. Pick
+          something you&apos;ll still want next year.
         </p>
       </header>
       <OnboardingForm

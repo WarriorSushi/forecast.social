@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { desc, eq, gt } from "drizzle-orm";
+import { desc, gt } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { markets, users } from "@/lib/db/schema";

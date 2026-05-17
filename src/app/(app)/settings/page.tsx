@@ -99,7 +99,7 @@ export default async function SettingsPage() {
             Sign out
           </h2>
           <p className="text-body-sm text-muted-foreground">
-            You'll need your password to sign back in.
+            You&apos;ll need your password to sign back in.
           </p>
         </div>
         <form action={signOut}>

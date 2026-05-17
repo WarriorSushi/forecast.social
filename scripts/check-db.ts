@@ -7,7 +7,7 @@ import { config as loadEnv } from "dotenv";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 
-import { categories, users } from "../src/lib/db/schema";
+import { categories } from "../src/lib/db/schema";
 
 loadEnv({ path: ".env.local" });
 loadEnv();

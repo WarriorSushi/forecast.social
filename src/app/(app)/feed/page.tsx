@@ -50,6 +50,8 @@ export default async function FeedPage() {
     );
   }
 
+  // Server-component reads of Date.now() are per-request, not per-render.
+  // eslint-disable-next-line react-hooks/purity -- intentional in RSC
   const now = Date.now();
   const followCutoff = new Date(now - FOLLOW_WINDOW_HOURS * 3600_000);
   const trendingCutoff = new Date(now - TRENDING_WINDOW_HOURS * 3600_000);

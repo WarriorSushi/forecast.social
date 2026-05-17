@@ -23,10 +23,19 @@ type Props = {
   avatarUrl: string | null;
 };
 
+const subscribe = () => () => {};
+const getSnapshot = () => true;
+const getServerSnapshot = () => false;
+
 export function UserMenu({ username, displayName, email, avatarUrl }: Props) {
   const { resolvedTheme, setTheme } = useTheme();
-  const [mounted, setMounted] = React.useState(false);
-  React.useEffect(() => setMounted(true), []);
+  // SSR-safe mount check via useSyncExternalStore; avoids the
+  // set-state-in-effect anti-pattern the React Compiler flags.
+  const mounted = React.useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    getServerSnapshot,
+  );
 
   const isDark = mounted ? resolvedTheme === "dark" : false;
 

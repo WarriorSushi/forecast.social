@@ -12,11 +12,22 @@ import { cn } from "@/lib/utils";
  * flips the theme. The button always renders the icon for the theme
  * you'd switch TO (sun when dark, moon when light) so the action reads
  * as the affordance.
+ *
+ * Uses useSyncExternalStore for the SSR-safe mount check so we don't
+ * trip the react-hooks/set-state-in-effect rule from the React
+ * Compiler.
  */
+const subscribe = () => () => {};
+const getSnapshot = () => true; // post-mount
+const getServerSnapshot = () => false;
+
 export function ThemeToggle({ className }: { className?: string }) {
   const { resolvedTheme, setTheme } = useTheme();
-  const [mounted, setMounted] = React.useState(false);
-  React.useEffect(() => setMounted(true), []);
+  const mounted = React.useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    getServerSnapshot,
+  );
 
   // Before hydration, render a stable icon to avoid mismatch. After
   // mount, swap to the correct affordance for the current theme.
