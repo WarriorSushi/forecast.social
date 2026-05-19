@@ -14,6 +14,7 @@ import {
 import { getCurrentProfile } from "@/lib/auth";
 import { ForecastScoreHero } from "@/components/profile/forecast-score-hero";
 import { FollowButton } from "@/components/profile/follow-button";
+import { EmptyState } from "@/components/app/empty-state";
 import { JsonLd } from "@/components/seo/json-ld";
 import { env } from "@/lib/env";
 import { VOLUME_GATE } from "@/lib/scoring/score";
@@ -248,25 +249,16 @@ export default async function ProfilePage({
           ) : null}
         </div>
         {history.length === 0 ? (
-          <div className="flex flex-col gap-3 max-w-lg">
-            <p className="font-display text-title text-foreground">
-              No calls yet.
-            </p>
-            <p className="text-body-sm text-muted-foreground">
-              {isOwn
+          <EmptyState
+            variant="lane"
+            title="No calls yet."
+            body={
+              isOwn
                 ? "When you make a prediction, it'll appear here permanently. No edits, no takebacks."
-                : `When @${profile.username} makes a prediction, it'll appear here.`}
-            </p>
-            {isOwn ? (
-              <Button
-                asChild
-                variant="ghost"
-                className="self-start px-0 hover:bg-transparent hover:underline underline-offset-4"
-              >
-                <Link href="/markets">Browse markets →</Link>
-              </Button>
-            ) : null}
-          </div>
+                : `When @${profile.username} makes a prediction, it'll appear here.`
+            }
+            cta={isOwn ? { label: "Browse markets", href: "/markets" } : undefined}
+          />
         ) : (
           <ul className="rounded-2xl border border-border bg-surface overflow-hidden">
             {history.map((row) => {

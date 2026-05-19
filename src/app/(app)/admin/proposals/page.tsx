@@ -4,6 +4,7 @@ import { desc, eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { market_proposals, users } from "@/lib/db/schema";
 import { ReviewProposalPanel } from "@/components/admin/review-proposal-panel";
+import { EmptyState } from "@/components/app/empty-state";
 
 export const metadata = { title: "Admin · Proposals" };
 
@@ -93,16 +94,14 @@ export default async function AdminProposalsPage({
       </nav>
 
       {rows.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-border py-16 px-6 flex flex-col items-center text-center">
-          <p className="font-display text-display-sm text-muted-foreground">
-            Nothing here.
-          </p>
-          <p className="mt-3 text-body-sm text-muted-foreground max-w-sm">
-            {tab === "pending"
-              ? "No proposals waiting. Inbox zero."
-              : `No ${TAB_LABELS[tab].toLowerCase()} proposals.`}
-          </p>
-        </div>
+        <EmptyState
+          title={tab === "pending" ? "Inbox zero." : "Nothing here."}
+          body={
+            tab === "pending"
+              ? "No proposals waiting. New ones land here as users submit them."
+              : `No ${TAB_LABELS[tab].toLowerCase()} proposals yet.`
+          }
+        />
       ) : (
         <ul className="flex flex-col gap-4">
           {rows.map((p) => (

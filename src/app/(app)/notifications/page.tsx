@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { notifications } from "@/lib/db/schema";
 import { getCurrentProfile } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/app/empty-state";
 import { markAllNotificationsRead } from "@/server/actions/notifications";
 import type { NotificationPayload } from "@/lib/notifications";
 
@@ -56,21 +57,11 @@ export default async function NotificationsPage() {
       </header>
 
       {rows.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-border py-16 px-6 flex flex-col items-start gap-4 max-w-xl">
-          <h3 className="font-display text-display-sm text-foreground">
-            You&apos;re caught up.
-          </h3>
-          <p className="text-body-lg text-muted-foreground">
-            New followers, market resolutions, replies, and score
-            milestones land here.
-          </p>
-          <Link
-            href="/feed"
-            className="text-body-sm text-foreground font-medium hover:underline underline-offset-4"
-          >
-            Back to the feed →
-          </Link>
-        </div>
+        <EmptyState
+          title="You're caught up."
+          body="New followers, market resolutions, replies, and score milestones land here."
+          cta={{ label: "Back to the feed", href: "/feed" }}
+        />
       ) : (
         <ul className="rounded-2xl border border-border bg-surface overflow-hidden">
           {rows.map((row) => {
@@ -80,8 +71,10 @@ export default async function NotificationsPage() {
               <li
                 key={row.id}
                 className={
-                  "px-5 py-4 border-b border-border last:border-b-0 " +
-                  (unread ? "bg-accent/[0.04]" : "")
+                  "relative px-5 py-4 border-b border-border last:border-b-0 " +
+                  (unread
+                    ? "bg-accent/[0.08] before:absolute before:left-0 before:top-3 before:bottom-3 before:w-[2px] before:rounded-r-sm before:bg-accent"
+                    : "")
                 }
               >
                 <NotificationItem payload={payload} createdAt={row.created_at} />

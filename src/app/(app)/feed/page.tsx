@@ -21,6 +21,7 @@ import {
   users,
 } from "@/lib/db/schema";
 import { getCurrentProfile } from "@/lib/auth";
+import { EmptyState } from "@/components/app/empty-state";
 import {
   MarketCard,
   type MarketCardData,
@@ -202,14 +203,19 @@ export default async function FeedPage() {
 
       <FeedSection title="Recent calls" eyebrow="people you follow">
         {followLane.length === 0 ? (
-          <EmptyLane
-            line={
+          <EmptyState
+            variant="lane"
+            title={
               myMarketIds.length === 0
-                ? "Find a couple of forecasters worth following."
-                : "Quiet from the people you follow in the last 48h."
+                ? "Nobody to follow yet."
+                : "Quiet over there."
             }
-            href="/leaderboard"
-            cta="See the leaderboard →"
+            body={
+              myMarketIds.length === 0
+                ? "Find a couple of forecasters worth following. The leaderboard is a good place to start."
+                : "No calls from the people you follow in the last 48 hours."
+            }
+            cta={{ label: "See the leaderboard", href: "/leaderboard" }}
           />
         ) : (
           <ul className="flex flex-col">
@@ -267,7 +273,12 @@ export default async function FeedPage() {
 
       <FeedSection title="Trending" eyebrow="markets to call">
         {trendingFinal.length === 0 ? (
-          <EmptyLane line="No open markets need your call right now." />
+          <EmptyState
+            variant="lane"
+            title="Caught up."
+            body="No open markets need your call right now."
+            cta={{ label: "Browse all markets", href: "/markets" }}
+          />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
             {trendingFinal.map((m) => (
@@ -282,7 +293,12 @@ export default async function FeedPage() {
         eyebrow="strong claims from strong forecasters"
       >
         {boldCalls.length === 0 ? (
-          <EmptyLane line="No bold calls in your categories this week." />
+          <EmptyState
+            variant="lane"
+            title="No bold takes this week."
+            body="When a top forecaster calls above 85% or below 15%, it shows up here."
+            cta={{ label: "See the leaderboard", href: "/leaderboard" }}
+          />
         ) : (
           <ul className="flex flex-col">
             {boldCalls.map((row) => (
@@ -366,30 +382,6 @@ function FeedSection({
       </div>
       {children}
     </section>
-  );
-}
-
-function EmptyLane({
-  line,
-  href,
-  cta,
-}: {
-  line: string;
-  href?: string;
-  cta?: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-dashed border-border py-10 px-6 flex flex-col items-center text-center gap-3">
-      <p className="text-body-sm text-muted-foreground">{line}</p>
-      {href && cta ? (
-        <Link
-          href={href}
-          className="text-body-sm text-foreground font-medium hover:underline"
-        >
-          {cta}
-        </Link>
-      ) : null}
-    </div>
   );
 }
 

@@ -4,6 +4,7 @@ import { desc } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { markets } from "@/lib/db/schema";
 import { CreateMarketForm } from "@/components/admin/create-market-form";
+import { EmptyState } from "@/components/app/empty-state";
 
 export const metadata = { title: "Admin · Markets" };
 
@@ -53,9 +54,11 @@ export default async function AdminMarketsPage() {
           </span>
         </div>
         {rows.length === 0 ? (
-          <p className="text-body-sm text-muted-foreground">
-            No markets yet. The form above adds the first one.
-          </p>
+          <EmptyState
+            variant="lane"
+            title="No markets yet."
+            body="The form above adds the first one. After that, every market lands here for editing or resolving."
+          />
         ) : (
           <ul className="flex flex-col">
             {rows.map((m) => (
