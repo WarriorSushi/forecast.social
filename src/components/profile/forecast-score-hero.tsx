@@ -72,16 +72,20 @@ export function ForecastScoreHero({
         <AnimatedNumber
           to={score}
           duration={1.4}
-          className="font-display font-extrabold text-foreground text-[88px] sm:text-[112px] leading-none tabular-nums tracking-[-0.04em]"
+          className="font-display font-extrabold text-foreground text-display-lg sm:text-display-xl leading-none tabular-nums"
         />
         <span className="font-mono text-body-sm text-muted-foreground tabular-nums">
           / 3,000
         </span>
       </div>
 
-      <div className="mt-5 flex flex-wrap items-center gap-3">
+      {/* Three pills, one visual treatment — was three different shapes
+          (accent pill, plain green, plain muted) stacked side-by-side
+          looking like three design eras. Now all rounded-full with
+          muted bg, color only on the foreground text. */}
+      <div className="mt-5 flex flex-wrap items-center gap-2">
         {topBand ? (
-          <span className="inline-flex items-center px-3 py-1.5 rounded-full bg-accent/12 text-accent text-body-sm font-semibold tracking-tight tabular-nums">
+          <span className="inline-flex items-center px-3 py-1.5 rounded-full bg-foreground/8 text-foreground text-body-sm font-semibold tracking-tight tabular-nums">
             {topBand}
           </span>
         ) : (
@@ -90,15 +94,15 @@ export function ForecastScoreHero({
           </span>
         )}
         {currentStreak > 0 ? (
-          <span className="text-body-sm text-signal-positive font-medium tabular-nums">
+          <span className="inline-flex items-center px-3 py-1.5 rounded-full bg-signal-positive-soft text-signal-positive text-body-sm font-medium tabular-nums">
             {currentStreak}-call streak
           </span>
         ) : longestStreak > 0 ? (
-          <span className="text-body-sm text-muted-foreground tabular-nums">
+          <span className="inline-flex items-center px-3 py-1.5 rounded-full bg-muted text-muted-foreground text-body-sm font-medium tabular-nums">
             best streak {longestStreak}
           </span>
         ) : null}
-        <span className="text-body-sm text-muted-foreground tabular-nums">
+        <span className="inline-flex items-center px-3 py-1.5 rounded-full bg-muted text-muted-foreground text-body-sm font-medium tabular-nums">
           {resolvedCount} resolved
         </span>
       </div>

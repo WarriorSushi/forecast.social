@@ -114,7 +114,7 @@ function Field({
 }) {
   return (
     <div className="flex flex-col gap-2">
-      <Label htmlFor={id} className="text-overline text-muted-foreground">
+      <Label htmlFor={id} className="text-body-sm font-medium text-foreground">
         {label}
       </Label>
       <Input

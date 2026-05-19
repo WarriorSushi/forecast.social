@@ -103,11 +103,7 @@ export default async function SettingsPage() {
           </p>
         </div>
         <form action={signOut}>
-          <Button
-            type="submit"
-            variant="outline"
-            className="self-start text-signal-negative hover:text-signal-negative hover:border-signal-negative/60"
-          >
+          <Button type="submit" variant="outline" className="self-start">
             Sign out
           </Button>
         </form>

@@ -35,7 +35,7 @@ export function EditProfileForm({
   return (
     <form action={formAction} className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
-        <Label htmlFor="displayName" className="text-overline text-muted-foreground">
+        <Label htmlFor="displayName" className="text-body-sm font-medium text-foreground">
           Display name
         </Label>
         <Input
@@ -50,7 +50,7 @@ export function EditProfileForm({
       </div>
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor="bio" className="text-overline text-muted-foreground">
+        <Label htmlFor="bio" className="text-body-sm font-medium text-foreground">
           Bio
         </Label>
         <Textarea

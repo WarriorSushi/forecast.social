@@ -111,11 +111,14 @@ function RailItem({
           : "text-muted-foreground hover:text-foreground hover:bg-muted",
       )}
     >
-      {/* Accent vertical bar marks the active rail item per DESIGN.md §6. */}
+      {/* Accent vertical bar marks the active rail item per DESIGN.md §6.
+          2px to match the tab bar's underline and the cross-register ban
+          on side-stripe borders >1px (treated as design-system marker, not
+          decorative). */}
       <span
         aria-hidden
         className={cn(
-          "absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-sm transition-opacity",
+          "absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 rounded-r-sm transition-opacity",
           active ? "bg-accent opacity-100" : "opacity-0",
         )}
       />
