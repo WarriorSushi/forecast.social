@@ -30,8 +30,13 @@ export function LiveConsensus({
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
+    // Channel names must be unique per subscriber instance. Two
+    // <LiveConsensus> components render on the same market page (one
+    // for the percent, one for the count); without renderMode in the
+    // name, Supabase rejects the second `.on()` with
+    // "cannot add postgres_changes callbacks after subscribe()".
     const channel = supabase
-      .channel(`market:${marketId}:consensus`)
+      .channel(`market:${marketId}:consensus:${renderMode}`)
       .on(
         "postgres_changes",
         {
@@ -53,7 +58,7 @@ export function LiveConsensus({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [marketId]);
+  }, [marketId, renderMode]);
 
   if (renderMode === "consensus") {
     const pct = consensus != null ? Math.round(consensus * 100) : null;
