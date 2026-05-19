@@ -12,6 +12,7 @@ import {
   users,
 } from "@/lib/db/schema";
 import { getCurrentProfile } from "@/lib/auth";
+import { Button } from "@/components/ui/button";
 import { ConsensusSparkline } from "@/components/markets/consensus-sparkline";
 import { LiveConsensus } from "@/components/markets/live-consensus";
 import { PredictionSlider } from "@/components/markets/prediction-slider";
@@ -517,17 +518,53 @@ function StatusPill({
 
 function SignInPrompt() {
   return (
-    <div className="flex flex-col gap-3 text-body-sm text-muted-foreground">
-      <p>
-        Sign in to lock in a call. Calls are permanent and contribute to
-        your Forecast Score.
-      </p>
-      <Link
-        href="/sign-in"
-        className="inline-flex items-center text-foreground font-medium hover:underline"
+    <div className="relative flex flex-col gap-5">
+      {/* Faded preview of the slider behind the CTA — shows what
+          you'll get to use once you're signed in. */}
+      <div
+        aria-hidden
+        className="opacity-40 pointer-events-none flex flex-col gap-3"
       >
-        Sign in →
-      </Link>
+        <div className="flex items-baseline justify-between">
+          <span className="text-overline text-muted-foreground">
+            your call
+          </span>
+        </div>
+        <div className="font-display font-extrabold text-foreground text-display-md tabular-nums tracking-[-0.03em] leading-none">
+          50%
+        </div>
+        <div className="relative h-6 flex items-center">
+          <div className="absolute inset-x-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-muted" />
+          <div
+            className="absolute top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-foreground"
+            style={{ left: 0, width: "50%" }}
+          />
+          <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 size-6 rounded-full bg-foreground border-2 border-background" style={{ left: "50%" }} />
+        </div>
+      </div>
+      <div className="flex flex-col gap-3">
+        <p className="text-body-sm text-muted-foreground">
+          Calls are permanent and feed your Forecast Score. Sign in to
+          drag this slider for real.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button
+            asChild
+            size="lg"
+            className="h-12 rounded-full px-6 flex-1 justify-center"
+          >
+            <Link href="/sign-up">Get started</Link>
+          </Button>
+          <Button
+            asChild
+            variant="ghost"
+            size="lg"
+            className="h-12 rounded-full px-6"
+          >
+            <Link href="/sign-in">Sign in</Link>
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

@@ -5,11 +5,9 @@ import {
   Atom,
   Bitcoin,
   Check,
-  Flame,
   Trophy,
   Tv,
   X,
-  Zap,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -607,89 +605,119 @@ function ExplainerItem({
 }
 
 function ScoreShowcaseCard() {
+  // 90-day trajectory the journey to 2,471 vs a flat baseline. This
+  // section pivoted from "restate the hero number" to "show the climb"
+  // per the overhaul plan T2.5 — three sections shouldn't share the
+  // same 2,471 example.
   return (
     <Card className="bg-surface-elevated border border-border rounded-2xl gap-0 py-0">
       <CardContent className="px-7 py-8 sm:px-9 sm:py-10 flex flex-col gap-7">
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="text-overline text-muted-foreground mb-3">
-              forecast score · @itoldyouso
-            </p>
-            <div className="flex items-baseline gap-3">
-              <AnimatedNumber
-                to={2471}
-                duration={1.4}
-                className="font-display font-extrabold text-foreground text-[88px] sm:text-[112px] leading-none tabular-nums tracking-[-0.04em]"
-              />
-              <span className="font-mono text-body-sm text-muted-foreground tabular-nums">
-                / 3,000
-              </span>
-            </div>
-          </div>
+        <div className="flex items-baseline justify-between">
+          <p className="text-overline text-muted-foreground">
+            @itoldyouso · 90-day climb
+          </p>
+          <p className="font-mono text-caption text-muted-foreground tabular-nums">
+            1,850 → 2,471
+          </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="inline-flex items-center px-3 py-1.5 rounded-full bg-foreground/8 text-foreground text-body-sm font-semibold tracking-tight">
-            Top 0.2%
-          </span>
-          <span className="text-body-sm text-signal-positive font-medium">
-            47-day streak
-          </span>
-          <span className="text-body-sm text-muted-foreground">
-            412 resolved calls
-          </span>
-        </div>
-
-        <Sparkline />
+        <ScoreJourneyChart />
 
         <div className="grid grid-cols-3 gap-3 border-t border-border pt-6">
-          <PillarStat label="Tech & AI" value="2,610" tone="positive" />
-          <PillarStat label="Crypto" value="2,380" tone="neutral" />
-          <PillarStat label="Sports" value="1,920" tone="neutral" />
+          <PillarStat label="started" value="1,850" tone="neutral" />
+          <PillarStat label="peak" value="2,503" tone="positive" />
+          <PillarStat label="today" value="2,471" tone="positive" />
         </div>
       </CardContent>
     </Card>
   );
 }
 
-function Sparkline() {
-  // Hand-tuned points for a "rising-then-volatile" look. Pure SVG, no deps.
-  const pts = [
-    [0, 60],
-    [10, 56],
-    [20, 52],
-    [30, 48],
-    [40, 50],
-    [50, 42],
-    [60, 38],
-    [70, 32],
-    [80, 35],
-    [90, 28],
+function ScoreJourneyChart() {
+  // 90-day score history, percentage of 3,000 scale. Hand-shaped to
+  // tell a "calibrated rise with one bad week" story. Markers on key
+  // moments (resolutions, milestones) give the line narrative.
+  const pts: Array<[number, number]> = [
+    [0, 62],
+    [6, 60],
+    [13, 58],
+    [20, 55],
+    [27, 52],
+    [33, 48],
+    [40, 44],
+    [47, 41],
+    [55, 38],
+    [60, 34],
+    [66, 36], // small dip — a missed call
+    [72, 32],
+    [78, 27],
+    [85, 24],
+    [92, 22],
     [100, 22],
   ];
-  const d =
-    "M " +
-    pts.map(([x, y]) => `${x} ${y}`).join(" L ") +
-    " L 100 64 L 0 64 Z";
-  const line = "M " + pts.map(([x, y]) => `${x} ${y}`).join(" L ");
+  const lineD = "M " + pts.map(([x, y]) => `${x} ${y}`).join(" L ");
+  const fillD = `${lineD} L 100 100 L 0 100 Z`;
+
+  // Notable milestone markers
+  const markers: Array<{ x: number; y: number; label: string }> = [
+    { x: 6, y: 60, label: "start" },
+    { x: 66, y: 36, label: "missed" },
+    { x: 100, y: 22, label: "today" },
+  ];
+
   return (
-    <div className="flex items-center gap-4">
-      <p className="text-overline text-muted-foreground shrink-0">90d</p>
+    <div className="relative w-full">
+      <div className="flex items-baseline justify-between text-caption text-muted-foreground font-mono tabular-nums mb-2">
+        <span>3,000</span>
+        <span>·</span>
+        <span>0</span>
+      </div>
       <svg
-        viewBox="0 0 100 64"
+        viewBox="0 0 100 100"
         preserveAspectRatio="none"
-        className="h-12 w-full text-signal-positive"
-        aria-hidden
+        className="h-[200px] sm:h-[240px] w-full text-signal-positive"
+        aria-label="90-day forecast score history"
       >
-        <path d={d} fill="currentColor" opacity={0.12} />
+        {/* Subtle baseline grid */}
+        <line
+          x1="0"
+          y1="50"
+          x2="100"
+          y2="50"
+          stroke="currentColor"
+          strokeOpacity="0.08"
+          strokeWidth="0.4"
+          strokeDasharray="1 2"
+          vectorEffect="non-scaling-stroke"
+        />
+        {/* Fill */}
+        <path d={fillD} fill="currentColor" opacity={0.1} />
+        {/* Line */}
         <path
-          d={line}
+          d={lineD}
           fill="none"
           stroke="currentColor"
           strokeWidth={1.5}
+          strokeLinecap="round"
+          strokeLinejoin="round"
           vectorEffect="non-scaling-stroke"
         />
+        {/* Markers */}
+        {markers.map((m) => (
+          <circle
+            key={m.label}
+            cx={m.x}
+            cy={m.y}
+            r="0.9"
+            fill="currentColor"
+            vectorEffect="non-scaling-stroke"
+          />
+        ))}
       </svg>
+      <div className="mt-2 flex items-baseline justify-between text-caption text-muted-foreground font-mono tabular-nums">
+        <span>90d ago</span>
+        <span>now</span>
+      </div>
     </div>
   );
 }
@@ -963,7 +991,7 @@ function Categories({
 
         <BentoGrid>
           <BentoGridItem
-            className="md:col-span-2 md:row-span-2 bg-surface"
+            className="md:col-span-2 md:row-span-3 bg-surface"
             icon={<Atom className="size-6" strokeWidth={1.5} />}
             title="Tech & AI"
             header={
@@ -1033,53 +1061,40 @@ function Categories({
               />
             }
           />
-          <BentoGridItem
-            icon={<Flame className="size-5" strokeWidth={1.5} />}
-            title="What's hot"
-            description={
-              <span className="text-muted-foreground">
-                The most-called market across every category, right now.
-              </span>
-            }
-            footer={
-              <div className="flex items-baseline justify-between gap-3 border-t border-border pt-3">
-                <span className="font-mono text-caption text-muted-foreground">
-                  live ranking
-                </span>
-                <Link
-                  href="/markets?sort=most-predicted"
-                  className="font-mono text-caption text-foreground hover:underline underline-offset-4"
-                >
-                  see it →
-                </Link>
-              </div>
-            }
-          />
-          <BentoGridItem
-            className="md:col-span-2"
-            icon={<Zap className="size-5" strokeWidth={1.5} />}
-            title="Propose one"
-            description={
-              <span className="text-body text-muted-foreground">
-                A question you'd call but can't find? Submit it. Admins review,
-                approved markets credit you as the author.
-              </span>
-            }
-            footer={
-              <div className="flex items-baseline justify-between gap-3 border-t border-border pt-3">
-                <span className="font-mono text-caption text-muted-foreground">
-                  one per 6 hours
-                </span>
-                <Link
-                  href="/markets/propose"
-                  className="font-mono text-caption text-foreground hover:underline underline-offset-4"
-                >
-                  propose →
-                </Link>
-              </div>
-            }
-          />
         </BentoGrid>
+
+        {/* Meta strip — what to do beyond browsing the four categories.
+            Was previously two bento cells competing for space with the
+            category cells; pulled out as a thin text-only band so the
+            Bento can stay focused on the four real categories. */}
+        <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-border pt-6">
+          <p className="font-mono text-caption text-muted-foreground">
+            {`${(highlights["tech-ai"]?.prediction_count ?? 0) +
+              (highlights.crypto?.prediction_count ?? 0) +
+              (highlights.sports?.prediction_count ?? 0) +
+              (highlights["pop-culture"]?.prediction_count ?? 0)} live calls across 4 categories`}
+          </p>
+          <nav className="flex flex-wrap items-center gap-x-6 gap-y-2 text-body-sm">
+            <Link
+              href="/markets?sort=most-predicted"
+              className="text-foreground font-medium hover:underline underline-offset-4"
+            >
+              See what's hot →
+            </Link>
+            <Link
+              href="/markets/propose"
+              className="text-foreground font-medium hover:underline underline-offset-4"
+            >
+              Propose a market →
+            </Link>
+            <Link
+              href="/markets"
+              className="text-foreground font-medium hover:underline underline-offset-4"
+            >
+              Browse all →
+            </Link>
+          </nav>
+        </div>
       </Container>
     </section>
   );

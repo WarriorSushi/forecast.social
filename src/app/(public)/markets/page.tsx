@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { and, asc, desc, eq, isNull } from "drizzle-orm";
+import { and, asc, desc, eq, gt, isNull, lt, sql } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { categories, markets, type Market } from "@/lib/db/schema";
@@ -50,9 +50,26 @@ export default async function MarketsListPage({
     .orderBy(orderBy)
     .limit(60)) as Market[];
 
+  // Stat strip — total open across the platform + closing-today count.
+  const closingThreshold = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  const [{ totalOpen }] = await db
+    .select({ totalOpen: sql<number>`COUNT(*)::int` })
+    .from(markets)
+    .where(and(isNull(markets.resolved_at), gt(markets.closes_at, new Date())));
+  const [{ closingToday }] = await db
+    .select({ closingToday: sql<number>`COUNT(*)::int` })
+    .from(markets)
+    .where(
+      and(
+        isNull(markets.resolved_at),
+        gt(markets.closes_at, new Date()),
+        lt(markets.closes_at, closingThreshold),
+      ),
+    );
+
   return (
     <div className="mx-auto w-full max-w-[1200px] py-10 sm:py-14">
-      <header className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between mb-10">
+      <header className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between mb-8">
         <div>
           <p className="text-overline text-muted-foreground mb-3">
             open markets
@@ -61,18 +78,19 @@ export default async function MarketsListPage({
             Pick a probability.
           </h1>
         </div>
-        <div className="flex items-center gap-5">
-          <Link
-            href="/markets/propose"
-            className="text-body-sm text-foreground font-medium hover:underline"
-          >
-            Propose a market →
-          </Link>
-          <p className="font-mono text-body-sm text-muted-foreground tabular-nums">
-            {rows.length} open · {SORTS[activeSort].toLowerCase()}
-          </p>
-        </div>
+        <Link
+          href="/markets/propose"
+          className="text-body-sm text-foreground font-medium hover:underline self-start sm:self-end"
+        >
+          Propose a market →
+        </Link>
       </header>
+
+      <div className="grid grid-cols-3 gap-4 sm:gap-8 mb-10 border-y border-border py-5">
+        <StatCell label="open" value={totalOpen} />
+        <StatCell label="categories" value={allCategories.length} />
+        <StatCell label="closing 24h" value={closingToday} />
+      </div>
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <nav className="flex flex-wrap items-center gap-2">
@@ -147,6 +165,17 @@ function buildHref({
   if (sort && sort !== DEFAULT_SORT) sp.set("sort", sort);
   const qs = sp.toString();
   return qs ? `/markets?${qs}` : "/markets";
+}
+
+function StatCell({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="text-overline text-muted-foreground">{label}</span>
+      <span className="font-display font-extrabold text-foreground text-headline sm:text-display-sm tabular-nums -tracking-[0.02em]">
+        {value.toLocaleString()}
+      </span>
+    </div>
+  );
 }
 
 function CategoryPill({
