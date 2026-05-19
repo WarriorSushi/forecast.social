@@ -19,7 +19,8 @@ import {
 } from "@/components/aceternity/bento-grid";
 import { SpotlightNew } from "@/components/aceternity/spotlight-new";
 import { db } from "@/lib/db";
-import { markets, users } from "@/lib/db/schema";
+import { categories, markets, users } from "@/lib/db/schema";
+import { sql } from "drizzle-orm";
 
 export const revalidate = 300; // 5-min ISR; landing isn't tied to a session
 
@@ -969,8 +970,10 @@ function categoryLine(
 
 function Categories({
   highlights,
+  totals,
 }: {
   highlights: Record<CategorySlug, CategoryHighlight | null>;
+  totals: MarketTotals;
 }) {
   const techAi = highlights["tech-ai"];
   const techAiOthers =
@@ -1071,10 +1074,17 @@ function Categories({
             Bento can stay focused on the four real categories. */}
         <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-border pt-6">
           <p className="font-mono text-caption text-muted-foreground">
-            {`${(highlights["tech-ai"]?.prediction_count ?? 0) +
-              (highlights.crypto?.prediction_count ?? 0) +
-              (highlights.sports?.prediction_count ?? 0) +
-              (highlights["pop-culture"]?.prediction_count ?? 0)} live calls across 4 categories`}
+            {totals.openMarkets} open markets across {totals.totalCategories}{" "}
+            categories
+            {totals.totalCategories > 4 ? (
+              <>
+                {" "}
+                <span className="text-foreground">
+                  · Science · Business · Climate · Gaming · Entertainment ·
+                  Music
+                </span>
+              </>
+            ) : null}
           </p>
           <nav className="flex flex-wrap items-center gap-x-6 gap-y-2 text-body-sm">
             <Link
