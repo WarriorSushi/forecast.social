@@ -1,15 +1,16 @@
 import Link from "next/link";
+import { and, asc, desc, gt, isNull } from "drizzle-orm";
 import {
   ArrowRight,
   Atom,
   Bitcoin,
   Calendar,
   Check,
+  Flame,
   Lock,
   Sparkles,
   Trophy,
   Tv,
-  Vote,
   X,
   Zap,
 } from "lucide-react";
@@ -22,8 +23,29 @@ import {
   BentoGridItem,
 } from "@/components/aceternity/bento-grid";
 import { SpotlightNew } from "@/components/aceternity/spotlight-new";
+import { db } from "@/lib/db";
+import { markets, users } from "@/lib/db/schema";
 
-export default function LandingPage() {
+export const revalidate = 300; // 5-min ISR; landing isn't tied to a session
+
+type CategoryHighlight = {
+  slug: "tech-ai" | "crypto" | "sports" | "pop-culture";
+  title: string;
+  prediction_count: number;
+};
+
+type LeaderRow = {
+  username: string;
+  forecast_score: number;
+  current_streak: number;
+};
+
+export default async function LandingPage() {
+  const [categoryHighlights, topLeaders] = await Promise.all([
+    fetchCategoryHighlights(),
+    fetchTopLeaders(),
+  ]);
+
   return (
     <div className="w-full overflow-x-hidden">
       <Hero />
@@ -31,12 +53,60 @@ export default function LandingPage() {
       <NotBetting />
       <ReceiptShowcase />
       <HowItWorks />
-      <Categories />
-      <Leaderboard />
+      <Categories highlights={categoryHighlights} />
+      <Leaderboard leaders={topLeaders} />
       <FAQ />
       <FinalCTA />
     </div>
   );
+}
+
+async function fetchCategoryHighlights(): Promise<
+  Record<CategoryHighlight["slug"], CategoryHighlight | null>
+> {
+  const empty = {
+    "tech-ai": null,
+    crypto: null,
+    sports: null,
+    "pop-culture": null,
+  } as Record<CategoryHighlight["slug"], CategoryHighlight | null>;
+
+  const rows = await db
+    .select({
+      slug: markets.category_slug,
+      title: markets.title,
+      prediction_count: markets.prediction_count,
+      closes_at: markets.closes_at,
+    })
+    .from(markets)
+    .where(and(isNull(markets.resolved_at), gt(markets.closes_at, new Date())))
+    .orderBy(desc(markets.prediction_count), asc(markets.closes_at))
+    .limit(80);
+
+  for (const r of rows) {
+    const key = r.slug as CategoryHighlight["slug"];
+    if (key in empty && empty[key] == null) {
+      empty[key] = {
+        slug: key,
+        title: r.title,
+        prediction_count: r.prediction_count,
+      };
+    }
+  }
+  return empty;
+}
+
+async function fetchTopLeaders(): Promise<LeaderRow[]> {
+  return db
+    .select({
+      username: users.username,
+      forecast_score: users.forecast_score,
+      current_streak: users.current_streak,
+    })
+    .from(users)
+    .where(gt(users.forecast_score, 0))
+    .orderBy(desc(users.forecast_score))
+    .limit(5);
 }
 
 /* ==============================================================
@@ -79,16 +149,17 @@ function Hero() {
           </h1>
 
           <p className="font-stylized italic text-[28px] sm:text-[34px] lg:text-[36px] leading-[1.18] text-muted-foreground max-w-2xl mt-7 sm:mt-9">
-            No wagering. No real money. Just reputation.{" "}
+            No money. No house.{" "}
             <span className="text-foreground not-italic font-medium font-sans">
-              Ethical by design.
+              Just receipts.
             </span>
           </p>
 
           <p className="mt-7 text-body-lg text-muted-foreground max-w-md">
-            Call probabilities on anything. Your accuracy compounds into a
+            Call a probability on anything. Your accuracy compounds into a
             permanent, public{" "}
-            <span className="text-foreground font-medium">Forecast Score</span>.
+            <span className="text-foreground font-medium">Forecast Score</span>{" "}
+            nobody can fake.
           </p>
 
           <div className="mt-10 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
@@ -98,12 +169,12 @@ function Hero() {
               className="h-14 px-7 text-base rounded-full"
             >
               <Link href="/sign-up" className="group">
-                Get early access
+                Start a record
                 <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
               </Link>
             </Button>
             <p className="text-body-sm text-muted-foreground sm:pl-3">
-              Free. No card. No spam.
+              Free. No card. Loud opinions welcome.
             </p>
           </div>
         </div>
@@ -335,30 +406,30 @@ function ScoreExplainer() {
       <Container className="py-24 sm:py-32">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-y-12 lg:gap-y-0 lg:gap-x-16 items-center">
           <div className="lg:col-span-6">
-            <SectionEyebrow>The asset</SectionEyebrow>
+            <SectionEyebrow>Scoring</SectionEyebrow>
             <h2 className="font-display text-display-md sm:text-display-lg text-foreground leading-[0.98] tracking-[-0.035em]">
-              One number.{" "}
-              <span className="text-muted-foreground">Earned, not bought.</span>
+              How scoring{" "}
+              <span className="text-muted-foreground">actually works.</span>
             </h2>
             <p className="mt-7 text-body-lg text-muted-foreground max-w-lg">
               Your{" "}
               <span className="text-foreground font-medium">Forecast Score</span>{" "}
-              is the only currency on this network. It moves with every call
-              you lock in.
+              is the only currency on this network. Brier-scored, shrinkage-
+              corrected, streak-multiplied. No vibes.
             </p>
 
             <ul className="mt-9 flex flex-col gap-5">
               <ExplainerItem
-                title="Brier-scored"
-                body="Confident and correct beats hedged and correct. Confident and wrong gets punished more than hedging."
+                title="Confidence is priced in"
+                body="Calling 80% on a Yes beats calling 51%. Calling 80% on a No costs you more than calling 51% would have. Proper scoring rule, no fudging."
               />
               <ExplainerItem
-                title="Shrinkage-corrected"
-                body="New accounts start grounded. You can't fake a track record with three lucky calls."
+                title="Three lucky calls don't make you elite"
+                body="The first few predictions are pulled toward an average baseline. Real rank arrives after a real sample."
               />
               <ExplainerItem
-                title="Streak-multiplied"
-                body="A long run of accurate calls compounds. Cold streaks bring you back down."
+                title="Streaks compound, idle decays"
+                body="Up to +20% bonus for consecutive correct calls. Stop predicting for two months and your score quietly trims."
               />
             </ul>
           </div>
@@ -367,8 +438,139 @@ function ScoreExplainer() {
             <ScoreShowcaseCard />
           </div>
         </div>
+
+        {/* Worked example — the call → resolve → score chain made concrete. */}
+        <WorkedExample />
       </Container>
     </section>
+  );
+}
+
+function WorkedExample() {
+  return (
+    <div className="mt-24 sm:mt-28">
+      <div className="flex items-baseline justify-between mb-7 border-b border-border pb-4">
+        <p className="text-overline text-muted-foreground">worked example</p>
+        <p className="font-mono text-caption text-muted-foreground tabular-nums">
+          one call, three steps
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-border rounded-2xl overflow-hidden border border-border">
+        <WorkedStep
+          step="01"
+          label="you called"
+          headline="72%"
+          tag="Yes · Fed pauses May FOMC"
+          tone="foreground"
+          context="Consensus at the time of your call: 51%."
+        />
+        <WorkedStep
+          step="02"
+          label="market resolved"
+          headline="Yes"
+          tag="May 1, 2026 · 18:00 UTC"
+          tone="positive"
+          context="Source: federalreserve.gov press release."
+        />
+        <WorkedStep
+          step="03"
+          label="score moved"
+          headline="+18"
+          tag="2,453 → 2,471"
+          tone="positive"
+          context={
+            <>
+              Brier 0.08 · skill 0.85 · ×1.05 streak.{" "}
+              <span className="text-foreground">Out of 3,000.</span>
+            </>
+          }
+        />
+      </div>
+
+      <div className="mt-10 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-5">
+        <LeverCard
+          label="Calibration"
+          value="Brier 0–1"
+          body="Your probability vs. the outcome, squared. Lower is sharper."
+        />
+        <LeverCard
+          label="Volume"
+          value="8-call prior"
+          body="Eight average calls of baseline weight before you're judged elite."
+        />
+        <LeverCard
+          label="Streak"
+          value="+1% / call"
+          body="Per consecutive correct call. Caps at +20%."
+        />
+        <LeverCard
+          label="Decay"
+          value="14 / 30 / 60d"
+          body="Stop calling and the score slowly shrinks. Comes back the moment you do."
+        />
+      </div>
+    </div>
+  );
+}
+
+function WorkedStep({
+  step,
+  label,
+  headline,
+  tag,
+  tone,
+  context,
+}: {
+  step: string;
+  label: string;
+  headline: string;
+  tag: string;
+  tone: "foreground" | "positive";
+  context: React.ReactNode;
+}) {
+  const headlineClass =
+    tone === "positive" ? "text-signal-positive" : "text-foreground";
+  return (
+    <div className="bg-surface-elevated px-6 sm:px-8 py-7 sm:py-9 flex flex-col gap-5">
+      <div className="flex items-baseline justify-between">
+        <span className="font-mono text-overline text-muted-foreground tabular-nums">
+          {step}
+        </span>
+        <span className="text-overline text-muted-foreground">{label}</span>
+      </div>
+      <p
+        className={`font-display font-extrabold tabular-nums text-[64px] sm:text-[80px] leading-[0.92] tracking-[-0.04em] ${headlineClass}`}
+      >
+        {headline}
+      </p>
+      <p className="font-mono text-caption text-muted-foreground">{tag}</p>
+      <p className="text-body-sm text-muted-foreground leading-[1.55]">
+        {context}
+      </p>
+    </div>
+  );
+}
+
+function LeverCard({
+  label,
+  value,
+  body,
+}: {
+  label: string;
+  value: string;
+  body: string;
+}) {
+  return (
+    <div className="flex flex-col gap-2.5">
+      <p className="text-overline text-muted-foreground">{label}</p>
+      <p className="font-mono text-body text-foreground tabular-nums font-medium">
+        {value}
+      </p>
+      <p className="text-body-sm text-muted-foreground leading-[1.55]">
+        {body}
+      </p>
+    </div>
   );
 }
 
@@ -714,7 +916,26 @@ function FeatureCard({
 /* ==============================================================
    5. Categories
 ============================================================== */
-function Categories() {
+const CATEGORY_FALLBACKS: Record<CategoryHighlight["slug"], string> = {
+  "tech-ai": "Will Anthropic release Claude 5 before October 1, 2026?",
+  crypto: "Will Bitcoin set a new all-time high before January 1, 2027?",
+  sports: "Will Argentina win the 2026 FIFA World Cup?",
+  "pop-culture":
+    "Will Avengers: Doomsday gross $1B+ worldwide before EOY 2026?",
+};
+
+function categoryLine(
+  slug: CategoryHighlight["slug"],
+  live: CategoryHighlight | null,
+): string {
+  return live?.title ?? CATEGORY_FALLBACKS[slug];
+}
+
+function Categories({
+  highlights,
+}: {
+  highlights: Record<CategoryHighlight["slug"], CategoryHighlight | null>;
+}) {
   return (
     <section className="border-t border-border/60 bg-muted/40">
       <Container className="py-24 sm:py-32">
@@ -727,13 +948,11 @@ function Categories() {
             </h2>
           </div>
           <p className="text-body-lg text-muted-foreground max-w-sm">
-            Hundreds of resolvable questions every month. Your category-level
-            score updates with each call.
+            Dozens of resolvable questions live right now. Your category score
+            updates with each call.
           </p>
         </div>
 
-        {/* Bento grid: Tech & AI is the featured cell (2 cols × 2 rows),
-            other categories radiate around it. */}
         <BentoGrid>
           <BentoGridItem
             className="md:col-span-2 md:row-span-2 bg-surface"
@@ -741,14 +960,11 @@ function Categories() {
             title="Tech & AI"
             description={
               <span className="text-body text-muted-foreground">
-                Will GPT-5 launch before July 2026?
+                {categoryLine("tech-ai", highlights["tech-ai"])}
               </span>
             }
             footer={
-              <CategoryFooter
-                volume="48"
-                trend="+12 this week"
-              />
+              <CategoryFooter slug="tech-ai" live={highlights["tech-ai"]} />
             }
           />
           <BentoGridItem
@@ -756,51 +972,81 @@ function Categories() {
             title="Crypto"
             description={
               <span className="text-muted-foreground">
-                BTC above $120K by EOY 2026?
+                {categoryLine("crypto", highlights.crypto)}
               </span>
             }
-            footer={<CategoryFooter volume="36" />}
+            footer={<CategoryFooter slug="crypto" live={highlights.crypto} />}
           />
           <BentoGridItem
             icon={<Trophy className="size-5" strokeWidth={1.5} />}
             title="Sports"
             description={
               <span className="text-muted-foreground">
-                Lakers win the 2026 NBA Finals?
+                {categoryLine("sports", highlights.sports)}
               </span>
             }
-            footer={<CategoryFooter volume="62" />}
+            footer={<CategoryFooter slug="sports" live={highlights.sports} />}
           />
           <BentoGridItem
             icon={<Tv className="size-5" strokeWidth={1.5} />}
             title="Pop culture"
             description={
               <span className="text-muted-foreground">
-                Dune Part 3 hits $700M box office?
+                {categoryLine("pop-culture", highlights["pop-culture"])}
               </span>
             }
-            footer={<CategoryFooter volume="22" />}
+            footer={
+              <CategoryFooter
+                slug="pop-culture"
+                live={highlights["pop-culture"]}
+              />
+            }
           />
           <BentoGridItem
-            icon={<Vote className="size-5" strokeWidth={1.5} />}
-            title="Politics"
+            icon={<Flame className="size-5" strokeWidth={1.5} />}
+            title="What's hot"
             description={
               <span className="text-muted-foreground">
-                UK general election by Q4 2026?
+                The most-called market across every category, right now.
               </span>
             }
-            footer={<CategoryFooter volume="14" />}
+            footer={
+              <div className="flex items-baseline justify-between gap-3 border-t border-border pt-3">
+                <span className="font-mono text-caption text-muted-foreground">
+                  live ranking
+                </span>
+                <Link
+                  href="/markets?sort=most-predicted"
+                  className="font-mono text-caption text-foreground hover:underline underline-offset-4"
+                >
+                  see it →
+                </Link>
+              </div>
+            }
           />
           <BentoGridItem
             className="md:col-span-2"
             icon={<Zap className="size-5" strokeWidth={1.5} />}
-            title="Markets"
+            title="Propose one"
             description={
               <span className="text-body text-muted-foreground">
-                Fed pauses rates in the May FOMC meeting?
+                A question you'd call but can't find? Submit it. Admins review,
+                approved markets credit you as the author.
               </span>
             }
-            footer={<CategoryFooter volume="29" trend="resolves in 17 days" />}
+            footer={
+              <div className="flex items-baseline justify-between gap-3 border-t border-border pt-3">
+                <span className="font-mono text-caption text-muted-foreground">
+                  one per 6 hours
+                </span>
+                <Link
+                  href="/markets/propose"
+                  className="font-mono text-caption text-foreground hover:underline underline-offset-4"
+                >
+                  propose →
+                </Link>
+              </div>
+            }
           />
         </BentoGrid>
       </Container>
@@ -809,22 +1055,24 @@ function Categories() {
 }
 
 function CategoryFooter({
-  volume,
-  trend,
+  slug,
+  live,
 }: {
-  volume: string;
-  trend?: string;
+  slug: CategoryHighlight["slug"];
+  live: CategoryHighlight | null;
 }) {
+  const count = live?.prediction_count ?? 0;
   return (
     <div className="flex items-baseline justify-between gap-3 border-t border-border pt-3">
       <span className="font-mono text-caption text-muted-foreground">
-        {volume} open
+        {count > 0 ? `${count} call${count === 1 ? "" : "s"}` : "open"}
       </span>
-      {trend ? (
-        <span className="font-mono text-caption text-signal-positive">
-          {trend}
-        </span>
-      ) : null}
+      <Link
+        href={`/markets?category=${slug}`}
+        className="font-mono text-caption text-foreground hover:underline underline-offset-4"
+      >
+        browse →
+      </Link>
     </div>
   );
 }
@@ -832,7 +1080,18 @@ function CategoryFooter({
 /* ==============================================================
    6. Leaderboard preview
 ============================================================== */
-function Leaderboard() {
+const LEADERBOARD_FALLBACK: LeaderRow[] = [
+  { username: "itoldyouso", forecast_score: 2471, current_streak: 47 },
+  { username: "quanttrader", forecast_score: 2402, current_streak: 22 },
+  { username: "oddsbot", forecast_score: 2358, current_streak: 5 },
+  { username: "bayesfan", forecast_score: 2294, current_streak: 14 },
+  { username: "basecase", forecast_score: 2240, current_streak: 9 },
+];
+
+function Leaderboard({ leaders }: { leaders: LeaderRow[] }) {
+  const isLive = leaders.length > 0;
+  const rows = isLive ? leaders : LEADERBOARD_FALLBACK;
+
   return (
     <section className="border-t border-border/60">
       <Container className="py-24 sm:py-32">
@@ -847,53 +1106,32 @@ function Leaderboard() {
               Rank lifts the highest-accuracy forecasters into the spotlight.
               You can climb. You can also fall.
             </p>
-            <div className="mt-7 flex flex-wrap items-center gap-2">
-              <FilterPill active>All</FilterPill>
-              <FilterPill>Tech & AI</FilterPill>
-              <FilterPill>Crypto</FilterPill>
-              <FilterPill>Sports</FilterPill>
-              <FilterPill>Markets</FilterPill>
+            <div className="mt-7 flex items-center gap-3">
+              <Link
+                href="/leaderboard"
+                className="inline-flex items-center gap-1.5 text-body-sm text-foreground font-medium hover:underline underline-offset-4"
+              >
+                See the full leaderboard
+                <ArrowRight className="size-3.5" />
+              </Link>
+              <span className="font-mono text-caption text-muted-foreground">
+                {isLive ? "live top 5" : "preview · seed data"}
+              </span>
             </div>
           </div>
 
           <div className="lg:col-span-7">
             <div className="rounded-2xl border border-border bg-surface overflow-hidden">
-              <LeaderboardRow
-                rank={1}
-                handle="itoldyouso"
-                score={2471}
-                delta="+34"
-                streak={47}
-                highlight
-              />
-              <LeaderboardRow
-                rank={2}
-                handle="quanttrader"
-                score={2402}
-                delta="+12"
-                streak={22}
-              />
-              <LeaderboardRow
-                rank={3}
-                handle="oddsbot"
-                score={2358}
-                delta="-8"
-                streak={5}
-              />
-              <LeaderboardRow
-                rank={4}
-                handle="bayesfan"
-                score={2294}
-                delta="+19"
-                streak={14}
-              />
-              <LeaderboardRow
-                rank={5}
-                handle="basecase"
-                score={2240}
-                delta="+4"
-                streak={9}
-              />
+              {rows.map((u, i) => (
+                <LeaderboardRow
+                  key={u.username}
+                  rank={i + 1}
+                  handle={u.username}
+                  score={u.forecast_score}
+                  streak={u.current_streak}
+                  highlight={i === 0}
+                />
+              ))}
             </div>
           </div>
         </div>
@@ -902,49 +1140,24 @@ function Leaderboard() {
   );
 }
 
-function FilterPill({
-  children,
-  active = false,
-}: {
-  children: React.ReactNode;
-  active?: boolean;
-}) {
-  return (
-    <span
-      className={`inline-flex items-center px-3 h-8 rounded-full text-body-sm font-medium ${
-        active
-          ? "bg-foreground text-background"
-          : "bg-muted text-muted-foreground"
-      }`}
-    >
-      {children}
-    </span>
-  );
-}
-
 function LeaderboardRow({
   rank,
   handle,
   score,
-  delta,
   streak,
   highlight = false,
 }: {
   rank: number;
   handle: string;
   score: number;
-  delta: string;
   streak: number;
   highlight?: boolean;
 }) {
-  const deltaTone = delta.startsWith("+")
-    ? "text-signal-positive"
-    : delta.startsWith("-")
-      ? "text-signal-negative"
-      : "text-muted-foreground";
+  const streakTone =
+    streak >= 5 ? "text-signal-positive" : "text-muted-foreground";
   return (
     <div
-      className={`grid grid-cols-[40px_1fr_auto] sm:grid-cols-[48px_1fr_72px_64px_80px] items-center gap-3 sm:gap-5 px-5 py-4 border-b border-border last:border-b-0 ${
+      className={`grid grid-cols-[40px_1fr_auto] sm:grid-cols-[48px_1fr_72px_80px] items-center gap-3 sm:gap-5 px-5 py-4 border-b border-border last:border-b-0 ${
         highlight ? "bg-accent/[0.04]" : ""
       }`}
     >
@@ -957,13 +1170,10 @@ function LeaderboardRow({
           @{handle}
         </span>
       </div>
-      <span className="hidden sm:inline font-mono text-body-sm text-muted-foreground tabular-nums">
-        {streak}d
-      </span>
       <span
-        className={`hidden sm:inline font-mono text-body-sm tabular-nums font-medium ${deltaTone}`}
+        className={`hidden sm:inline font-mono text-body-sm tabular-nums font-medium ${streakTone}`}
       >
-        {delta}
+        {streak > 0 ? `${streak}d streak` : "—"}
       </span>
       <span className="font-display font-bold text-foreground text-body tabular-nums text-right">
         {score.toLocaleString()}
