@@ -5,7 +5,7 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "@/lib/db";
-import { market_proposals, markets, users } from "@/lib/db/schema";
+import { market_proposals, markets } from "@/lib/db/schema";
 import { getCurrentProfile } from "@/lib/auth";
 import { rateLimit } from "@/lib/rate-limit";
 import { createNotification } from "@/lib/notifications";
@@ -247,6 +247,5 @@ export async function reviewProposal(formData: FormData): Promise<ReviewResult> 
     revalidatePath(`/markets/${newMarketSlug}`);
   }
 
-  void users;
   return { status: "ok", action: parsed.data.action };
 }

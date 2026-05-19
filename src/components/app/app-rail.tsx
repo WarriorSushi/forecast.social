@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Inbox, Pencil, Ticket } from "lucide-react";
 
 import { getNavItems, type NavItem } from "@/components/app/nav-items";
 import { UserMenu } from "@/components/app/user-menu";
@@ -9,12 +10,20 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { cn } from "@/lib/utils";
 import type { CurrentProfile } from "@/lib/auth";
 
+const ADMIN_ITEMS: readonly NavItem[] = [
+  { href: "/admin/markets", label: "Markets", Icon: Pencil },
+  { href: "/admin/proposals", label: "Proposals", Icon: Inbox },
+  { href: "/admin/invites", label: "Invites", Icon: Ticket },
+];
+
 export function AppRail({
   profile,
   unreadNotifications = 0,
+  adminPendingProposals = 0,
 }: {
   profile: CurrentProfile;
   unreadNotifications?: number;
+  adminPendingProposals?: number;
 }) {
   const pathname = usePathname();
   const items = getNavItems(profile.username);
@@ -42,6 +51,26 @@ export function AppRail({
           />
         ))}
       </nav>
+
+      {profile.is_admin ? (
+        <nav className="mt-8 pt-6 border-t border-border/60 flex flex-col gap-1">
+          <p className="text-overline text-muted-foreground px-3 mb-2">
+            admin
+          </p>
+          {ADMIN_ITEMS.map((item) => (
+            <RailItem
+              key={item.href}
+              item={item}
+              active={isActive(pathname, item)}
+              badge={
+                item.href === "/admin/proposals" && adminPendingProposals > 0
+                  ? adminPendingProposals
+                  : undefined
+              }
+            />
+          ))}
+        </nav>
+      ) : null}
 
       <div className="mt-auto flex flex-col gap-2">
         <div className="flex items-center justify-between px-3 py-2 rounded-md">

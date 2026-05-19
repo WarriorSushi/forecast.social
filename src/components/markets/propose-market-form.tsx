@@ -18,8 +18,12 @@ type Category = { slug: string; name: string };
 
 export function ProposeMarketForm({
   categories,
+  defaultClosesAt,
+  defaultResolvesAt,
 }: {
   categories: Category[];
+  defaultClosesAt?: string;
+  defaultResolvesAt?: string;
 }) {
   const [state, formAction] = useActionState<ProposeMarketState, FormData>(
     proposeMarket,
@@ -91,6 +95,7 @@ export function ProposeMarketForm({
           name="closes_at"
           type="datetime-local"
           required
+          defaultValue={defaultClosesAt}
           error={
             state.status === "error"
               ? state.fieldErrors?.closes_at
@@ -102,6 +107,7 @@ export function ProposeMarketForm({
           name="resolves_at"
           type="datetime-local"
           required
+          defaultValue={defaultResolvesAt}
           error={
             state.status === "error"
               ? state.fieldErrors?.resolves_at
@@ -159,6 +165,7 @@ function Field({
   type = "text",
   placeholder,
   required = false,
+  defaultValue,
   error,
 }: {
   label: string;
@@ -166,6 +173,7 @@ function Field({
   type?: string;
   placeholder?: string;
   required?: boolean;
+  defaultValue?: string;
   error?: string;
 }) {
   const id = `proposal-${name}`;
@@ -178,6 +186,7 @@ function Field({
         type={type}
         placeholder={placeholder}
         required={required}
+        defaultValue={defaultValue}
       />
       {error ? (
         <p className="text-caption text-signal-negative">{error}</p>

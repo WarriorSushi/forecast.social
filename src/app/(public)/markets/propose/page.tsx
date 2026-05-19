@@ -66,7 +66,11 @@ export default async function ProposeMarketPage() {
       </header>
 
       <section>
-        <ProposeMarketForm categories={cats} />
+        <ProposeMarketForm
+          categories={cats}
+          defaultClosesAt={defaultDatetimeLocal(30)}
+          defaultResolvesAt={defaultDatetimeLocal(35)}
+        />
       </section>
 
       {myProposals.length > 0 ? (
@@ -102,6 +106,14 @@ export default async function ProposeMarketPage() {
       ) : null}
     </div>
   );
+}
+
+function defaultDatetimeLocal(daysFromNow: number): string {
+  const dt = new Date(Date.now() + daysFromNow * 24 * 60 * 60 * 1000);
+  // datetime-local input wants "YYYY-MM-DDTHH:mm" — slicing toISOString
+  // gives a stable string the browser will interpret as the user's
+  // local time. Good enough for a default; the user can adjust.
+  return dt.toISOString().slice(0, 16);
 }
 
 function StatusPill({

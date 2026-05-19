@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { desc, eq, ne, sql } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { market_proposals, users } from "@/lib/db/schema";
@@ -55,8 +55,6 @@ export default async function AdminProposalsPage({
     .select({ count: sql<number>`COUNT(*)` })
     .from(market_proposals)
     .where(eq(market_proposals.status, "pending"));
-
-  void ne;
 
   return (
     <div className="mx-auto w-full max-w-[1080px] py-10 sm:py-14 flex flex-col gap-10">
