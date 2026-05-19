@@ -4,7 +4,6 @@ import {
   ArrowRight,
   Atom,
   Bitcoin,
-  Calendar,
   Check,
   Flame,
   Lock,
@@ -163,7 +162,7 @@ function Hero() {
             <span className="text-muted-foreground">Not your money.</span>
           </h1>
 
-          <p className="font-stylized italic text-[26px] sm:text-[30px] lg:text-[32px] leading-[1.2] text-muted-foreground max-w-2xl mt-6 sm:mt-8">
+          <p className="font-stylized italic text-[22px] sm:text-[24px] lg:text-[26px] leading-[1.18] text-muted-foreground max-w-2xl mt-5 sm:mt-6">
             Be early. Be right.{" "}
             <span className="text-foreground not-italic font-medium font-sans">
               Be famous for it.
@@ -285,7 +284,7 @@ function ProfileCard() {
             </span>
           </div>
           <div className="flex items-center gap-2.5">
-            <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-accent/12 text-accent text-caption font-semibold tracking-tight">
+            <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-foreground/8 text-foreground text-caption font-semibold tracking-tight">
               Top 0.2%
             </span>
             <span className="text-body-sm text-signal-positive font-medium">
@@ -421,7 +420,6 @@ function ScoreExplainer() {
       <Container className="py-24 sm:py-32">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-y-12 lg:gap-y-0 lg:gap-x-16 items-center">
           <div className="lg:col-span-6">
-            <SectionEyebrow>Scoring</SectionEyebrow>
             <h2 className="font-display text-display-md sm:text-display-lg text-foreground leading-[0.98] tracking-[-0.035em]">
               How scoring{" "}
               <span className="text-muted-foreground">actually works.</span>
@@ -633,7 +631,7 @@ function ScoreShowcaseCard() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <span className="inline-flex items-center px-3 py-1.5 rounded-full bg-accent/12 text-accent text-body-sm font-semibold tracking-tight">
+          <span className="inline-flex items-center px-3 py-1.5 rounded-full bg-foreground/8 text-foreground text-body-sm font-semibold tracking-tight">
             Top 0.2%
           </span>
           <span className="text-body-sm text-signal-positive font-medium">
@@ -730,7 +728,6 @@ function ProofShowcase() {
       <Container className="py-24 sm:py-32">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-y-12 lg:gap-y-0 lg:gap-x-16 items-center">
           <div className="lg:col-span-5 lg:order-1">
-            <SectionEyebrow>The artifact</SectionEyebrow>
             <h2 className="font-display text-display-md sm:text-display-lg text-foreground leading-[0.98] tracking-[-0.035em]">
               Every call{" "}
               <span className="text-muted-foreground">leaves a mark.</span>
@@ -759,7 +756,7 @@ function ProofShowcase() {
 function ProofPoint({ label }: { label: string }) {
   return (
     <li className="flex items-center gap-3">
-      <Check className="size-4 text-accent shrink-0" strokeWidth={2.5} />
+      <Check className="size-4 text-foreground shrink-0" strokeWidth={2.5} />
       <span className="text-foreground">{label}</span>
     </li>
   );
@@ -867,7 +864,6 @@ function HowItWorks() {
     <section id="how-it-works" className="border-t border-border/60">
       <Container className="py-24 sm:py-32">
         <div className="flex flex-col items-start max-w-3xl">
-          <SectionEyebrow>How it works</SectionEyebrow>
           <h2 className="font-display text-display-md sm:text-display-lg text-foreground leading-[0.98] tracking-[-0.035em]">
             Three moments.{" "}
             <span className="text-muted-foreground">One scoreboard.</span>
@@ -965,7 +961,6 @@ function Categories({
       <Container className="py-24 sm:py-32">
         <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-14">
           <div className="max-w-2xl">
-            <SectionEyebrow>What you can call</SectionEyebrow>
             <h2 className="font-display text-display-md sm:text-display-lg text-foreground leading-[0.98] tracking-[-0.035em]">
               Markets for{" "}
               <span className="text-muted-foreground">everything you read.</span>
@@ -1144,7 +1139,6 @@ function Leaderboard({ leaders }: { leaders: LeaderRow[] }) {
       <Container className="py-24 sm:py-32">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-y-10 lg:gap-x-16 items-start">
           <div className="lg:col-span-5">
-            <SectionEyebrow>Leaderboard</SectionEyebrow>
             <h2 className="font-display text-display-md sm:text-display-lg text-foreground leading-[0.98] tracking-[-0.035em]">
               The proven.{" "}
               <span className="text-muted-foreground">Updated nightly.</span>
@@ -1237,13 +1231,13 @@ function NotBetting() {
     <section className="border-t border-border/60">
       <Container className="py-24 sm:py-32">
         <div className="max-w-3xl">
-          <SectionEyebrow>What this isn&apos;t</SectionEyebrow>
           <h2 className="font-display text-display-md sm:text-display-lg text-foreground leading-[0.98] tracking-[-0.035em]">
-            No wagering.{" "}
-            <span className="text-muted-foreground">
-              No house. No money flowing between users.
-            </span>
+            Not betting.{" "}
+            <span className="text-muted-foreground">By design.</span>
           </h2>
+          <p className="mt-5 text-body-lg text-muted-foreground max-w-xl">
+            No deposits. No opposing house. No money flowing between users.
+          </p>
         </div>
 
         <div className="mt-14 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
@@ -1372,11 +1366,6 @@ function FinalCTA() {
     <section className="border-t border-border/60">
       <Container className="py-28 sm:py-40">
         <div className="flex flex-col items-center text-center max-w-3xl mx-auto">
-          <Calendar
-            className="size-6 text-muted-foreground mb-7"
-            strokeWidth={1.5}
-            aria-hidden
-          />
           <h2 className="font-display font-extrabold text-foreground text-[44px] sm:text-[64px] lg:text-[80px] leading-[0.98] tracking-[-0.04em]">
             The internet,
             <br />

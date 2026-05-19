@@ -5,9 +5,13 @@ import { motion } from "motion/react";
 
 /**
  * Adapted from Aceternity "Spotlight New". Two animated radial-gradient
- * curtains sweep gently across the hero, tinted indigo to match our
- * accent token. Opacity is in the 0.04-0.08 range so the effect reads as
- * restrained light, not as a glow effect.
+ * curtains sweep gently across the hero.
+ *
+ * Tuned to read as LIFTED GEOMETRY, not a colored glow. Earlier versions
+ * used a fully-saturated indigo (hue 258, sat 100%) which bled into
+ * light mode as a warm-lavender wash — exactly the "indigo gradient on
+ * slate" lane DESIGN.md §1.2 forbids. The new gradients use OKLCH at
+ * very low chroma (0.01) so the effect is about depth, not hue.
  */
 type SpotlightProps = {
   gradientFirst?: string;
@@ -21,14 +25,14 @@ type SpotlightProps = {
   xOffset?: number;
 };
 
-const INDIGO_HUE = 258;
-
 const DEFAULTS: Required<SpotlightProps> = {
-  // Three layered radial gradients in our indigo accent hue. Opacities
-  // chosen to read as ambient light, not as a brand color flood.
-  gradientFirst: `radial-gradient(68.54% 68.72% at 55.02% 31.46%, hsla(${INDIGO_HUE}, 100%, 72%, 0.10) 0, hsla(${INDIGO_HUE}, 100%, 55%, 0.04) 50%, hsla(${INDIGO_HUE}, 100%, 45%, 0) 80%)`,
-  gradientSecond: `radial-gradient(50% 50% at 50% 50%, hsla(${INDIGO_HUE}, 100%, 72%, 0.08) 0, hsla(${INDIGO_HUE}, 100%, 55%, 0.03) 80%, transparent 100%)`,
-  gradientThird: `radial-gradient(50% 50% at 50% 50%, hsla(${INDIGO_HUE}, 100%, 72%, 0.05) 0, hsla(${INDIGO_HUE}, 100%, 45%, 0.02) 80%, transparent 100%)`,
+  // Cool-neutral lifted highlight. Almost no chroma → reads as light,
+  // not as a brand color. Same OKLCH range as our --border-strong and
+  // --muted-foreground tokens; the gradient adapts to either theme
+  // because the eye reads the alpha falloff, not the hue.
+  gradientFirst: `radial-gradient(68.54% 68.72% at 55.02% 31.46%, oklch(75% 0.01 250 / 0.07) 0, oklch(60% 0.01 250 / 0.025) 50%, oklch(50% 0.01 250 / 0) 80%)`,
+  gradientSecond: `radial-gradient(50% 50% at 50% 50%, oklch(75% 0.01 250 / 0.05) 0, oklch(60% 0.01 250 / 0.02) 80%, transparent 100%)`,
+  gradientThird: `radial-gradient(50% 50% at 50% 50%, oklch(75% 0.01 250 / 0.03) 0, oklch(50% 0.01 250 / 0.01) 80%, transparent 100%)`,
   translateY: -350,
   width: 560,
   height: 1380,
