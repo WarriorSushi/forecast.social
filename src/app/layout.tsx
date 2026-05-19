@@ -31,20 +31,20 @@ export const metadata: Metadata = {
     template: "%s · forecast.social",
   },
   description:
-    "The track-record social network. Predict anything. Build a permanent, public Forecast Score. Receipts for everything.",
+    "Predict in public. forecast.social is the track-record social network — call probabilities on anything, build a permanent Forecast Score, no money involved.",
   applicationName: "forecast.social",
   openGraph: {
-    title: "forecast.social — be right. get famous.",
+    title: "forecast.social — predict in public.",
     description:
-      "The track-record social network. Predict anything as a probability. No wagering. No real money. Just reputation.",
+      "The track-record social network. Call a probability on anything. No money, no house — just a permanent, public Forecast Score.",
     type: "website",
     siteName: "forecast.social",
   },
   twitter: {
     card: "summary_large_image",
-    title: "forecast.social — be right. get famous.",
+    title: "forecast.social — predict in public.",
     description:
-      "The track-record social network. Predict anything as a probability. No wagering. No real money. Just reputation.",
+      "The track-record social network. Call a probability on anything. No money, no house — just a permanent, public Forecast Score.",
   },
   robots: {
     index: true,

@@ -50,7 +50,7 @@ export default function MarketingLayout({
           <p className="font-stylized text-title font-semibold text-foreground leading-none tracking-tight">
             forecast<span className="text-accent">.</span>social
           </p>
-          <p className="text-overline">© 2026 · receipts for everything</p>
+          <p className="text-overline">© 2026 · predict in public</p>
         </div>
       </footer>
     </div>

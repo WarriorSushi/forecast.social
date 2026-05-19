@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>forecast.social — brand preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: oklch(98.5% 0.003 250);
+    --fg: oklch(14% 0.012 260);
+    --surface: oklch(100% 0 0);
+    --muted: oklch(95.5% 0.004 250);
+    --muted-fg: oklch(48% 0.012 260);
+    --border: oklch(92% 0.004 250);
+    --accent: oklch(58% 0.22 258);
+    --ink: #0a0a0a;
+    --paper: #fafafa;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "Geist", -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    -webkit-font-smoothing: antialiased;
+    font-variant-numeric: tabular-nums;
+  }
+  .stylized { font-family: "Instrument Serif", serif; font-style: italic; }
+  .mono { font-family: "Geist Mono", ui-monospace, monospace; }
+  .accent { color: var(--accent); }
+
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 64px 32px 96px; }
+  header { margin-bottom: 64px; }
+  header h1 { font-size: 56px; font-weight: 800; letter-spacing: -0.035em; line-height: 0.98; margin: 0 0 12px; }
+  header p { font-size: 16px; line-height: 1.6; color: var(--muted-fg); margin: 0; max-width: 560px; }
+
+  section { margin-bottom: 80px; }
+  .section-head { display: flex; align-items: baseline; justify-content: space-between; padding-bottom: 14px; border-bottom: 1px solid var(--border); margin-bottom: 32px; }
+  .section-head h2 { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; margin: 0; }
+  .overline { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-fg); }
+
+  /* Favicons */
+  .fav-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+  .fav-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 22px; }
+  .fav-card .label { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px; }
+  .fav-card .label .id { font-family: "Geist Mono", monospace; font-size: 12px; color: var(--muted-fg); }
+  .fav-card .label .name { font-size: 14px; font-weight: 600; }
+  .fav-card .preview-row { display: flex; align-items: center; gap: 18px; margin-bottom: 14px; }
+  .fav-card .preview-row.dark { padding: 14px; background: var(--ink); border-radius: 10px; }
+  .fav-card .preview-row.light { padding: 14px; background: var(--paper); border: 1px solid var(--border); border-radius: 10px; }
+  .fav-card .size-stack { display: flex; align-items: center; gap: 12px; }
+  .fav-card .size-stack svg { display: block; }
+  .fav-card .size-stack .px { font-family: "Geist Mono", monospace; font-size: 10px; color: var(--muted-fg); width: 24px; text-align: right; }
+  .fav-card .desc { font-size: 13px; color: var(--muted-fg); line-height: 1.55; }
+
+  /* Logos */
+  .logo-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+  @media (min-width: 760px) { .logo-grid { grid-template-columns: 1fr 1fr; } }
+  .logo-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; }
+  .logo-card .label { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 18px; }
+  .logo-card .label .id { font-family: "Geist Mono", monospace; font-size: 12px; color: var(--muted-fg); }
+  .logo-card .label .name { font-size: 14px; font-weight: 600; }
+  .logo-card .stage { display: flex; flex-direction: column; gap: 12px; margin-bottom: 14px; }
+  .logo-card .stage > div { padding: 24px; border-radius: 10px; display: flex; align-items: center; justify-content: center; min-height: 90px; }
+  .logo-card .stage .on-paper { background: var(--paper); border: 1px solid var(--border); }
+  .logo-card .stage .on-ink { background: var(--ink); }
+  .logo-card .desc { font-size: 13px; color: var(--muted-fg); line-height: 1.55; }
+
+  .pick-line { margin-top: 64px; padding: 32px; background: var(--muted); border-radius: 16px; }
+  .pick-line p { margin: 0; font-size: 15px; line-height: 1.6; color: var(--fg); }
+  .pick-line strong { font-weight: 600; }
+
+  /* Logo treatments */
+  .wm { font-weight: 600; letter-spacing: -0.015em; }
+  .wm-ink { color: var(--ink); }
+  .wm-paper { color: var(--paper); }
+  .wm-accent { color: var(--accent); }
+
+  /* Sizes */
+  svg.f64 { width: 48px; height: 48px; border-radius: 11px; }
+  svg.f32 { width: 28px; height: 28px; border-radius: 6px; }
+  svg.f16 { width: 16px; height: 16px; border-radius: 3px; }
+  svg.flat { border-radius: 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <p class="overline" style="margin-bottom: 16px;">forecast.social · brand preview</p>
+    <h1>Pick a favicon. Pick a logo. <span style="color: var(--muted-fg);">Pick a tagline.</span></h1>
+    <p>Eight favicon directions, six logo treatments, ten taglines. Open in a fresh tab on the device you spend most time on. Tell Claude which letters/numbers — F-C, L-2, tagline 5 — and they all get applied in one commit.</p>
+  </header>
+
+  <!-- ================ FAVICONS ================ -->
+  <section>
+    <div class="section-head">
+      <h2>Favicons</h2>
+      <span class="overline">F-A — F-H · scaled 48 / 28 / 16 px</span>
+    </div>
+
+    <div class="fav-grid">
+
+      <!-- F-A · Italic f. (brand essence) -->
+      <div class="fav-card">
+        <div class="label"><span class="name">Italic f. mark</span><span class="id">F-A</span></div>
+        <div class="preview-row dark">
+          <div class="size-stack">
+            <svg class="f64" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0a0a0a"/><text x="20" y="49" font-family="Instrument Serif, serif" font-style="italic" font-size="46" font-weight="400" fill="#fafafa">f</text><circle cx="44" cy="46" r="4" fill="#818cf8"/></svg>
+            <span class="px">48</span>
+          </div>
+          <div class="size-stack">
+            <svg class="f32" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0a0a0a"/><text x="20" y="49" font-family="Instrument Serif, serif" font-style="italic" font-size="46" font-weight="400" fill="#fafafa">f</text><circle cx="44" cy="46" r="4" fill="#818cf8"/></svg>
+            <span class="px">28</span>
+          </div>
+          <div class="size-stack">
+            <svg class="f16" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0a0a0a"/><text x="20" y="49" font-family="Instrument Serif, serif" font-style="italic" font-size="46" font-weight="400" fill="#fafafa">f</text><circle cx="44" cy="46" r="4" fill="#818cf8"/></svg>
+            <span class="px">16</span>
+          </div>
+        </div>
+        <p class="desc">The brand DNA: italic f + indigo accent dot. Strongest tie to the existing wordmark.</p>
+      </div>
+
+      <!-- F-B · Bold sans f -->
+      <div class="fav-card">
+        <div class="label"><span class="name">Bold f</span><span class="id">F-B</span></div>
+        <div class="preview-row dark">
+          <div class="size-stack">
+            <svg class="f64" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0a0a0a"/><text x="20" y="48" font-family="Geist, sans-serif" font-size="46" font-weight="800" fill="#fafafa">f</text></svg>
+            <span class="px">48</span>
+          </div>
+          <div class="size-stack">
+            <svg class="f32" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0a0a0a"/><text x="20" y="48" font-family="Geist, sans-serif" font-size="46" font-weight="800" fill="#fafafa">f</text></svg>
+            <span class="px">28</span>
+          </div>
+          <div class="size-stack">
+            <svg class="f16" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0a0a0a"/><text x="20" y="48" font-family="Geist, sans-serif" font-size="46" font-weight="800" fill="#fafafa">f</text></svg>
+            <span class="px">16</span>
+          </div>
+        </div>
+        <p class="desc">Pure Geist. No serif. Reads as a tech tool like Linear or Vercel.</p>
+      </div>
+
+      <!-- F-C · Just the dot -->
+      <div class="fav-card">
+        <div class="label"><span class="name">The dot</span><span class="id">F-C</span></div>
+        <div class="preview-row dark">
+          <div class="size-stack">
+            <svg class="f64" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0a0a0a"/><circle cx="32" cy="32" r="11" fill="#818cf8"/></svg>
+            <span class="px">48</span>
+          </div>
+          <div class="size-stack">
+            <svg class="f32" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0a0a0a"/><circle cx="32" cy="32" r="11" fill="#818cf8"/></svg>
+            <span class="px">28</span>
+          </div>
+          <div class="size-stack">
+            <svg class="f16" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0a0a0a"/><circle cx="32" cy="32" r="11" fill="#818cf8"/></svg>
+            <span class="px">16</span>
+          </div>
+        </div>
+        <p class="desc">Extreme reduction. Just the accent dot from the wordmark. Reads as "presence" — like a status light.</p>
+      </div>
+
+      <!-- F-D · f.s monogram -->
+      <div class="fav-card">
+        <div class="label"><span class="name">f.s monogram</span><span class="id">F-D</span></div>
+        <div class="preview-row dark">
+          <div class="size-stack">
+            <svg class="f64" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0a0a0a"/><text x="10" y="46" font-family="Geist, sans-serif" font-size="34" font-weight="800" fill="#fafafa" letter-spacing="-1.5">f</text><circle cx="29" cy="43" r="2.6" fill="#818cf8"/><text x="34" y="46" font-family="Geist, sans-serif" font-size="34" font-weight="800" fill="#fafafa" letter-spacing="-1.5">s</text></svg>
+            <span class="px">48</span>
+          </div>
+          <div class="size-stack">
+            <svg class="f32" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0a0a0a"/><text x="10" y="46" font-family="Geist, sans-serif" font-size="34" font-weight="800" fill="#fafafa" letter-spacing="-1.5">f</text><circle cx="29" cy="43" r="2.6" fill="#818cf8"/><text x="34" y="46" font-family="Geist, sans-serif" font-size="34" font-weight="800" fill="#fafafa" letter-spacing="-1.5">s</text></svg>
+            <span class="px">28</span>
+          </div>
+          <div class="size-stack">
+            <svg class="f16" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0a0a0a"/><text x="10" y="46" font-family="Geist, sans-serif" font-size="34" font-weight="800" fill="#fafafa" letter-spacing="-1.5">f</text><circle cx="29" cy="43" r="2.6" fill="#818cf8"/><text x="34" y="46" font-family="Geist, sans-serif" font-size="34" font-weight="800" fill="#fafafa" letter-spacing="-1.5">s</text></svg>
+            <span class="px">16</span>
+          </div>
+        </div>
+        <p class="desc">f.s — the whole URL compressed into two letters with the dot accent kept. Reads at 16px.</p>
+      </div>
+
+      <!-- F-E · Ascending bars -->
+      <div class="fav-card">
+        <div class="label"><span class="name">Ascending bars</span><span class="id">F-E</span></div>
+        <div class="preview-row dark">
+          <div class="size-stack">
+            <svg class="f64" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0a0a0a"/><rect x="14" y="38" width="9" height="14" rx="1.5" fill="#fafafa"/><rect x="27.5" y="28" width="9" height="24" rx="1.5" fill="#fafafa"/><rect x="41" y="16" width="9" height="36" rx="1.5" fill="#818cf8"/></svg>
+            <span class="px">48</span>
+          </div>
+          <div class="size-stack">
+            <svg class="f32" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0a0a0a"/><rect x="14" y="38" width="9" height="14" rx="1.5" fill="#fafafa"/><rect x="27.5" y="28" width="9" height="24" rx="1.5" fill="#fafafa"/><rect x="41" y="16" width="9" height="36" rx="1.5" fill="#818cf8"/></svg>
+            <span class="px">28</span>
+          </div>
+          <div class="size-stack">
+            <svg class="f16" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0a0a0a"/><rect x="14" y="38" width="9" height="14" rx="1.5" fill="#fafafa"/><rect x="27.5" y="28" width="9" height="24" rx="1.5" fill="#fafafa"/><rect x="41" y="16" width="9" height="36" rx="1.5" fill="#818cf8"/></svg>
+            <span class="px">16</span>
+          </div>
+        </div>
+        <p class="desc">A forecaster's chart, abbreviated. Risk: reads as "stocks" or "analytics" — adjacent but not us.</p>
+      </div>
+
+      <!-- F-F · Probability arc -->
+      <div class="fav-card">
+        <div class="label"><span class="name">Probability arc</span><span class="id">F-F</span></div>
+        <div class="preview-row dark">
+          <div class="size-stack">
+            <svg class="f64" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0a0a0a"/><path d="M 14 46 A 18 18 0 0 1 50 46" stroke="#3a3a3a" stroke-width="3.5" fill="none" stroke-linecap="round"/><path d="M 14 46 A 18 18 0 0 1 41.2 27" stroke="#818cf8" stroke-width="3.5" fill="none" stroke-linecap="round"/><circle cx="41.2" cy="27" r="3.5" fill="#fafafa"/></svg>
+            <span class="px">48</span>
+          </div>
+          <div class="size-stack">
+            <svg class="f32" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0a0a0a"/><path d="M 14 46 A 18 18 0 0 1 50 46" stroke="#3a3a3a" stroke-width="3.5" fill="none" stroke-linecap="round"/><path d="M 14 46 A 18 18 0 0 1 41.2 27" stroke="#818cf8" stroke-width="3.5" fill="none" stroke-linecap="round"/><circle cx="41.2" cy="27" r="3.5" fill="#fafafa"/></svg>
+            <span class="px">28</span>
+          </div>
+          <div class="size-stack">
+            <svg class="f16" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0a0a0a"/><path d="M 14 46 A 18 18 0 0 1 50 46" stroke="#3a3a3a" stroke-width="3.5" fill="none" stroke-linecap="round"/><path d="M 14 46 A 18 18 0 0 1 41.2 27" stroke="#818cf8" stroke-width="3.5" fill="none" stroke-linecap="round"/><circle cx="41.2" cy="27" r="3.5" fill="#fafafa"/></svg>
+            <span class="px">16</span>
+          </div>
+        </div>
+        <p class="desc">A 0-100% probability gauge with the needle pinned. Pure product symbol.</p>
+      </div>
+
+      <!-- F-G · Bold f + accent underline -->
+      <div class="fav-card">
+        <div class="label"><span class="name">f with signature underline</span><span class="id">F-G</span></div>
+        <div class="preview-row dark">
+          <div class="size-stack">
+            <svg class="f64" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0a0a0a"/><text x="22" y="45" font-family="Geist, sans-serif" font-size="42" font-weight="800" fill="#fafafa">f</text><rect x="14" y="50" width="36" height="3" rx="1.5" fill="#818cf8"/></svg>
+            <span class="px">48</span>
+          </div>
+          <div class="size-stack">
+            <svg class="f32" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0a0a0a"/><text x="22" y="45" font-family="Geist, sans-serif" font-size="42" font-weight="800" fill="#fafafa">f</text><rect x="14" y="50" width="36" height="3" rx="1.5" fill="#818cf8"/></svg>
+            <span class="px">28</span>
+          </div>
+          <div class="size-stack">
+            <svg class="f16" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0a0a0a"/><text x="22" y="45" font-family="Geist, sans-serif" font-size="42" font-weight="800" fill="#fafafa">f</text><rect x="14" y="50" width="36" height="3" rx="1.5" fill="#818cf8"/></svg>
+            <span class="px">16</span>
+          </div>
+        </div>
+        <p class="desc">A signed-off f. Reads as "verified / on the record" — appropriate for a track-record product.</p>
+      </div>
+
+      <!-- F-H · Concentric -->
+      <div class="fav-card">
+        <div class="label"><span class="name">Concentric</span><span class="id">F-H</span></div>
+        <div class="preview-row dark">
+          <div class="size-stack">
+            <svg class="f64" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0a0a0a"/><circle cx="32" cy="32" r="20" stroke="#3a3a3a" stroke-width="2" fill="none"/><circle cx="32" cy="32" r="13" stroke="#5a5a5a" stroke-width="2" fill="none"/><circle cx="32" cy="32" r="6" fill="#818cf8"/></svg>
+            <span class="px">48</span>
+          </div>
+          <div class="size-stack">
+            <svg class="f32" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0a0a0a"/><circle cx="32" cy="32" r="20" stroke="#3a3a3a" stroke-width="2" fill="none"/><circle cx="32" cy="32" r="13" stroke="#5a5a5a" stroke-width="2" fill="none"/><circle cx="32" cy="32" r="6" fill="#818cf8"/></svg>
+            <span class="px">28</span>
+          </div>
+          <div class="size-stack">
+            <svg class="f16" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0a0a0a"/><circle cx="32" cy="32" r="20" stroke="#3a3a3a" stroke-width="2" fill="none"/><circle cx="32" cy="32" r="13" stroke="#5a5a5a" stroke-width="2" fill="none"/><circle cx="32" cy="32" r="6" fill="#818cf8"/></svg>
+            <span class="px">16</span>
+          </div>
+        </div>
+        <p class="desc">Bullseye / radar / calibration target. A bit on-the-nose for a prediction product, depending on taste.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================ LOGOS ================ -->
+  <section>
+    <div class="section-head">
+      <h2>Logos</h2>
+      <span class="overline">L-1 — L-6 · paper + ink</span>
+    </div>
+
+    <div class="logo-grid">
+
+      <!-- L-1 · Current -->
+      <div class="logo-card">
+        <div class="label"><span class="name">Current — sans with serif dot</span><span class="id">L-1</span></div>
+        <div class="stage">
+          <div class="on-paper">
+            <span class="wm wm-ink" style="font-size: 34px;">forecast<span class="stylized wm-accent" style="font-size: 38px;">.</span>social</span>
+          </div>
+          <div class="on-ink">
+            <span class="wm wm-paper" style="font-size: 34px;">forecast<span class="stylized wm-accent" style="font-size: 38px;">.</span>social</span>
+          </div>
+        </div>
+        <p class="desc">What's shipping today. Geist sans wordmark, Instrument Serif italic dot in the accent indigo.</p>
+      </div>
+
+      <!-- L-2 · All italic serif -->
+      <div class="logo-card">
+        <div class="label"><span class="name">All italic serif</span><span class="id">L-2</span></div>
+        <div class="stage">
+          <div class="on-paper">
+            <span class="stylized wm-ink" style="font-size: 40px;">forecast<span class="wm-accent">.</span>social</span>
+          </div>
+          <div class="on-ink">
+            <span class="stylized wm-paper" style="font-size: 40px;">forecast<span class="wm-accent">.</span>social</span>
+          </div>
+        </div>
+        <p class="desc">The whole wordmark in italic Instrument Serif. Editorial-leaning — DESIGN.md explicitly rejected this lane, included here so you can see what was killed.</p>
+      </div>
+
+      <!-- L-3 · Compressed mono uppercase -->
+      <div class="logo-card">
+        <div class="label"><span class="name">Compressed uppercase</span><span class="id">L-3</span></div>
+        <div class="stage">
+          <div class="on-paper">
+            <span class="mono wm-ink" style="font-size: 22px; font-weight: 600; letter-spacing: 0.04em;">FORECAST<span class="wm-accent">.</span>SOCIAL</span>
+          </div>
+          <div class="on-ink">
+            <span class="mono wm-paper" style="font-size: 22px; font-weight: 600; letter-spacing: 0.04em;">FORECAST<span class="wm-accent">.</span>SOCIAL</span>
+          </div>
+        </div>
+        <p class="desc">Geist Mono caps. Reads as terminal / tech-spec. Risk: too cold for a social network.</p>
+      </div>
+
+      <!-- L-4 · Stacked -->
+      <div class="logo-card">
+        <div class="label"><span class="name">Stacked</span><span class="id">L-4</span></div>
+        <div class="stage">
+          <div class="on-paper">
+            <div style="display: flex; flex-direction: column; align-items: flex-start; line-height: 0.92;">
+              <span class="wm wm-ink" style="font-size: 36px; font-weight: 800;">forecast</span>
+              <span class="wm" style="font-size: 18px; color: var(--muted-fg); font-weight: 500; margin-top: 2px;"><span class="wm-accent">.</span>social</span>
+            </div>
+          </div>
+          <div class="on-ink">
+            <div style="display: flex; flex-direction: column; align-items: flex-start; line-height: 0.92;">
+              <span class="wm wm-paper" style="font-size: 36px; font-weight: 800;">forecast</span>
+              <span class="wm" style="font-size: 18px; color: #888; font-weight: 500; margin-top: 2px;"><span class="wm-accent">.</span>social</span>
+            </div>
+          </div>
+        </div>
+        <p class="desc">Two-line lockup. Big "forecast" leads, ".social" hangs underneath like a category label.</p>
+      </div>
+
+      <!-- L-5 · Symbol + wordmark -->
+      <div class="logo-card">
+        <div class="label"><span class="name">Mark + wordmark</span><span class="id">L-5</span></div>
+        <div class="stage">
+          <div class="on-paper">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <svg width="36" height="36" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0a0a0a"/><text x="20" y="49" font-family="Instrument Serif, serif" font-style="italic" font-size="46" font-weight="400" fill="#fafafa">f</text><circle cx="44" cy="46" r="4" fill="#818cf8"/></svg>
+              <span class="wm wm-ink" style="font-size: 28px;">forecast<span class="stylized wm-accent" style="font-size: 32px;">.</span>social</span>
+            </div>
+          </div>
+          <div class="on-ink">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <svg width="36" height="36" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#fafafa"/><text x="20" y="49" font-family="Instrument Serif, serif" font-style="italic" font-size="46" font-weight="400" fill="#0a0a0a">f</text><circle cx="44" cy="46" r="4" fill="#818cf8"/></svg>
+              <span class="wm wm-paper" style="font-size: 28px;">forecast<span class="stylized wm-accent" style="font-size: 32px;">.</span>social</span>
+            </div>
+          </div>
+        </div>
+        <p class="desc">Symbol + wordmark lockup. Symbol does the heavy lifting in tight spaces; wordmark carries when there's room.</p>
+      </div>
+
+      <!-- L-6 · Initials only -->
+      <div class="logo-card">
+        <div class="label"><span class="name">f.s minimal</span><span class="id">L-6</span></div>
+        <div class="stage">
+          <div class="on-paper">
+            <span class="wm wm-ink" style="font-size: 48px; font-weight: 800; letter-spacing: -0.04em;">f<span class="wm-accent">.</span>s</span>
+          </div>
+          <div class="on-ink">
+            <span class="wm wm-paper" style="font-size: 48px; font-weight: 800; letter-spacing: -0.04em;">f<span class="wm-accent">.</span>s</span>
+          </div>
+        </div>
+        <p class="desc">Pure initials. Strong at tiny sizes (notification badges, app icons) but loses recognition far from the wordmark.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================ TAGLINE QUICK REFERENCE ================ -->
+  <section>
+    <div class="section-head">
+      <h2>Tagline candidates</h2>
+      <span class="overline">T-1 — T-10 · pick one</span>
+    </div>
+    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px 32px;">
+      <ol style="margin: 0; padding-left: 22px; line-height: 1.9; font-size: 16px;">
+        <li><strong>Be right. Get famous.</strong> <span style="color: var(--muted-fg);">— existing hero, baseline</span></li>
+        <li><strong>Call it. Own it.</strong> <span style="color: var(--muted-fg);">— short, ownership-flavored</span></li>
+        <li><strong>Make the call. Make the record.</strong> <span style="color: var(--muted-fg);">— action + outcome, parallel</span></li>
+        <li><strong>Famous for being right.</strong> <span style="color: var(--muted-fg);">— outcome-led declarative</span></li>
+        <li><strong>Predict in public.</strong> <span style="color: var(--muted-fg);">— three words, exposes the social pressure</span></li>
+        <li><strong>Predict like an oracle. For free.</strong> <span style="color: var(--muted-fg);">— Temu-shape aspirational</span></li>
+        <li><strong>Bet your reputation. Not your money.</strong> <span style="color: var(--muted-fg);">— sharp positioning vs Polymarket/Kalshi</span></li>
+        <li><strong>Loud takes. Public scoreboard.</strong> <span style="color: var(--muted-fg);">— two-noun rhythm, cocky</span></li>
+        <li><strong>The receipts go public.</strong> <span style="color: var(--muted-fg);">— keeps "receipts" but reframes as exposure</span></li>
+        <li><strong>Stake a number. Stack a record.</strong> <span style="color: var(--muted-fg);">— alliterative, describes the loop</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <div class="pick-line">
+    <p><strong>How to pick:</strong> tell Claude three things — favicon (e.g. <span class="mono">F-A</span>), logo (e.g. <span class="mono">L-1</span>), tagline (e.g. <span class="mono">T-5</span>). One message, one commit, all three live everywhere they appear.</p>
+  </div>
+
+</div>
+</body>
+</html>
