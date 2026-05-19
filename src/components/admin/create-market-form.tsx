@@ -6,6 +6,14 @@ import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { createMarket } from "@/server/actions/markets";
 import {
   INITIAL_CREATE_MARKET_STATE,
@@ -43,7 +51,7 @@ export function CreateMarketForm({
 
       <div className="flex flex-col gap-2">
         <Label htmlFor="market-description">Description</Label>
-        <textarea
+        <Textarea
           id="market-description"
           name="description"
           required
@@ -51,7 +59,6 @@ export function CreateMarketForm({
           maxLength={1200}
           rows={5}
           placeholder="Describe the question clearly. What resolves Yes? What resolves No? Link the source of truth."
-          className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-body resize-none outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 transition-[box-shadow,border-color]"
         />
         {state.status === "error" && state.fieldErrors?.description ? (
           <p className="text-caption text-signal-negative">
@@ -62,19 +69,18 @@ export function CreateMarketForm({
 
       <div className="flex flex-col gap-2">
         <Label htmlFor="market-category">Category</Label>
-        <select
-          id="market-category"
-          name="category_slug"
-          required
-          defaultValue="tech-ai"
-          className="w-full rounded-md border border-input bg-transparent h-10 px-3 text-body outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 transition-[box-shadow,border-color]"
-        >
-          {categories.map((c) => (
-            <option key={c.slug} value={c.slug}>
-              {c.name}
-            </option>
-          ))}
-        </select>
+        <Select name="category_slug" required defaultValue="tech-ai">
+          <SelectTrigger id="market-category">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {categories.map((c) => (
+              <SelectItem key={c.slug} value={c.slug}>
+                {c.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

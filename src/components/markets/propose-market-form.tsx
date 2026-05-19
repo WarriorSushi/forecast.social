@@ -8,6 +8,14 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { proposeMarket } from "@/server/actions/proposals";
 import {
   INITIAL_PROPOSE_MARKET_STATE,
@@ -57,13 +65,12 @@ export function ProposeMarketForm({
 
       <div className="flex flex-col gap-2">
         <Label htmlFor="proposal-description">Resolution criteria</Label>
-        <textarea
+        <Textarea
           id="proposal-description"
           name="description"
           required
           rows={5}
           placeholder="Spell out what resolves Yes vs No. Link the public source of truth in the resolution-source field."
-          className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-body resize-none outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 transition-[box-shadow,border-color]"
         />
         {state.status === "error" && state.fieldErrors?.description ? (
           <p className="text-caption text-signal-negative">
@@ -74,19 +81,22 @@ export function ProposeMarketForm({
 
       <div className="flex flex-col gap-2">
         <Label htmlFor="proposal-category">Category</Label>
-        <select
-          id="proposal-category"
+        <Select
           name="category_slug"
           required
           defaultValue={categories[0]?.slug ?? "tech-ai"}
-          className="w-full rounded-md border border-input bg-transparent h-10 px-3 text-body outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 transition-[box-shadow,border-color]"
         >
-          {categories.map((c) => (
-            <option key={c.slug} value={c.slug}>
-              {c.name}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger id="proposal-category">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {categories.map((c) => (
+              <SelectItem key={c.slug} value={c.slug}>
+                {c.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -131,13 +141,12 @@ export function ProposeMarketForm({
 
       <div className="flex flex-col gap-2">
         <Label htmlFor="proposal-rationale">Rationale</Label>
-        <textarea
+        <Textarea
           id="proposal-rationale"
           name="rationale"
           required
           rows={3}
           placeholder="Why this question? How will it resolve cleanly? Anything an admin should know before approving."
-          className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-body resize-none outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 transition-[box-shadow,border-color]"
         />
         {state.status === "error" && state.fieldErrors?.rationale ? (
           <p className="text-caption text-signal-negative">

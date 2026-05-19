@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { resolveMarket } from "@/server/actions/resolve-market";
 
 type Outcome = "yes" | "no" | "invalid";
@@ -55,12 +56,12 @@ export function ResolveMarketPanel({
         </p>
       </div>
 
-      <textarea
+      <Textarea
         value={notes}
         onChange={(e) => setNotes(e.target.value)}
         placeholder="Optional note (audit log)…"
         rows={2}
-        className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-body-sm resize-none outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 transition-[box-shadow,border-color]"
+        className="text-body-sm"
       />
 
       <div className="grid grid-cols-3 gap-2">

@@ -5,6 +5,7 @@ import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { postComment } from "@/server/actions/comments";
 import {
   INITIAL_POST_COMMENT_STATE,
@@ -49,14 +50,13 @@ export function CommentForm({
       {parentId ? (
         <input type="hidden" name="parent_id" value={parentId} />
       ) : null}
-      <textarea
+      <Textarea
         name="body"
         required
         minLength={1}
         maxLength={4000}
         placeholder={placeholder}
         rows={compact ? 2 : 3}
-        className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-body resize-none outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 transition-[box-shadow,border-color]"
       />
       <div className="flex items-center justify-between gap-3">
         <p className="text-caption text-muted-foreground">

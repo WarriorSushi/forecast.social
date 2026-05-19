@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { updateProfile } from "@/server/actions/profile";
 import { initialEditProfileState } from "@/server/actions/profile.types";
 
@@ -52,14 +53,13 @@ export function EditProfileForm({
         <Label htmlFor="bio" className="text-overline text-muted-foreground">
           Bio
         </Label>
-        <textarea
+        <Textarea
           id="bio"
           name="bio"
           maxLength={280}
           rows={3}
           defaultValue={defaultBio}
           placeholder="A line about your forecasting beat. Optional."
-          className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-body resize-none outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 transition-[box-shadow,border-color]"
         />
         <p className="text-caption text-muted-foreground">
           Up to 280 characters.
