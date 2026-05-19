@@ -909,9 +909,11 @@ function HowItWorks() {
       <Container className="py-24 sm:py-32">
         <div className="flex flex-col items-start max-w-3xl mb-14 sm:mb-20">
           <h2 className="font-display text-display-md sm:text-display-lg text-foreground leading-[0.98] tracking-[-0.035em]">
-            Three moments.{" "}
-            <span className="text-muted-foreground">One scoreboard.</span>
+            Three moments.
           </h2>
+          <p className="mt-5 text-body-lg text-muted-foreground max-w-xl">
+            One scoreboard. Every call you lock in moves it.
+          </p>
         </div>
 
         <div className="flex flex-col">
@@ -1280,13 +1282,29 @@ function ComparePanel({
   label: string;
   items: string[];
 }) {
-  const Icon = tone === "negative" ? X : Check;
-  const iconColor =
-    tone === "negative" ? "text-signal-negative" : "text-signal-positive";
+  const isNegative = tone === "negative";
+  const Icon = isNegative ? X : Check;
+  const iconColor = isNegative ? "text-muted-foreground" : "text-signal-positive";
+  // Asymmetric treatment makes the polarity visible at-a-glance: the
+  // "betting" panel dims to muted+dashed, forecast.social sits clean
+  // on the surface token. Communicates "this is what we left behind"
+  // faster than two equal Card chrome with X/Check icons.
   return (
-    <Card className="bg-surface border-border rounded-2xl gap-0 py-0">
+    <Card
+      className={
+        isNegative
+          ? "bg-muted/40 border-dashed border-border rounded-2xl gap-0 py-0 opacity-80"
+          : "bg-surface border-border rounded-2xl gap-0 py-0"
+      }
+    >
       <CardContent className="px-7 py-8 flex flex-col gap-5">
-        <p className="font-display text-title text-foreground -tracking-[0.015em]">
+        <p
+          className={
+            isNegative
+              ? "font-display text-title text-muted-foreground -tracking-[0.015em]"
+              : "font-display text-title text-foreground -tracking-[0.015em]"
+          }
+        >
           {label}
         </p>
         <ul className="flex flex-col gap-3">
@@ -1296,7 +1314,15 @@ function ComparePanel({
                 className={`size-4 mt-1 shrink-0 ${iconColor}`}
                 strokeWidth={2.5}
               />
-              <span className="text-body text-foreground">{item}</span>
+              <span
+                className={
+                  isNegative
+                    ? "text-body text-muted-foreground line-through decoration-muted-foreground/40"
+                    : "text-body text-foreground"
+                }
+              >
+                {item}
+              </span>
             </li>
           ))}
         </ul>

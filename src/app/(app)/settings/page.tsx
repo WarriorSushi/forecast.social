@@ -22,7 +22,7 @@ export default async function SettingsPage() {
   if (!profile) return null;
 
   return (
-    <div className="max-w-2xl flex flex-col gap-14">
+    <div className="mx-auto w-full max-w-[720px] flex flex-col gap-14">
       <header className="flex flex-col gap-3">
         <p className="text-overline text-muted-foreground">settings</p>
         <h1 className="font-display text-display-sm text-foreground leading-[1.05]">

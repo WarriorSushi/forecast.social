@@ -162,7 +162,7 @@ export default async function ProfilePage({
   };
 
   return (
-    <div className="max-w-2xl">
+    <div className="mx-auto w-full max-w-[720px]">
       <JsonLd data={profileLd} />
       {/* ============================================================
           Identity row
