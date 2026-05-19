@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
+import { Slider as SliderPrimitive } from "radix-ui";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -23,6 +24,10 @@ import {
  *   - a user can re-predict; each submit is a new row.
  *   - the slider's starting value is the user's previous call if any,
  *     otherwise the market's current consensus, otherwise 50%.
+ *
+ * Built on @radix-ui/react-slider (via the radix-ui meta package). Form
+ * submission uses the hidden input below; Radix handles keyboard
+ * (arrow/page-up/page-down/home/end) for free.
  */
 export function PredictionSlider({
   marketId,
@@ -42,13 +47,12 @@ export function PredictionSlider({
   disabledReason?: string;
 }) {
   const [value, setValue] = useState(initialValue);
+  const [isDragging, setIsDragging] = useState(false);
   const [state, formAction] = useActionState<SubmitPredictionState, FormData>(
     submitPrediction,
     INITIAL_SUBMIT_PREDICTION_STATE,
   );
 
-  // Fire a toast on success (don't render text in the card itself; the
-  // updated server data is already revalidated and the card re-renders).
   const lastNotifiedAt = useRef<SubmitPredictionState["status"]>("idle");
   useEffect(() => {
     if (state.status === lastNotifiedAt.current) return;
@@ -62,6 +66,7 @@ export function PredictionSlider({
 
   const valuePct = Math.round(value);
   const consensusPct = consensus != null ? Math.round(consensus * 100) : null;
+  const isHigh = valuePct >= 50;
 
   return (
     <form action={formAction} className="flex flex-col gap-5">
@@ -80,8 +85,8 @@ export function PredictionSlider({
         <div className="flex items-baseline gap-3">
           <span
             className={cn(
-              "font-display font-extrabold text-foreground text-display-md tabular-nums tracking-[-0.03em] leading-none",
-              valuePct >= 50 && "text-signal-positive",
+              "font-display font-extrabold text-display-md tabular-nums tracking-[-0.03em] leading-none transition-colors",
+              isHigh ? "text-signal-positive" : "text-foreground",
             )}
           >
             {valuePct}%
@@ -94,35 +99,64 @@ export function PredictionSlider({
         </div>
       </div>
 
-      <div className="relative pt-1 pb-3">
-        <SliderTrack value={value} consensus={consensus} />
-        <input
-          aria-label="Probability slider"
-          type="range"
+      <div className="relative pt-7 pb-5">
+        {/* Value bubble — floats above the thumb during drag */}
+        <div
+          aria-hidden
+          className={cn(
+            "absolute top-0 -translate-x-1/2 px-2 py-0.5 rounded-md bg-foreground text-background font-mono text-caption tabular-nums font-semibold transition-opacity pointer-events-none",
+            isDragging ? "opacity-100" : "opacity-0",
+          )}
+          style={{ left: `${valuePct}%` }}
+        >
+          {valuePct}%
+        </div>
+
+        <SliderPrimitive.Root
+          value={[valuePct]}
+          onValueChange={(arr) => setValue(arr[0])}
+          onValueCommit={() => setIsDragging(false)}
+          onPointerDown={() => setIsDragging(true)}
           min={0}
           max={100}
           step={1}
-          value={valuePct}
-          onChange={(e) => setValue(Number(e.target.value))}
           disabled={disabled}
+          aria-label="Probability slider"
           className={cn(
-            "absolute inset-x-0 top-0 w-full h-9 cursor-pointer appearance-none bg-transparent",
-            // Hide the default thumb so the SliderTrack's custom thumb is
-            // visually authoritative. The native input still handles input.
-            "[&::-webkit-slider-thumb]:appearance-none",
-            "[&::-webkit-slider-thumb]:size-9 [&::-webkit-slider-thumb]:opacity-0",
-            "[&::-moz-range-thumb]:size-9 [&::-moz-range-thumb]:opacity-0",
-            "[&::-webkit-slider-runnable-track]:appearance-none",
-            "[&::-webkit-slider-runnable-track]:bg-transparent",
-            disabled && "cursor-not-allowed",
+            "relative flex items-center select-none touch-none w-full h-6",
+            disabled && "opacity-60 cursor-not-allowed",
           )}
-        />
-        <div className="mt-3 flex justify-between text-caption text-muted-foreground font-mono tabular-nums">
+        >
+          <SliderPrimitive.Track className="relative grow rounded-full bg-muted h-1.5">
+            <SliderPrimitive.Range
+              className={cn(
+                "absolute rounded-full h-full transition-colors",
+                isHigh ? "bg-signal-positive" : "bg-foreground",
+              )}
+            />
+            {/* Consensus tick — h-4 to read in both themes */}
+            {consensusPct != null ? (
+              <span
+                aria-hidden
+                className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 h-4 w-0.5 rounded-full bg-border-strong"
+                style={{ left: `${consensusPct}%` }}
+              />
+            ) : null}
+          </SliderPrimitive.Track>
+          <SliderPrimitive.Thumb
+            className={cn(
+              "block size-6 rounded-full border-2 border-background transition-colors",
+              "ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+              isHigh ? "bg-signal-positive" : "bg-foreground",
+              !disabled && "hover:scale-105 active:scale-110",
+            )}
+          />
+        </SliderPrimitive.Root>
+
+        <div className="mt-5 flex justify-between text-caption text-muted-foreground font-mono tabular-nums">
           <span>0%</span>
           {consensusPct != null ? (
-            <span aria-hidden>
-              consensus {consensusPct}%
-            </span>
+            <span aria-hidden>consensus {consensusPct}%</span>
           ) : null}
           <span>100%</span>
         </div>
@@ -154,47 +188,5 @@ function SubmitButton({ hasPrevious }: { hasPrevious: boolean }) {
           ? "Lock in a new call"
           : "Lock in your call"}
     </Button>
-  );
-}
-
-function SliderTrack({
-  value,
-  consensus,
-}: {
-  value: number;
-  consensus: number | null;
-}) {
-  const consensusPct = consensus != null ? consensus * 100 : null;
-  return (
-    <div
-      aria-hidden
-      className="pointer-events-none relative h-9 flex items-center"
-    >
-      {/* Base track */}
-      <div className="absolute inset-x-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-muted" />
-      {/* Filled portion */}
-      <div
-        className={cn(
-          "absolute top-1/2 h-1.5 -translate-y-1/2 rounded-full transition-colors",
-          value >= 50 ? "bg-signal-positive" : "bg-foreground",
-        )}
-        style={{ left: 0, width: `${value}%` }}
-      />
-      {/* Consensus tick */}
-      {consensusPct != null ? (
-        <div
-          className="absolute top-1/2 -translate-y-1/2 h-3 w-px bg-border-strong"
-          style={{ left: `${consensusPct}%` }}
-        />
-      ) : null}
-      {/* Thumb */}
-      <div
-        className={cn(
-          "absolute top-1/2 -translate-y-1/2 -translate-x-1/2 size-6 rounded-full border-2 border-background transition-colors",
-          value >= 50 ? "bg-signal-positive" : "bg-foreground",
-        )}
-        style={{ left: `${value}%` }}
-      />
-    </div>
   );
 }
