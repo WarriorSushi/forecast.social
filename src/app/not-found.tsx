@@ -1,10 +1,15 @@
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
+import { getAuthUser } from "@/lib/auth";
 
 export const metadata = { title: "Not found" };
 
-export default function NotFound() {
+export default async function NotFound() {
+  const user = await getAuthUser();
+  const homeHref = user ? "/feed" : "/";
+  const homeLabel = user ? "Back to your feed" : "Back to the front page";
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-5">
       <div className="text-center max-w-md">
@@ -17,7 +22,7 @@ export default function NotFound() {
         </p>
         <div className="mt-10">
           <Button asChild size="lg" className="h-12 rounded-full px-6">
-            <Link href="/">Back to the front page</Link>
+            <Link href={homeHref}>{homeLabel}</Link>
           </Button>
         </div>
       </div>

@@ -22,7 +22,7 @@ export function AppRail({
   return (
     <aside className="hidden lg:flex w-[240px] shrink-0 sticky top-0 self-start h-screen flex-col py-8 pr-2">
       <Link
-        href="/"
+        href="/feed"
         className="font-stylized text-title font-semibold leading-none tracking-tight mb-10 px-3 hover:opacity-90 transition-opacity"
       >
         forecast<span className="text-accent">.</span>social
