@@ -1,9 +1,7 @@
 "use client";
 
-import * as React from "react";
 import Link from "next/link";
-import { useTheme } from "next-themes";
-import { ChevronsUpDown, LogOut, Moon, Settings, Sun } from "lucide-react";
+import { ChevronsUpDown, LogOut, Settings } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -23,22 +21,7 @@ type Props = {
   avatarUrl: string | null;
 };
 
-const subscribe = () => () => {};
-const getSnapshot = () => true;
-const getServerSnapshot = () => false;
-
 export function UserMenu({ username, displayName, email, avatarUrl }: Props) {
-  const { resolvedTheme, setTheme } = useTheme();
-  // SSR-safe mount check via useSyncExternalStore; avoids the
-  // set-state-in-effect anti-pattern the React Compiler flags.
-  const mounted = React.useSyncExternalStore(
-    subscribe,
-    getSnapshot,
-    getServerSnapshot,
-  );
-
-  const isDark = mounted ? resolvedTheme === "dark" : false;
-
   const initials = getInitials(displayName);
 
   return (
@@ -99,20 +82,6 @@ export function UserMenu({ username, displayName, email, avatarUrl }: Props) {
             <Settings className="size-4" />
             Settings
           </Link>
-        </DropdownMenuItem>
-
-        <DropdownMenuItem
-          onSelect={(event) => {
-            event.preventDefault();
-            setTheme(isDark ? "light" : "dark");
-          }}
-        >
-          {isDark ? (
-            <Sun className="size-4" />
-          ) : (
-            <Moon className="size-4" />
-          )}
-          {isDark ? "Light theme" : "Dark theme"}
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />

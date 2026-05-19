@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Button } from "@/components/ui/button";
 
 export default function MarketingLayout({
   children,
@@ -30,12 +31,13 @@ export default function MarketingLayout({
             >
               FAQ
             </Link>
-            <Link
-              href="/sign-in"
-              className="text-body-sm text-muted-foreground hover:text-foreground transition-colors px-3 h-9 inline-flex items-center"
+            <Button
+              asChild
+              size="sm"
+              className="rounded-full px-4 h-9 font-medium"
             >
-              Sign in
-            </Link>
+              <Link href="/sign-up">Get started</Link>
+            </Button>
             <ThemeToggle />
           </nav>
         </div>

@@ -44,3 +44,4 @@ next-env.d.ts
 # playwright MCP scratch (snapshots, console logs)
 .playwright-mcp/
 dev.log
+.env.vercel.tmp

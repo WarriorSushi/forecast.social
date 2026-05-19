@@ -6,6 +6,8 @@ export type AuthState = {
   error: string | null;
   /** Persisted across re-renders so the form input stays populated. */
   email?: string;
+  /** Positive flash message — e.g. "Confirmation email resent." */
+  message?: string;
 };
 
 export const initialAuthState: AuthState = { error: null };

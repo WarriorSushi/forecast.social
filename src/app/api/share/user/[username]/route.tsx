@@ -6,6 +6,7 @@ import { user_category_scores, users } from "@/lib/db/schema";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 30;
 
 const W = 1080;
 const H = 1080;

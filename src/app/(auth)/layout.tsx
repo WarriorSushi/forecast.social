@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { AuthTabs } from "@/components/auth/auth-tabs";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function AuthLayout({
@@ -19,7 +20,10 @@ export default function AuthLayout({
         <ThemeToggle />
       </header>
       <main className="flex-1 flex items-start sm:items-center justify-center px-5 sm:px-8 pb-12 pt-4 sm:pt-0">
-        <div className="w-full max-w-[420px]">{children}</div>
+        <div className="w-full max-w-[420px]">
+          <AuthTabs />
+          {children}
+        </div>
       </main>
     </div>
   );

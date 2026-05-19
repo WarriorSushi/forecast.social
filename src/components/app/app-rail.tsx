@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 import { getNavItems, type NavItem } from "@/components/app/nav-items";
 import { UserMenu } from "@/components/app/user-menu";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { cn } from "@/lib/utils";
 import type { CurrentProfile } from "@/lib/auth";
 
@@ -42,13 +43,19 @@ export function AppRail({
         ))}
       </nav>
 
-      <div className="mt-auto -mx-1">
-        <UserMenu
-          username={profile.username}
-          displayName={profile.display_name}
-          email={profile.email}
-          avatarUrl={profile.avatar_url}
-        />
+      <div className="mt-auto flex flex-col gap-2">
+        <div className="flex items-center justify-between px-3 py-2 rounded-md">
+          <span className="text-overline text-muted-foreground">Theme</span>
+          <ThemeToggle />
+        </div>
+        <div className="-mx-1">
+          <UserMenu
+            username={profile.username}
+            displayName={profile.display_name}
+            email={profile.email}
+            avatarUrl={profile.avatar_url}
+          />
+        </div>
       </div>
     </aside>
   );

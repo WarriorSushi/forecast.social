@@ -81,6 +81,9 @@ export async function signUp(
   const { data, error } = await supabase.auth.signUp({
     email: parsed.data.email,
     password: parsed.data.password,
+    options: {
+      emailRedirectTo: `${env.NEXT_PUBLIC_SITE_URL.replace(/\/+$/, "")}/auth/callback`,
+    },
   });
 
   if (error) {
@@ -90,8 +93,6 @@ export async function signUp(
     };
   }
 
-  // Mark the code consumed. The handle_new_auth_user trigger has
-  // already inserted the public.users row with the auth user id.
   if (validCodeRow && data.user) {
     await db
       .update(invite_codes)
@@ -99,9 +100,14 @@ export async function signUp(
       .where(eq(invite_codes.code, validCodeRow.code));
   }
 
-  // Send the user to onboarding to pick a real username before they
-  // reach the feed.
-  redirect("/onboarding");
+  // With "Confirm email" ON, signUp returns no session — the user has
+  // to click the link in their inbox. Park them on a screen that tells
+  // them so. If confirmation is OFF (dev), the session already exists
+  // and the (app) layout will route through /onboarding from /feed.
+  if (data.session) {
+    redirect("/onboarding");
+  }
+  redirect(`/sign-up/check-email?email=${encodeURIComponent(parsed.data.email)}`);
 }
 
 /* =====================================================================
@@ -144,6 +150,35 @@ export async function signOut(): Promise<void> {
   const supabase = await createSupabaseServerClient();
   await supabase.auth.signOut();
   redirect("/");
+}
+
+/* =====================================================================
+   resendConfirmation — useActionState-compatible
+===================================================================== */
+export async function resendConfirmation(
+  _prev: AuthState,
+  formData: FormData,
+): Promise<AuthState> {
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const emailCheck = z.string().email().safeParse(email);
+  if (!emailCheck.success) {
+    return { error: "That email looks invalid.", email };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email,
+    options: {
+      emailRedirectTo: `${env.NEXT_PUBLIC_SITE_URL.replace(/\/+$/, "")}/auth/callback`,
+    },
+  });
+
+  if (error) {
+    return { error: humaniseAuthError(error.message), email };
+  }
+
+  return { error: null, email, message: "Sent again — check your inbox." };
 }
 
 /* =====================================================================

@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+export const maxDuration = 10;
 
 /**
  * Liveness + readiness probe. Reports app version (commit-ish) and DB
