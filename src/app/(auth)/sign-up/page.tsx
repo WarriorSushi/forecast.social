@@ -27,8 +27,8 @@ export default async function SignUpPage({
       title="Stake your reputation."
       subtitle={
         env.INVITE_CODES_REQUIRED
-          ? "Create an account with your invite code. No money, just receipts."
-          : "Create an account to start making calls. No money, just receipts."
+          ? "Create an account with your invite code. Loud opinions, public record."
+          : "Create an account to start making calls. Loud opinions, public record."
       }
       submitLabel="Create account"
       showInviteCode={env.INVITE_CODES_REQUIRED}

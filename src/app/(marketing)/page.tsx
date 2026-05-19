@@ -55,7 +55,7 @@ export default async function LandingPage() {
       <Hero />
       <ScoreExplainer />
       <NotBetting />
-      <ReceiptShowcase />
+      <ProofShowcase />
       <HowItWorks />
       <Categories highlights={categoryHighlights} />
       <Leaderboard leaders={topLeaders} />
@@ -164,9 +164,9 @@ function Hero() {
           </h1>
 
           <p className="font-stylized italic text-[26px] sm:text-[30px] lg:text-[32px] leading-[1.2] text-muted-foreground max-w-2xl mt-6 sm:mt-8">
-            No money. No house.{" "}
+            Be early. Be right.{" "}
             <span className="text-foreground not-italic font-medium font-sans">
-              Just receipts.
+              Be famous for it.
             </span>
           </p>
 
@@ -220,7 +220,7 @@ function FannedCardStack() {
         aria-hidden
         className="absolute inset-x-0 top-10 sm:top-8 z-10 mx-auto w-[78%] max-w-[330px] origin-bottom-left rotate-[18deg] translate-x-[36%] sm:translate-x-[40%]"
       >
-        <ReceiptCard
+        <CallCard
           handle="@oddsbot"
           marketTitle="GPT-5 launches before July 2026"
           predictedPct={64}
@@ -236,7 +236,7 @@ function FannedCardStack() {
         aria-hidden
         className="absolute inset-x-0 top-6 sm:top-5 z-20 mx-auto w-[78%] max-w-[330px] origin-bottom-left rotate-[9deg] translate-x-[18%] sm:translate-x-[22%]"
       >
-        <ReceiptCard
+        <CallCard
           handle="@quanttrader"
           marketTitle="Fed pauses rates · May 2026 FOMC"
           predictedPct={78}
@@ -344,7 +344,7 @@ function CategoryRow({
   );
 }
 
-function ReceiptCard({
+function CallCard({
   handle,
   marketTitle,
   predictedPct,
@@ -722,9 +722,9 @@ function PillarStat({
 }
 
 /* ==============================================================
-   3. Receipt showcase
+   3. The artifact — the share card
 ============================================================== */
-function ReceiptShowcase() {
+function ProofShowcase() {
   return (
     <section className="border-t border-border/60 bg-muted/40">
       <Container className="py-24 sm:py-32">
@@ -732,8 +732,8 @@ function ReceiptShowcase() {
           <div className="lg:col-span-5 lg:order-1">
             <SectionEyebrow>The artifact</SectionEyebrow>
             <h2 className="font-display text-display-md sm:text-display-lg text-foreground leading-[0.98] tracking-[-0.035em]">
-              The receipt{" "}
-              <span className="text-muted-foreground">is the product.</span>
+              Every call{" "}
+              <span className="text-muted-foreground">leaves a mark.</span>
             </h2>
             <p className="mt-7 text-body-lg text-muted-foreground max-w-md">
               Every correct call generates a shareable card. Crypto-clean
@@ -741,9 +741,9 @@ function ReceiptShowcase() {
               the resolved outcome. Permanent. Public. Unfakeable.
             </p>
             <ul className="mt-7 flex flex-col gap-3 text-body-sm">
-              <ReceiptFact label="Locked at submission, never edited." />
-              <ReceiptFact label="Hashed and timestamped." />
-              <ReceiptFact label="One PNG. Goes anywhere." />
+              <ProofPoint label="Locked at submission, never edited." />
+              <ProofPoint label="Hashed and timestamped." />
+              <ProofPoint label="One PNG. Goes anywhere." />
             </ul>
           </div>
 
@@ -756,7 +756,7 @@ function ReceiptShowcase() {
   );
 }
 
-function ReceiptFact({ label }: { label: string }) {
+function ProofPoint({ label }: { label: string }) {
   return (
     <li className="flex items-center gap-3">
       <Check className="size-4 text-accent shrink-0" strokeWidth={2.5} />
@@ -774,7 +774,7 @@ function ShareCardMock() {
           <div className="flex items-start justify-between">
             <div>
               <p className="text-overline text-muted-foreground">
-                forecast.social · receipt
+                forecast.social · the call
               </p>
               <p className="mt-2 font-mono text-caption text-muted-foreground">
                 march 14, 2026 · 09:42 utc
@@ -795,17 +795,17 @@ function ShareCardMock() {
           </div>
 
           <div className="grid grid-cols-3 gap-3 sm:gap-6 border-t border-border pt-5 sm:pt-7">
-            <ReceiptStat
+            <CallStat
               label="your call"
               value="78%"
               tone="foreground"
             />
-            <ReceiptStat
+            <CallStat
               label="consensus"
               value="51%"
               tone="muted"
             />
-            <ReceiptStat
+            <CallStat
               label="outcome"
               value="Yes"
               tone="positive"
@@ -832,7 +832,7 @@ function ShareCardMock() {
   );
 }
 
-function ReceiptStat({
+function CallStat({
   label,
   value,
   tone,
@@ -1333,7 +1333,7 @@ function FAQ() {
           />
           <FaqItem
             q="Can I edit a bad call?"
-            a="No. Predictions lock at submission and stay public forever. That's the entire point. The locked-in receipt is what makes the score real."
+            a="No. Predictions lock at submission and stay public forever. That's the entire point. The locked-in call is what makes the score real."
           />
           <FaqItem
             q="Who can see my predictions?"
@@ -1341,7 +1341,7 @@ function FAQ() {
           />
           <FaqItem
             q="Is it free?"
-            a="Yes. Free to predict, free to follow other forecasters, free to share receipts. No card on file."
+            a="Yes. Free to predict, free to follow other forecasters, free to share your wins. No card on file."
           />
           <FaqItem
             q="What if I'm wrong a lot?"
@@ -1377,10 +1377,12 @@ function FinalCTA() {
             strokeWidth={1.5}
             aria-hidden
           />
-          <h2 className="font-display font-extrabold text-foreground text-[48px] sm:text-[80px] lg:text-[96px] leading-[0.96] tracking-[-0.045em]">
-            Pick a probability.
+          <h2 className="font-display font-extrabold text-foreground text-[44px] sm:text-[64px] lg:text-[80px] leading-[0.98] tracking-[-0.04em]">
+            The internet,
             <br />
-            <span className="text-muted-foreground">Earn the receipt.</span>
+            <span className="text-muted-foreground">
+              finally keeping score.
+            </span>
           </h2>
           <p className="mt-7 text-body-lg text-muted-foreground max-w-lg">
             Early access is open. Bring an opinion.

@@ -44,7 +44,7 @@ export async function GET(
   // Share cards are receipts. Only serve them for resolved predictions
   // — anything else leaks individual user calls via UUID enumeration.
   if (!row.market_resolved_at || !row.market_outcome || row.market_outcome === "invalid") {
-    return new Response("Not yet a receipt", { status: 404 });
+    return new Response("Market not resolved yet", { status: 404 });
   }
 
   const callPct = Math.round(row.probability * 100);
@@ -89,7 +89,7 @@ export async function GET(
                 color: "#a3aab8",
               }}
             >
-              forecast.social · receipt
+              forecast.social · the call
             </span>
             <span
               style={{
