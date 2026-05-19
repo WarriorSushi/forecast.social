@@ -6,8 +6,6 @@ import {
   Bitcoin,
   Check,
   Flame,
-  Lock,
-  Sparkles,
   Trophy,
   Tv,
   X,
@@ -860,67 +858,58 @@ function CallStat({
    4. How it works (3 moments)
 ============================================================== */
 function HowItWorks() {
+  const moments = [
+    {
+      number: "01",
+      verb: "Predict.",
+      body: "Drag a slider from 0 to 100%. Submit, and the call is locked forever. No edits. No takebacks.",
+    },
+    {
+      number: "02",
+      verb: "Score.",
+      body: "Brier-scored, shrinkage-corrected, streak-multiplied. Your Forecast Score sits between 0 and 3,000.",
+    },
+    {
+      number: "03",
+      verb: "Share.",
+      body: "Every correct call generates a shareable card with the timeline, the consensus, and your number.",
+    },
+  ] as const;
+
   return (
     <section id="how-it-works" className="border-t border-border/60">
       <Container className="py-24 sm:py-32">
-        <div className="flex flex-col items-start max-w-3xl">
+        <div className="flex flex-col items-start max-w-3xl mb-14 sm:mb-20">
           <h2 className="font-display text-display-md sm:text-display-lg text-foreground leading-[0.98] tracking-[-0.035em]">
             Three moments.{" "}
             <span className="text-muted-foreground">One scoreboard.</span>
           </h2>
         </div>
 
-        <div className="mt-14 sm:mt-16 grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
-          <FeatureCard
-            number="01"
-            icon={<Lock className="size-5" strokeWidth={1.5} />}
-            title="Predict"
-            body="Drag a slider from 0 to 100%. Submit, and the call is locked forever. No edits. No takebacks."
-          />
-          <FeatureCard
-            number="02"
-            icon={<Trophy className="size-5" strokeWidth={1.5} />}
-            title="Score"
-            body="Brier-scored, shrinkage-corrected, streak-multiplied. Your Forecast Score sits between 0 and 3,000."
-          />
-          <FeatureCard
-            number="03"
-            icon={<Sparkles className="size-5" strokeWidth={1.5} />}
-            title="Share"
-            body="Every correct call generates a shareable card with the timeline, the consensus, and your number."
-          />
+        <div className="flex flex-col">
+          {moments.map((m, i) => (
+            <div
+              key={m.number}
+              className={`grid grid-cols-[1fr] sm:grid-cols-[140px_1fr] lg:grid-cols-[200px_1fr] gap-x-8 lg:gap-x-14 gap-y-2 sm:gap-y-0 items-baseline py-10 sm:py-14 ${
+                i === 0 ? "" : "border-t border-border"
+              }`}
+            >
+              <p className="font-display font-extrabold tabular-nums text-muted-foreground text-[64px] sm:text-[88px] lg:text-[120px] leading-[0.9] -tracking-[0.045em]">
+                {m.number}
+              </p>
+              <div className="flex flex-col gap-4 sm:gap-5">
+                <p className="font-display font-extrabold text-foreground text-[40px] sm:text-[48px] lg:text-[64px] leading-[0.98] -tracking-[0.035em]">
+                  {m.verb}
+                </p>
+                <p className="text-body-lg text-muted-foreground max-w-xl leading-[1.55]">
+                  {m.body}
+                </p>
+              </div>
+            </div>
+          ))}
         </div>
       </Container>
     </section>
-  );
-}
-
-function FeatureCard({
-  number,
-  icon,
-  title,
-  body,
-}: {
-  number: string;
-  icon: React.ReactNode;
-  title: string;
-  body: string;
-}) {
-  return (
-    <Card className="bg-surface border-border hover:border-border-strong transition-colors gap-0 py-0 rounded-2xl">
-      <CardContent className="px-6 sm:px-7 py-7 sm:py-8 flex flex-col gap-6 h-full">
-        <div className="flex items-center justify-between text-muted-foreground">
-          <span className="font-mono text-overline">{number}</span>
-          <span aria-hidden>{icon}</span>
-        </div>
-        <h3 className="font-display text-headline text-foreground -tracking-[0.02em]">
-          {title}
-        </h3>
-        <p className="text-body-sm text-muted-foreground leading-[1.6]">
-          {body}
-        </p>
-      </CardContent>
-    </Card>
   );
 }
 
