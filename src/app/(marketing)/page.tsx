@@ -157,16 +157,16 @@ function Hero() {
       <Container className="relative z-10 pt-12 sm:pt-20 lg:pt-28 pb-24 sm:pb-32 lg:pb-40">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-x-10 xl:gap-x-16 gap-y-16 lg:gap-y-0 items-start">
         <div className="lg:col-span-7 flex flex-col">
-          <h1 className="font-display font-extrabold text-foreground text-[52px] sm:text-[80px] lg:text-[96px] xl:text-[112px] leading-[0.94] tracking-[-0.045em]">
-            Be right.
+          <h1 className="font-display font-extrabold text-foreground text-[48px] sm:text-[72px] lg:text-[88px] xl:text-[104px] leading-[0.94] tracking-[-0.045em]">
+            Bet your reputation.
             <br />
-            <span className="text-muted-foreground">Get famous.</span>
+            <span className="text-muted-foreground">Not your money.</span>
           </h1>
 
           <p className="font-stylized italic text-[28px] sm:text-[34px] lg:text-[36px] leading-[1.18] text-muted-foreground max-w-2xl mt-7 sm:mt-9">
-            No money. No house.{" "}
+            Calls lock at submission.{" "}
             <span className="text-foreground not-italic font-medium font-sans">
-              Just receipts.
+              Receipts go public.
             </span>
           </p>
 

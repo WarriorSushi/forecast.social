@@ -102,7 +102,7 @@ export default async function PublicLayout({
           <p className="font-stylized text-title font-semibold text-foreground leading-none tracking-tight">
             forecast<span className="text-accent">.</span>social
           </p>
-          <p className="text-overline">© 2026 · predict in public</p>
+          <p className="text-overline">© 2026 · bet your reputation, not your money</p>
         </div>
       </footer>
     </div>

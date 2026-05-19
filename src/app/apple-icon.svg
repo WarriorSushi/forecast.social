@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180">
+  <rect width="180" height="180" rx="40" fill="#0a0a0a"/>
+  <text
+    x="52"
+    y="142"
+    font-family="'Instrument Serif', Georgia, Cambria, 'Times New Roman', serif"
+    font-size="156"
+    font-weight="400"
+    fill="#fafafa"
+  >f</text>
+  <circle cx="118" cy="134" r="12" fill="#818cf8"/>
+</svg>
