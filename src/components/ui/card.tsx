@@ -6,9 +6,13 @@ function Card({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card"
+      // shadow-card is a token defined in globals.css per theme:
+      //   light → hairline lift (cards pop off the off-white bg)
+      //   dark  → none (the 5pt surface-vs-bg lightness jump carries it)
       className={cn(
-        "flex flex-col gap-6 rounded-xl border bg-card py-6 text-card-foreground shadow-sm",
-        className
+        "flex flex-col gap-6 rounded-xl border bg-card py-6 text-card-foreground",
+        "shadow-[var(--shadow-card)]",
+        className,
       )}
       {...props}
     />

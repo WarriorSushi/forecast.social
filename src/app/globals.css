@@ -4,21 +4,22 @@
 @custom-variant dark (&:is(.dark *));
 
 /* =====================================================================
-   Light — cool neutral
-   Near-white with the faintest cool tint. No paper / no cream.
+   Light — cool neutral with depth
+   Off-white (not paper, not pure white) so pure-white surfaces lift off
+   the page. Borders sit at ~89% so structure reads without feeling heavy.
 ===================================================================== */
 :root {
-  --background:           oklch(98.5% 0.003 250);
-  --foreground:           oklch(14% 0.012 260);
+  --background:           oklch(97.5% 0.005 248);
+  --foreground:           oklch(13% 0.014 260);
   --surface:              oklch(100% 0 0);
   --surface-elevated:     oklch(100% 0 0);
-  --border:               oklch(92% 0.004 250);
-  --border-strong:        oklch(85% 0.005 250);
-  --muted:                oklch(95.5% 0.004 250);
-  --muted-foreground:     oklch(48% 0.012 260);
+  --border:               oklch(89% 0.006 248);
+  --border-strong:        oklch(81% 0.008 248);
+  --muted:                oklch(95% 0.005 248);
+  --muted-foreground:     oklch(46% 0.013 260);
 
-  --primary:              oklch(18% 0.015 260);
-  --primary-foreground:   oklch(99% 0.002 250);
+  --primary:              oklch(17% 0.016 260);
+  --primary-foreground:   oklch(99% 0.003 250);
 
   --accent:               oklch(58% 0.22 258);   /* vivid indigo-blue */
   --accent-foreground:    oklch(99% 0.005 258);
@@ -29,37 +30,52 @@
   --signal-negative-soft: oklch(95% 0.04 25);
   --signal-neutral:       oklch(60% 0.04 250);
 
-  --ring:                 oklch(18% 0.015 260);
+  /* Card / dropdown shadow tokens. Light mode lifts surfaces off the
+     off-white bg with a hairline shadow; dark mode falls back to none
+     and lets the surface-token jump carry the elevation. */
+  --shadow-card:          0 1px 2px -1px oklch(15% 0.01 250 / 0.05), 0 2px 6px -2px oklch(15% 0.01 250 / 0.03);
+  --shadow-elevated:      0 8px 24px -8px oklch(15% 0.01 250 / 0.10), 0 2px 8px -2px oklch(15% 0.01 250 / 0.06);
+
+  --ring:                 oklch(17% 0.016 260);
   --radius:               0.75rem;
 }
 
 /* =====================================================================
-   Dark — lifted neutral
-   Two steps lighter than the previous "ink" base. Cool, not warm.
+   Dark — lifted neutral with bigger layer contrast
+   Earlier version sat at bg=18% / surface=21% — a 3-point gap that read
+   as "void with a slightly less dark card on it." Now bg=19% /
+   surface=24% / elevated=30% gives 5 + 6-point jumps; the eye reads
+   structure, not gloom. Cool, not warm; lifted, not lifted-with-vibe.
 ===================================================================== */
 .dark {
-  --background:           oklch(18% 0.005 260);
-  --foreground:           oklch(97% 0.003 250);
-  --surface:              oklch(21% 0.005 260);
-  --surface-elevated:     oklch(25% 0.006 260);
-  --border:               oklch(29% 0.006 260);
-  --border-strong:        oklch(38% 0.007 260);
-  --muted:                oklch(24% 0.005 260);
-  --muted-foreground:     oklch(70% 0.008 260);
+  --background:           oklch(19% 0.006 260);
+  --foreground:           oklch(97% 0.004 250);
+  --surface:              oklch(24% 0.007 260);
+  --surface-elevated:     oklch(30% 0.008 260);
+  --border:               oklch(32% 0.008 260);
+  --border-strong:        oklch(42% 0.009 260);
+  --muted:                oklch(26% 0.007 260);
+  --muted-foreground:     oklch(72% 0.010 260);
 
-  --primary:              oklch(97% 0.003 250);
-  --primary-foreground:   oklch(18% 0.005 260);
+  --primary:              oklch(97% 0.004 250);
+  --primary-foreground:   oklch(19% 0.006 260);
 
   --accent:               oklch(70% 0.20 258);   /* vivid indigo-blue, lifted for dark */
-  --accent-foreground:    oklch(18% 0.005 260);
+  --accent-foreground:    oklch(19% 0.006 260);
 
   --signal-positive:      oklch(72% 0.19 150);
-  --signal-positive-soft: oklch(30% 0.08 150);
+  --signal-positive-soft: oklch(32% 0.09 150);
   --signal-negative:      oklch(70% 0.22 25);
-  --signal-negative-soft: oklch(30% 0.08 25);
+  --signal-negative-soft: oklch(32% 0.09 25);
   --signal-neutral:       oklch(72% 0.04 250);
 
-  --ring:                 oklch(97% 0.003 250);
+  /* Dark mode doesn't need card shadows — the 5-point bg-to-surface
+     lift carries elevation. Keep the token for elevated surfaces
+     (dropdowns, dialogs) which sit above the rail. */
+  --shadow-card:          none;
+  --shadow-elevated:      0 8px 32px -8px oklch(0% 0 0 / 0.40), 0 2px 8px -2px oklch(0% 0 0 / 0.30);
+
+  --ring:                 oklch(97% 0.004 250);
 }
 
 /* =====================================================================
@@ -92,6 +108,8 @@
   --color-card-foreground:      var(--foreground);
   --color-popover:              var(--surface-elevated);
   --color-popover-foreground:   var(--foreground);
+  --shadow-card:                var(--shadow-card);
+  --shadow-elevated:            var(--shadow-elevated);
   --color-secondary:            var(--muted);
   --color-secondary-foreground: var(--foreground);
   --color-destructive:          var(--signal-negative);

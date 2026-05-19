@@ -4,6 +4,7 @@ import { desc, eq, isNull, isNotNull, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { invite_codes, users } from "@/lib/db/schema";
 import { GenerateInvitesForm } from "@/components/admin/generate-invites-form";
+import { EmptyState } from "@/components/app/empty-state";
 
 export const metadata = { title: "Admin · Invites" };
 
@@ -38,7 +39,7 @@ export default async function AdminInvitesPage() {
     <div className="mx-auto w-full max-w-[1080px] py-10 sm:py-14 flex flex-col gap-10">
       <header>
         <p className="text-overline text-muted-foreground mb-4">admin · invites</p>
-        <h1 className="font-display text-display-md text-foreground -tracking-[0.025em]">
+        <h1 className="font-display text-headline sm:text-display-sm text-foreground -tracking-[0.02em]">
           Invite codes.
         </h1>
         <p className="mt-3 text-body-lg text-muted-foreground max-w-xl">
@@ -46,7 +47,7 @@ export default async function AdminInvitesPage() {
         </p>
       </header>
 
-      <section className="grid grid-cols-3 gap-4">
+      <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard label="total" value={Number(total ?? 0).toLocaleString()} />
         <StatCard
           label="unused"
@@ -72,20 +73,17 @@ export default async function AdminInvitesPage() {
           Recent codes
         </h2>
         {recent.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-border py-12 px-6 flex flex-col items-center text-center">
-            <p className="font-display text-display-sm text-muted-foreground">
-              No codes yet.
-            </p>
-            <p className="mt-3 text-body-sm text-muted-foreground max-w-sm">
-              Use the form above to generate the first batch.
-            </p>
-          </div>
+          <EmptyState
+            variant="lane"
+            title="No codes yet."
+            body="Use the form above to generate the first batch."
+          />
         ) : (
           <ul className="rounded-2xl border border-border bg-surface overflow-hidden">
             {recent.map((row) => (
               <li
                 key={row.code}
-                className="grid grid-cols-[140px_1fr_140px_88px] items-center gap-4 px-5 py-3 border-b border-border last:border-b-0"
+                className="grid grid-cols-[1fr_auto] sm:grid-cols-[140px_1fr_140px_88px] items-center gap-3 sm:gap-4 px-5 py-3 border-b border-border last:border-b-0"
               >
                 <span className="font-mono text-body text-foreground tabular-nums select-all">
                   {row.code}

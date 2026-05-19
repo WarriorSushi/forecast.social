@@ -81,7 +81,7 @@ export default async function LeaderboardPage({
         <p className="text-overline text-muted-foreground mb-3">
           leaderboard
         </p>
-        <h1 className="font-display text-display-md sm:text-display-lg text-foreground -tracking-[0.035em]">
+        <h1 className="font-display text-display-sm sm:text-display-md text-foreground -tracking-[0.03em]">
           The proven.{" "}
           <span className="text-muted-foreground">
             {activeCategory === "all"

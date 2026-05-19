@@ -30,7 +30,7 @@ export default async function AdminMarketsPage() {
         <p className="text-overline text-muted-foreground mb-4">
           admin · markets
         </p>
-        <h1 className="font-display text-display-md text-foreground -tracking-[0.025em]">
+        <h1 className="font-display text-headline sm:text-display-sm text-foreground -tracking-[0.02em]">
           Create a market.
         </h1>
         <p className="mt-3 text-body-lg text-muted-foreground max-w-xl">

@@ -196,7 +196,7 @@ export default async function FeedPage() {
     <div className="mx-auto w-full max-w-[960px] py-10 sm:py-14 flex flex-col gap-14">
       <header>
         <p className="text-overline text-muted-foreground mb-3">your feed</p>
-        <h1 className="font-display text-display-md sm:text-display-lg text-foreground -tracking-[0.035em]">
+        <h1 className="font-display text-display-sm sm:text-display-md text-foreground -tracking-[0.03em]">
           What&apos;s moving.
         </h1>
       </header>

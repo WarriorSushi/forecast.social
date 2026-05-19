@@ -3,6 +3,7 @@ import {
   CircleUser,
   Compass,
   LayoutGrid,
+  MessageSquarePlus,
   Plus,
   Trophy,
   type LucideIcon,
@@ -39,6 +40,12 @@ export function getNavItems(username: string): readonly NavItem[] {
   return [
     { href: "/feed",          label: "Feed",          Icon: Compass },
     { href: "/markets",       label: "Markets",       Icon: LayoutGrid },
+    {
+      href: "/markets/propose",
+      label: "Propose",
+      Icon: MessageSquarePlus,
+      desktopOnly: true,
+    },
     { href: "/leaderboard",   label: "Leaderboard",   Icon: Trophy, desktopOnly: true },
     { href: "/notifications", label: "Notifications", Icon: Bell,   desktopOnly: true },
     { href: "/predict",       label: "Predict",       Icon: Plus, emphasised: true },
