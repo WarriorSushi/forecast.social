@@ -41,9 +41,10 @@ type LeaderRow = {
 };
 
 export default async function LandingPage() {
-  const [categoryHighlights, topLeaders] = await Promise.all([
+  const [categoryHighlights, topLeaders, marketTotals] = await Promise.all([
     fetchCategoryHighlights(),
     fetchTopLeaders(),
+    fetchMarketTotals(),
   ]);
 
   return (
@@ -53,12 +54,37 @@ export default async function LandingPage() {
       <NotBetting />
       <ProofShowcase />
       <HowItWorks />
-      <Categories highlights={categoryHighlights} />
+      <Categories highlights={categoryHighlights} totals={marketTotals} />
       <Leaderboard leaders={topLeaders} />
       <FAQ />
       <FinalCTA />
     </div>
   );
+}
+
+type MarketTotals = {
+  openMarkets: number;
+  totalCategories: number;
+};
+
+async function fetchMarketTotals(): Promise<MarketTotals> {
+  const [openAgg] = await db
+    .select({
+      count: sql<number>`COUNT(*)::int`,
+    })
+    .from(markets)
+    .where(and(isNull(markets.resolved_at), gt(markets.closes_at, new Date())));
+
+  const [catAgg] = await db
+    .select({
+      count: sql<number>`COUNT(*)::int`,
+    })
+    .from(categories);
+
+  return {
+    openMarkets: Number(openAgg?.count ?? 0),
+    totalCategories: Number(catAgg?.count ?? 0),
+  };
 }
 
 async function fetchCategoryHighlights(): Promise<
