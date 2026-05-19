@@ -28,10 +28,14 @@ import { markets, users } from "@/lib/db/schema";
 
 export const revalidate = 300; // 5-min ISR; landing isn't tied to a session
 
+type CategorySlug = "tech-ai" | "crypto" | "sports" | "pop-culture";
+
 type CategoryHighlight = {
-  slug: "tech-ai" | "crypto" | "sports" | "pop-culture";
+  slug: CategorySlug;
   title: string;
   prediction_count: number;
+  /** Up to three more open markets in the same category, for the featured cell. */
+  others: string[];
 };
 
 type LeaderRow = {
@@ -62,14 +66,14 @@ export default async function LandingPage() {
 }
 
 async function fetchCategoryHighlights(): Promise<
-  Record<CategoryHighlight["slug"], CategoryHighlight | null>
+  Record<CategorySlug, CategoryHighlight | null>
 > {
-  const empty = {
+  const initial: Record<CategorySlug, CategoryHighlight | null> = {
     "tech-ai": null,
     crypto: null,
     sports: null,
     "pop-culture": null,
-  } as Record<CategoryHighlight["slug"], CategoryHighlight | null>;
+  };
 
   const rows = await db
     .select({
@@ -81,19 +85,30 @@ async function fetchCategoryHighlights(): Promise<
     .from(markets)
     .where(and(isNull(markets.resolved_at), gt(markets.closes_at, new Date())))
     .orderBy(desc(markets.prediction_count), asc(markets.closes_at))
-    .limit(80);
+    .limit(160);
 
+  const buckets: Record<CategorySlug, typeof rows> = {
+    "tech-ai": [],
+    crypto: [],
+    sports: [],
+    "pop-culture": [],
+  };
   for (const r of rows) {
-    const key = r.slug as CategoryHighlight["slug"];
-    if (key in empty && empty[key] == null) {
-      empty[key] = {
-        slug: key,
-        title: r.title,
-        prediction_count: r.prediction_count,
-      };
-    }
+    const key = r.slug as CategorySlug;
+    if (key in buckets && buckets[key].length < 4) buckets[key].push(r);
   }
-  return empty;
+
+  for (const key of Object.keys(buckets) as CategorySlug[]) {
+    const items = buckets[key];
+    if (items.length === 0) continue;
+    initial[key] = {
+      slug: key,
+      title: items[0].title,
+      prediction_count: items[0].prediction_count,
+      others: items.slice(1, 4).map((r) => r.title),
+    };
+  }
+  return initial;
 }
 
 async function fetchTopLeaders(): Promise<LeaderRow[]> {
@@ -916,7 +931,7 @@ function FeatureCard({
 /* ==============================================================
    5. Categories
 ============================================================== */
-const CATEGORY_FALLBACKS: Record<CategoryHighlight["slug"], string> = {
+const CATEGORY_FALLBACKS: Record<CategorySlug, string> = {
   "tech-ai": "Will Anthropic release Claude 5 before October 1, 2026?",
   crypto: "Will Bitcoin set a new all-time high before January 1, 2027?",
   sports: "Will Argentina win the 2026 FIFA World Cup?",
@@ -924,8 +939,14 @@ const CATEGORY_FALLBACKS: Record<CategoryHighlight["slug"], string> = {
     "Will Avengers: Doomsday gross $1B+ worldwide before EOY 2026?",
 };
 
+const TECH_AI_OTHERS_FALLBACK = [
+  "Will OpenAI ship GPT-6 before January 1, 2027?",
+  "Will Apple ship the foldable iPhone before EOY 2026?",
+  "Will the EU issue its first AI Act GPAI fine by Feb 1, 2027?",
+];
+
 function categoryLine(
-  slug: CategoryHighlight["slug"],
+  slug: CategorySlug,
   live: CategoryHighlight | null,
 ): string {
   return live?.title ?? CATEGORY_FALLBACKS[slug];
@@ -934,8 +955,11 @@ function categoryLine(
 function Categories({
   highlights,
 }: {
-  highlights: Record<CategoryHighlight["slug"], CategoryHighlight | null>;
+  highlights: Record<CategorySlug, CategoryHighlight | null>;
 }) {
+  const techAi = highlights["tech-ai"];
+  const techAiOthers =
+    techAi && techAi.others.length > 0 ? techAi.others : TECH_AI_OTHERS_FALLBACK;
   return (
     <section className="border-t border-border/60 bg-muted/40">
       <Container className="py-24 sm:py-32">
@@ -958,14 +982,37 @@ function Categories({
             className="md:col-span-2 md:row-span-2 bg-surface"
             icon={<Atom className="size-6" strokeWidth={1.5} />}
             title="Tech & AI"
+            header={
+              <div className="flex flex-col gap-4">
+                <p className="text-overline text-muted-foreground">
+                  also live
+                </p>
+                <ul className="flex flex-col">
+                  {techAiOthers.map((title, i) => (
+                    <li
+                      key={`${i}-${title}`}
+                      className="flex items-baseline gap-3 py-2.5 border-b border-border last:border-b-0"
+                    >
+                      <span className="font-mono text-caption text-muted-foreground tabular-nums shrink-0">
+                        {String(i + 2).padStart(2, "0")}
+                      </span>
+                      <span className="text-body-sm text-foreground leading-[1.5] line-clamp-2">
+                        {title}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            }
             description={
               <span className="text-body text-muted-foreground">
-                {categoryLine("tech-ai", highlights["tech-ai"])}
+                <span className="font-mono text-caption text-foreground tabular-nums mr-2">
+                  01
+                </span>
+                {categoryLine("tech-ai", techAi)}
               </span>
             }
-            footer={
-              <CategoryFooter slug="tech-ai" live={highlights["tech-ai"]} />
-            }
+            footer={<CategoryFooter slug="tech-ai" live={techAi} />}
           />
           <BentoGridItem
             icon={<Bitcoin className="size-5" strokeWidth={1.5} />}
