@@ -216,15 +216,23 @@ export default async function FeedPage() {
             {followLane.map((row) => (
               <li
                 key={row.pred_id}
-                className="grid grid-cols-[1fr_64px_72px] sm:grid-cols-[1fr_120px_72px_72px] items-center gap-3 sm:gap-5 py-3 border-b border-border last:border-b-0"
+                className="grid grid-cols-[1fr_64px] sm:grid-cols-[1fr_120px_72px_72px] items-center gap-3 sm:gap-5 py-3 border-b border-border last:border-b-0"
               >
                 <div className="min-w-0">
-                  <Link
-                    href={`/u/${row.author_username}`}
-                    className="font-mono text-caption text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    @{row.author_username}
-                  </Link>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Link
+                      href={`/u/${row.author_username}`}
+                      className="font-mono text-caption text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      @{row.author_username}
+                    </Link>
+                    <span
+                      className="sm:hidden font-mono text-caption text-muted-foreground tabular-nums"
+                      aria-hidden
+                    >
+                      · {relativeTime(row.created_at)}
+                    </span>
+                  </div>
                   <Link
                     href={`/markets/${row.market_slug}`}
                     className="block font-display text-body text-foreground hover:underline truncate"
@@ -235,20 +243,22 @@ export default async function FeedPage() {
                 <span className="hidden sm:inline font-mono text-caption text-muted-foreground tabular-nums">
                   {relativeTime(row.created_at)}
                 </span>
-                <span
-                  className={
-                    "font-display text-headline tabular-nums text-right " +
-                    (row.probability >= 0.5
-                      ? "text-signal-positive"
-                      : "text-foreground")
-                  }
-                >
-                  {Math.round(row.probability * 100)}%
-                </span>
-                <ResolutionBadge
-                  resolved_at={row.market_resolved_at}
-                  outcome={row.market_outcome}
-                />
+                <div className="flex items-center justify-end gap-2 sm:contents">
+                  <ResolutionBadge
+                    resolved_at={row.market_resolved_at}
+                    outcome={row.market_outcome}
+                  />
+                  <span
+                    className={
+                      "font-display text-headline tabular-nums text-right " +
+                      (row.probability >= 0.5
+                        ? "text-signal-positive"
+                        : "text-foreground")
+                    }
+                  >
+                    {Math.round(row.probability * 100)}%
+                  </span>
+                </div>
               </li>
             ))}
           </ul>
@@ -278,15 +288,23 @@ export default async function FeedPage() {
             {boldCalls.map((row) => (
               <li
                 key={row.pred_id}
-                className="grid grid-cols-[1fr_72px_72px] items-center gap-4 py-3 border-b border-border last:border-b-0"
+                className="grid grid-cols-[1fr_64px] sm:grid-cols-[1fr_96px_72px] items-center gap-3 sm:gap-4 py-3 border-b border-border last:border-b-0"
               >
                 <div className="min-w-0">
-                  <Link
-                    href={`/u/${row.author_username}`}
-                    className="font-mono text-caption text-muted-foreground hover:text-foreground"
-                  >
-                    @{row.author_username}
-                  </Link>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Link
+                      href={`/u/${row.author_username}`}
+                      className="font-mono text-caption text-muted-foreground hover:text-foreground"
+                    >
+                      @{row.author_username}
+                    </Link>
+                    <span
+                      className="sm:hidden font-mono text-caption text-muted-foreground"
+                      aria-hidden
+                    >
+                      · {row.category_slug}
+                    </span>
+                  </div>
                   <Link
                     href={`/markets/${row.market_slug}`}
                     className="block font-display text-body text-foreground hover:underline truncate"
@@ -294,7 +312,7 @@ export default async function FeedPage() {
                     {row.market_title}
                   </Link>
                 </div>
-                <span className="font-mono text-caption text-muted-foreground tabular-nums text-right">
+                <span className="hidden sm:inline font-mono text-caption text-muted-foreground tabular-nums text-right">
                   {row.category_slug}
                 </span>
                 <span
@@ -382,31 +400,43 @@ function ResolutionBadge({
   resolved_at: Date | null;
   outcome: string | null;
 }) {
-  if (!resolved_at || !outcome) {
-    return (
-      <span className="hidden sm:inline-flex justify-self-end items-center px-2 py-0.5 rounded-full text-caption font-mono bg-muted text-muted-foreground">
-        pending
-      </span>
-    );
-  }
-  if (outcome === "yes") {
-    return (
-      <span className="hidden sm:inline-flex justify-self-end items-center px-2 py-0.5 rounded-full text-caption font-mono bg-signal-positive-soft text-signal-positive">
-        yes
-      </span>
-    );
-  }
-  if (outcome === "no") {
-    return (
-      <span className="hidden sm:inline-flex justify-self-end items-center px-2 py-0.5 rounded-full text-caption font-mono bg-signal-negative-soft text-signal-negative">
-        no
-      </span>
-    );
-  }
+  const tone =
+    !resolved_at || !outcome
+      ? {
+          label: "pending",
+          dot: "bg-muted-foreground/50",
+          pill: "bg-muted text-muted-foreground",
+        }
+      : outcome === "yes"
+        ? {
+            label: "yes",
+            dot: "bg-signal-positive",
+            pill: "bg-signal-positive-soft text-signal-positive",
+          }
+        : outcome === "no"
+          ? {
+              label: "no",
+              dot: "bg-signal-negative",
+              pill: "bg-signal-negative-soft text-signal-negative",
+            }
+          : {
+              label: "invalid",
+              dot: "bg-muted-foreground/50",
+              pill: "bg-muted text-muted-foreground",
+            };
+
   return (
-    <span className="hidden sm:inline-flex justify-self-end items-center px-2 py-0.5 rounded-full text-caption font-mono bg-muted text-muted-foreground">
-      invalid
-    </span>
+    <>
+      <span
+        aria-label={`status: ${tone.label}`}
+        className={`sm:hidden inline-block size-2.5 rounded-full shrink-0 ${tone.dot}`}
+      />
+      <span
+        className={`hidden sm:inline-flex justify-self-end items-center px-2 py-0.5 rounded-full text-caption font-mono ${tone.pill}`}
+      >
+        {tone.label}
+      </span>
+    </>
   );
 }
 

@@ -116,12 +116,12 @@ export default async function LeaderboardPage({
             return (
               <li
                 key={`${row.user_id}-${activeCategory}`}
-                className="grid grid-cols-[40px_40px_1fr_72px_88px] sm:grid-cols-[56px_40px_1fr_120px_120px_100px] items-center gap-3 sm:gap-5 px-5 py-4 border-b border-border last:border-b-0"
+                className="grid grid-cols-[40px_36px_1fr_80px] sm:grid-cols-[56px_40px_1fr_120px_120px_100px] items-center gap-3 sm:gap-5 px-5 py-4 border-b border-border last:border-b-0"
               >
                 <span
                   className={
                     podium
-                      ? "font-display text-display-sm font-extrabold text-foreground tabular-nums leading-none"
+                      ? "font-display text-headline sm:text-display-sm font-extrabold text-foreground tabular-nums leading-none"
                       : "font-mono text-body-sm text-muted-foreground tabular-nums"
                   }
                 >
@@ -132,12 +132,22 @@ export default async function LeaderboardPage({
                   displayName={row.display_name}
                   size="sm"
                 />
-                <Link
-                  href={`/u/${row.username}`}
-                  className="font-display text-body text-foreground hover:underline truncate"
-                >
-                  {row.display_name}
-                </Link>
+                <div className="min-w-0">
+                  <Link
+                    href={`/u/${row.username}`}
+                    className="font-display text-body text-foreground hover:underline truncate block"
+                  >
+                    {row.display_name}
+                  </Link>
+                  <div className="sm:hidden flex items-center gap-2 font-mono text-caption text-muted-foreground tabular-nums">
+                    <span className="truncate">@{row.username}</span>
+                    {row.streak > 0 ? (
+                      <span className="text-signal-positive shrink-0">
+                        · {row.streak}d
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
                 <span className="hidden sm:inline font-mono text-caption text-muted-foreground tabular-nums">
                   @{row.username}
                 </span>

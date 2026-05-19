@@ -15,7 +15,7 @@ export function AppTabBar({ username }: { username: string }) {
       aria-label="Primary"
       className="lg:hidden fixed inset-x-0 bottom-0 z-30 backdrop-blur-[10px] bg-background/85 border-t border-border"
     >
-      <div className="mx-auto max-w-[480px] grid grid-cols-4 h-16">
+      <div className="mx-auto w-full max-w-screen-sm grid grid-cols-4 h-16">
         {items.map((item) => (
           <TabItem
             key={item.href}
@@ -29,7 +29,7 @@ export function AppTabBar({ username }: { username: string }) {
 }
 
 function TabItem({ item, active }: { item: NavItem; active: boolean }) {
-  const { Icon, href, label, emphasised } = item;
+  const { Icon, href, label } = item;
   return (
     <Link
       href={href}
@@ -41,13 +41,7 @@ function TabItem({ item, active }: { item: NavItem; active: boolean }) {
           : "text-muted-foreground active:text-foreground",
       )}
     >
-      {emphasised ? (
-        <span className="flex items-center justify-center size-9 rounded-full bg-primary text-primary-foreground">
-          <Icon className="size-5" strokeWidth={1.75} />
-        </span>
-      ) : (
-        <Icon className="size-[22px]" strokeWidth={1.75} />
-      )}
+      <Icon className="size-[22px]" strokeWidth={1.75} />
       <span className="text-[10px] tracking-[0.04em] font-medium">{label}</span>
       {/* Active underline accent — DESIGN.md §6 "2px underline in accent." */}
       <span
