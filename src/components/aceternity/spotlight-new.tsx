@@ -1,7 +1,6 @@
 "use client";
 
-import React from "react";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 
 /**
  * Adapted from Aceternity "Spotlight New". Two animated radial-gradient
@@ -23,6 +22,7 @@ type SpotlightProps = {
   smallWidth?: number;
   duration?: number;
   xOffset?: number;
+  showField?: boolean;
 };
 
 const DEFAULTS: Required<SpotlightProps> = {
@@ -39,7 +39,19 @@ const DEFAULTS: Required<SpotlightProps> = {
   smallWidth: 240,
   duration: 7,
   xOffset: 100,
+  showField: true,
 };
+
+const AMBIENT_POINTS = [
+  { left: "8%", top: "24%", delay: "-9s", duration: "18s" },
+  { left: "17%", top: "67%", delay: "-3s", duration: "22s" },
+  { left: "29%", top: "15%", delay: "-14s", duration: "24s" },
+  { left: "41%", top: "77%", delay: "-6s", duration: "20s" },
+  { left: "56%", top: "31%", delay: "-17s", duration: "26s" },
+  { left: "68%", top: "71%", delay: "-11s", duration: "21s" },
+  { left: "79%", top: "18%", delay: "-5s", duration: "23s" },
+  { left: "91%", top: "58%", delay: "-13s", duration: "25s" },
+] as const;
 
 export const SpotlightNew = (props: SpotlightProps = {}) => {
   const {
@@ -52,23 +64,47 @@ export const SpotlightNew = (props: SpotlightProps = {}) => {
     smallWidth,
     duration,
     xOffset,
+    showField,
   } = { ...DEFAULTS, ...props };
+  const shouldReduceMotion = useReducedMotion();
+
+  const sweepTransition = shouldReduceMotion
+    ? { duration: 0 }
+    : {
+        duration,
+        repeat: Infinity,
+        repeatType: "reverse" as const,
+        ease: "easeInOut" as const,
+      };
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
+      initial={shouldReduceMotion ? false : { opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 1.5 }}
+      transition={{ duration: shouldReduceMotion ? 0 : 1.2 }}
       className="pointer-events-none absolute inset-0 h-full w-full overflow-hidden"
+      aria-hidden="true"
     >
+      {showField ? (
+        <div className="forecast-ambient-field absolute inset-0">
+          {AMBIENT_POINTS.map((point) => (
+            <span
+              key={`${point.left}-${point.top}`}
+              className="forecast-ambient-point"
+              style={{
+                left: point.left,
+                top: point.top,
+                animationDelay: point.delay,
+                animationDuration: point.duration,
+              }}
+            />
+          ))}
+        </div>
+      ) : null}
+
       <motion.div
-        animate={{ x: [0, xOffset, 0] }}
-        transition={{
-          duration,
-          repeat: Infinity,
-          repeatType: "reverse",
-          ease: "easeInOut",
-        }}
+        animate={shouldReduceMotion ? { x: 0 } : { x: [0, xOffset, 0] }}
+        transition={sweepTransition}
         className="absolute top-0 left-0 w-screen h-screen pointer-events-none"
       >
         <div
@@ -101,13 +137,8 @@ export const SpotlightNew = (props: SpotlightProps = {}) => {
       </motion.div>
 
       <motion.div
-        animate={{ x: [0, -xOffset, 0] }}
-        transition={{
-          duration,
-          repeat: Infinity,
-          repeatType: "reverse",
-          ease: "easeInOut",
-        }}
+        animate={shouldReduceMotion ? { x: 0 } : { x: [0, -xOffset, 0] }}
+        transition={sweepTransition}
         className="absolute top-0 right-0 w-screen h-screen pointer-events-none"
       >
         <div

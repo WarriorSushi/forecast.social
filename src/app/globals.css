@@ -38,6 +38,8 @@
 
   --ring:                 oklch(17% 0.016 260);
   --radius:               0.75rem;
+
+  --ambient-point:        oklch(36% 0.015 255 / 0.28);
 }
 
 /* =====================================================================
@@ -76,6 +78,8 @@
   --shadow-elevated:      0 8px 32px -8px oklch(0% 0 0 / 0.40), 0 2px 8px -2px oklch(0% 0 0 / 0.30);
 
   --ring:                 oklch(97% 0.004 250);
+
+  --ambient-point:        oklch(86% 0.012 250 / 0.22);
 }
 
 /* =====================================================================
@@ -246,11 +250,45 @@
 }
 
 @layer utilities {
+  .forecast-ambient-field {
+    mask-image: linear-gradient(to bottom, transparent, black 12%, black 82%, transparent);
+  }
+
+  .forecast-ambient-point {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    border-radius: 999px;
+    background: var(--ambient-point);
+    animation: forecast-ambient-drift 20s cubic-bezier(0.22, 1, 0.36, 1) infinite alternate;
+  }
+
   .scrollbar-none {
     scrollbar-width: none;
   }
 
   .scrollbar-none::-webkit-scrollbar {
     display: none;
+  }
+}
+
+@keyframes forecast-ambient-drift {
+  0% {
+    opacity: 0.25;
+    transform: translate3d(0, 8px, 0) scale(0.8);
+  }
+  55% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0.35;
+    transform: translate3d(12px, -20px, 0) scale(1.2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .forecast-ambient-point {
+    animation: none;
+    opacity: 0.45;
   }
 }

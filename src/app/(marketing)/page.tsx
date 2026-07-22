@@ -186,7 +186,7 @@ function Hero() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-x-10 xl:gap-x-16 gap-y-16 lg:gap-y-0 items-start">
         <div className="lg:col-span-7 flex flex-col">
           <h1 className="font-display font-extrabold text-foreground text-[40px] sm:text-[56px] lg:text-[72px] xl:text-[80px] leading-[0.98] tracking-[-0.04em]">
-            Say it before
+            Say it before{" "}
             <br />
             <span className="text-muted-foreground">it happens.</span>
           </h1>
@@ -456,7 +456,7 @@ function ScoreExplainer() {
       <Container className="py-24 sm:py-32">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-y-12 lg:gap-y-0 lg:gap-x-16 items-center">
           <div className="lg:col-span-6">
-            <h2 className="font-display text-display-md sm:text-display-lg text-foreground leading-[0.98] tracking-[-0.035em]">
+            <h2 className="text-balance font-display text-[36px] font-extrabold leading-[1] tracking-[-0.035em] text-foreground sm:text-[48px] lg:text-[60px]">
               How scoring{" "}
               <span className="text-muted-foreground">actually works.</span>
             </h2>
@@ -794,7 +794,7 @@ function ProofShowcase() {
       <Container className="py-24 sm:py-32">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-y-12 lg:gap-y-0 lg:gap-x-16 items-center">
           <div className="lg:col-span-5 lg:order-1">
-            <h2 className="font-display text-display-md sm:text-display-lg text-foreground leading-[0.98] tracking-[-0.035em]">
+            <h2 className="text-balance font-display text-[36px] font-extrabold leading-[1] tracking-[-0.035em] text-foreground sm:text-[48px] lg:text-[60px]">
               Every call{" "}
               <span className="text-muted-foreground">leaves a mark.</span>
             </h2>
@@ -948,7 +948,7 @@ function HowItWorks() {
     <section id="how-it-works" className="border-t border-border/60">
       <Container className="py-24 sm:py-32">
         <div className="flex flex-col items-start max-w-3xl mb-14 sm:mb-20">
-          <h2 className="font-display text-display-md sm:text-display-lg text-foreground leading-[0.98] tracking-[-0.035em]">
+          <h2 className="text-balance font-display text-[36px] font-extrabold leading-[1] tracking-[-0.035em] text-foreground sm:text-[48px] lg:text-[60px]">
             Three moments.
           </h2>
           <p className="mt-5 text-body-lg text-muted-foreground max-w-xl">
@@ -1022,7 +1022,7 @@ function Categories({
       <Container className="py-24 sm:py-32">
         <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-14">
           <div className="max-w-2xl">
-            <h2 className="font-display text-display-md sm:text-display-lg text-foreground leading-[0.98] tracking-[-0.035em]">
+            <h2 className="text-balance font-display text-[36px] font-extrabold leading-[1] tracking-[-0.035em] text-foreground sm:text-[48px] lg:text-[60px]">
               Markets for{" "}
               <span className="text-muted-foreground">everything you read.</span>
             </h2>
@@ -1185,9 +1185,8 @@ function Leaderboard({ leaders }: { leaders: LeaderRow[] }) {
       <Container className="py-24 sm:py-32">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-y-10 lg:gap-x-16 items-start">
           <div className="lg:col-span-5">
-            <h2 className="font-display text-display-md sm:text-display-lg text-foreground leading-[0.98] tracking-[-0.035em]">
-              The proven.{" "}
-              <span className="text-muted-foreground">Recomputed nightly.</span>
+            <h2 className="text-balance font-display text-[36px] font-extrabold leading-[1] tracking-[-0.035em] text-foreground sm:text-[48px] lg:text-[60px]">
+              The proven.
             </h2>
             <p className="mt-7 text-body-lg text-muted-foreground max-w-md">
               Rank lifts the highest-accuracy forecasters into the spotlight.
@@ -1295,7 +1294,7 @@ function NotBetting() {
     <section className="border-t border-border/60">
       <Container className="py-24 sm:py-32">
         <div className="max-w-3xl">
-          <h2 className="font-display text-display-md sm:text-display-lg text-foreground leading-[0.98] tracking-[-0.035em]">
+          <h2 className="text-balance font-display text-[36px] font-extrabold leading-[1] tracking-[-0.035em] text-foreground sm:text-[48px] lg:text-[60px]">
             Not betting.{" "}
             <span className="text-muted-foreground">By design.</span>
           </h2>
@@ -1398,7 +1397,7 @@ function FAQ() {
       <Container className="py-24 sm:py-32">
         <div className="max-w-3xl mb-12 sm:mb-16">
           <SectionEyebrow>FAQ</SectionEyebrow>
-          <h2 className="font-display text-display-md sm:text-display-lg text-foreground leading-[0.98] tracking-[-0.035em]">
+          <h2 className="text-balance font-display text-[36px] font-extrabold leading-[1] tracking-[-0.035em] text-foreground sm:text-[48px] lg:text-[60px]">
             Honest answers.{" "}
             <span className="text-muted-foreground">No fine print.</span>
           </h2>
@@ -1458,9 +1457,8 @@ function FinalCTA() {
     <section className="border-t border-border/60">
       <Container className="py-28 sm:py-40">
         <div className="flex flex-col items-center text-center max-w-3xl mx-auto">
-          <h2 className="font-display font-extrabold text-foreground text-[44px] sm:text-[64px] lg:text-[80px] leading-[0.98] tracking-[-0.04em]">
-            The internet,
-            <br />
+          <h2 className="text-balance font-display font-extrabold text-foreground text-[36px] sm:text-[52px] lg:text-[68px] leading-[0.98] tracking-[-0.04em]">
+            The internet,{" "}
             <span className="text-muted-foreground">
               finally keeping score.
             </span>
