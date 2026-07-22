@@ -81,7 +81,7 @@ export function computeForecastScore(input: {
     decayFor(input.daysIdle) *
     SCALE;
 
-  return Math.round(score);
+  return Math.min(SCALE, Math.max(0, Math.round(score)));
 }
 
 /**

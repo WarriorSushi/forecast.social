@@ -23,6 +23,7 @@ Set **all** of these for the Production environment. Mirror to Preview if you wa
 | `DATABASE_URL` | **Use the pooled URL** — see below | Supabase → Project Settings → Database → Connection string → URI (**Transaction mode pooler**, port 6543) |
 | `NEXT_PUBLIC_SITE_URL` | `https://forecast.social` | The production domain you connect in step 4 |
 | `INVITE_CODES_REQUIRED` | `"true"` for the launch ramp, `"false"` to open signups | Your call |
+| `CRON_SECRET` | Random secret, at least 16 characters | Generate once; Vercel sends it as the cron bearer token |
 
 **Critical: `DATABASE_URL` in production.** Use the **transaction-mode pooler** URL (`...pooler.supabase.co:6543`), NOT the direct connection (`db....supabase.co:5432`). Vercel's serverless functions spawn many short-lived connections; the direct port exhausts in seconds at any traffic.
 
@@ -90,6 +91,7 @@ After the first production deploy:
 - Visit `/api/health` — should return JSON with `"status": "ok"` and `"db": "ok"`.
 - Sign in. Submit a prediction. Watch the consensus live-update.
 - Resolve a market as admin. Check that scoring updates the profile.
+- Confirm the Cron Jobs page lists `/api/cron/recompute-scores` at `0 3 * * *`.
 - Open `/api/share/market/<slug>` — should download a 1080×1080 PNG.
 - Run a Lighthouse check on `/`. Target: Performance ≥ 90, Accessibility ≥ 95, SEO 100.
 
@@ -105,7 +107,7 @@ Tracked in `docs/V2.md`:
 
 See `docs/REVIEW.md` for the full audit; in short:
 
-- `stampPredictionScoring` does one UPDATE per prediction (N+1) inside the resolution loop. Fine at current scale; needs batching when markets get to 1k+ predictors. Solved by V2.1.
+- Resolution and nightly recomputation now batch prediction scoring writes and bound user-level concurrency. Inngest remains the high-scale path when individual markets reach thousands of forecasters.
 - `completeOnboarding` has a TOCTOU race on username uniqueness; the DB UNIQUE constraint catches it, so the worst case is an ugly error message. Cosmetic fix in V2.0 follow-up.
 - Feed page reads 6 queries with no caching. Acceptable at current volume; revisit with V2.5 ranker.
 

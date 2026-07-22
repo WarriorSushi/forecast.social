@@ -2,6 +2,7 @@
 
 import { useOptimistic, useTransition } from "react";
 import { toast } from "sonner";
+import { track } from "@vercel/analytics";
 
 import { Button } from "@/components/ui/button";
 import { toggleFollow } from "@/server/actions/follows";
@@ -28,6 +29,8 @@ export function FollowButton({
         // Revert optimistic; useOptimistic does this automatically on
         // re-render once the server reply lands.
         toast.error(result.message);
+      } else {
+        track("profile_follow_changed", { action });
       }
     });
   }

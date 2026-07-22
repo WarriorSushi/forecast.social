@@ -29,7 +29,7 @@ export function AppRail({
   const items = getNavItems(profile.username);
 
   return (
-    <aside className="hidden lg:flex w-[240px] shrink-0 sticky top-0 self-start h-screen flex-col py-8 pr-2">
+    <aside className="hidden lg:flex w-[216px] shrink-0 sticky top-0 self-start h-screen flex-col py-8 pr-2">
       <Link
         href="/feed"
         className="font-stylized text-title font-semibold leading-none tracking-tight mb-10 px-3 hover:opacity-90 transition-opacity"
@@ -107,21 +107,10 @@ function RailItem({
       className={cn(
         "relative group flex items-center gap-3 h-10 px-3 rounded-md transition-colors",
         active
-          ? "text-foreground"
+          ? "bg-muted text-foreground font-medium"
           : "text-muted-foreground hover:text-foreground hover:bg-muted",
       )}
     >
-      {/* Accent vertical bar marks the active rail item per DESIGN.md §6.
-          2px to match the tab bar's underline and the cross-register ban
-          on side-stripe borders >1px (treated as design-system marker, not
-          decorative). */}
-      <span
-        aria-hidden
-        className={cn(
-          "absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 rounded-r-sm transition-opacity",
-          active ? "bg-accent opacity-100" : "opacity-0",
-        )}
-      />
       <Icon className="size-[18px] shrink-0" strokeWidth={1.75} />
       <span className="text-body-sm flex-1">{label}</span>
       {badge ? (

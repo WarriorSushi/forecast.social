@@ -17,6 +17,14 @@ import { env } from "@/lib/env";
 export async function proxy(request: NextRequest) {
   const response = NextResponse.next({ request });
 
+  // Anonymous traffic has no session to refresh. Skipping the remote Auth
+  // call keeps landing pages, public profiles, share links, and health checks
+  // fast while authenticated requests still get normal token rotation.
+  const hasAuthCookie = request.cookies
+    .getAll()
+    .some(({ name }) => name.startsWith("sb-") && name.includes("-auth-token"));
+  if (!hasAuthCookie) return response;
+
   const supabase = createServerClient(
     env.NEXT_PUBLIC_SUPABASE_URL,
     env.NEXT_PUBLIC_SUPABASE_ANON_KEY,

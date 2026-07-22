@@ -15,7 +15,7 @@ import { eq, inArray, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 
-import { categories, markets, users } from "../src/lib/db/schema";
+import { markets, users } from "../src/lib/db/schema";
 
 loadEnv({ path: ".env.local" });
 loadEnv();

@@ -86,33 +86,30 @@ export default async function MarketDetailPage({
   }
   const { market, category_name, author_username } = marketRow;
 
-  // Recent predictions for the timeline (latest 25).
-  const timeline = await db
-    .select({
-      id: predictions.id,
-      probability: predictions.probability,
-      created_at: predictions.created_at,
-      user_handle: users.username,
-      user_display_name: users.display_name,
-      user_avatar_url: users.avatar_url,
-    })
-    .from(predictions)
-    .innerJoin(users, eq(predictions.user_id, users.id))
-    .where(eq(predictions.market_id, market.id))
-    .orderBy(desc(predictions.created_at))
-    .limit(25);
+  const [timeline, sparklinePoints, profile] = await Promise.all([
+    db
+      .select({
+        id: predictions.id,
+        probability: predictions.probability,
+        created_at: predictions.created_at,
+        user_handle: users.username,
+        user_display_name: users.display_name,
+        user_avatar_url: users.avatar_url,
+      })
+      .from(predictions)
+      .innerJoin(users, eq(predictions.user_id, users.id))
+      .where(eq(predictions.market_id, market.id))
+      .orderBy(desc(predictions.created_at))
+      .limit(25),
+    buildConsensusSeries(market.id),
+    getCurrentProfile(),
+  ]);
 
-  // Build a tiny consensus history: walk predictions in chronological
-  // order, maintaining a running map of each user's latest call. Sample
-  // 12 evenly-spaced snapshots across the market's lifespan.
-  const sparklinePoints = await buildConsensusSeries(market.id);
-
-  // Pre-position the slider: previous call → consensus → 50%.
-  const profile = await getCurrentProfile();
-  const myLatest =
+  // Pre-position the slider and load discussion in parallel once viewer
+  // identity is known.
+  const [myLatestRows, commentRows] = await Promise.all([
     profile != null
-      ? (
-          await db
+      ? db
             .select({
               id: predictions.id,
               probability: predictions.probability,
@@ -127,8 +124,10 @@ export default async function MarketDetailPage({
             )
             .orderBy(desc(predictions.created_at))
             .limit(1)
-        )[0] ?? null
-      : null;
+      : Promise.resolve([]),
+    loadComments(market.id, profile?.id),
+  ]);
+  const myLatest = myLatestRows[0] ?? null;
 
   const consensusPct =
     market.consensus_probability != null
@@ -245,7 +244,7 @@ export default async function MarketDetailPage({
       </header>
 
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-10 mb-14">
-        <div className="lg:col-span-7">
+        <div className="order-2 lg:order-1 lg:col-span-7">
           <p className="text-overline text-muted-foreground mb-4">about</p>
           <div className="text-body-lg text-foreground leading-[1.6] whitespace-pre-wrap">
             {market.description}
@@ -280,7 +279,7 @@ export default async function MarketDetailPage({
           ) : null}
         </div>
 
-        <aside className="lg:col-span-5">
+        <aside className="order-1 self-start lg:order-2 lg:col-span-5 lg:sticky lg:top-24">
           <div className="rounded-2xl border border-border bg-surface p-6 sm:p-7 flex flex-col gap-6">
             <div className="flex flex-col gap-3">
               <p className="text-overline text-muted-foreground">
@@ -340,7 +339,7 @@ export default async function MarketDetailPage({
       <CommentsSection
         marketId={market.id}
         isSignedIn={!!profile}
-        comments={await loadComments(market.id, profile?.id)}
+        comments={commentRows}
       />
     </div>
   );

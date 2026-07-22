@@ -3,7 +3,7 @@
 // already enforces server context) AND from CLI scripts under /scripts
 // that run via tsx. Adding "server-only" here would throw at load time
 // when the script tries to import it.
-import { and, asc, eq, inArray, isNotNull, ne, sql } from "drizzle-orm";
+import { and, asc, eq, isNotNull, ne, sql } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import {
@@ -23,6 +23,11 @@ import {
 } from "./score";
 
 const MILESTONES = [1500, 2000, 2500] as const;
+const RECOMPUTE_CONCURRENCY = 4;
+
+type RecomputeOptions = {
+  stampPredictions?: boolean;
+};
 
 /**
  * Recomputes a user's score from scratch. Reads every resolved
@@ -35,7 +40,10 @@ const MILESTONES = [1500, 2000, 2500] as const;
  *
  * Idempotent: always reads predictions fresh, never trusts cached score.
  */
-export async function recomputeUserScore(userId: string): Promise<void> {
+export async function recomputeUserScore(
+  userId: string,
+  options: RecomputeOptions = {},
+): Promise<void> {
   // Pull every prediction the user has on resolved, non-invalid markets.
   // For each market, take the user's latest submission before close.
   const rows = await db
@@ -111,7 +119,9 @@ export async function recomputeUserScore(userId: string): Promise<void> {
   // Backfill prediction.brier + was_correct + resolved_at for every
   // resolved prediction so the profile timeline can show correct/missed
   // pills without re-deriving the math at render time.
-  await stampPredictionScoring(userId);
+  if (options.stampPredictions !== false) {
+    await stampPredictionScoring(userId);
+  }
 
   // Global score.
   const globalPreds: Prediction[] = scoringRows.map((r) => ({
@@ -137,33 +147,6 @@ export async function recomputeUserScore(userId: string): Promise<void> {
     .where(eq(users.id, userId));
   const previousScore = prev?.forecast_score ?? 0;
 
-  await db
-    .update(users)
-    .set({
-      forecast_score: publicScore,
-      current_streak: streaks.current,
-      longest_streak: Math.max(streaks.longest, 0),
-      correct_predictions: correctCount,
-      updated_at: new Date(),
-    })
-    .where(eq(users.id, userId));
-
-  // Milestone fan-out: a user who crosses 1500 / 2000 / 2500 upward gets
-  // a single notification per threshold per crossing. We only fire when
-  // the previous score was BELOW the threshold and the new one is AT or
-  // ABOVE; that gives idempotent behavior across re-resolutions.
-  if (ranked) {
-    for (const threshold of MILESTONES) {
-      if (previousScore < threshold && publicScore >= threshold) {
-        await createNotification(userId, {
-          kind: "score_milestone",
-          score: publicScore,
-          threshold,
-        });
-      }
-    }
-  }
-
   // Per-category scores.
   const byCategory = new Map<string, Prediction[]>();
   for (const r of scoringRows) {
@@ -172,6 +155,7 @@ export async function recomputeUserScore(userId: string): Promise<void> {
     byCategory.set(r.category_slug, arr);
   }
 
+  const categoryValues: (typeof user_category_scores.$inferInsert)[] = [];
   for (const [categorySlug, preds] of byCategory) {
     const catStreakRows = [...scoringRows]
       .filter((r) => r.category_slug === categorySlug)
@@ -196,30 +180,51 @@ export async function recomputeUserScore(userId: string): Promise<void> {
         0,
       ) / preds.length;
 
-    await db
-      .insert(user_category_scores)
-      .values({
-        user_id: userId,
-        category_slug: categorySlug,
-        score: catScore,
-        resolved_count: preds.length,
-        correct_count: correct,
-        avg_brier: avgBrier,
+    categoryValues.push({
+      user_id: userId,
+      category_slug: categorySlug,
+      score: catScore,
+      resolved_count: preds.length,
+      correct_count: correct,
+      avg_brier: avgBrier,
+      updated_at: new Date(),
+    });
+  }
+
+  // Keep the global score and its category breakdown atomic. Deleting stale
+  // category rows is important when a market is re-resolved as invalid.
+  await db.transaction(async (tx) => {
+    await tx
+      .update(users)
+      .set({
+        forecast_score: publicScore,
+        current_streak: streaks.current,
+        longest_streak: Math.max(streaks.longest, 0),
+        correct_predictions: correctCount,
         updated_at: new Date(),
       })
-      .onConflictDoUpdate({
-        target: [
-          user_category_scores.user_id,
-          user_category_scores.category_slug,
-        ],
-        set: {
-          score: catScore,
-          resolved_count: preds.length,
-          correct_count: correct,
-          avg_brier: avgBrier,
-          updated_at: new Date(),
-        },
-      });
+      .where(eq(users.id, userId));
+
+    await tx
+      .delete(user_category_scores)
+      .where(eq(user_category_scores.user_id, userId));
+
+    if (categoryValues.length > 0) {
+      await tx.insert(user_category_scores).values(categoryValues);
+    }
+  });
+
+  // Milestone fan-out happens only after the score transaction commits.
+  if (ranked) {
+    for (const threshold of MILESTONES) {
+      if (previousScore < threshold && publicScore >= threshold) {
+        await createNotification(userId, {
+          kind: "score_milestone",
+          score: publicScore,
+          threshold,
+        });
+      }
+    }
   }
 }
 
@@ -229,44 +234,55 @@ export async function recomputeUserScore(userId: string): Promise<void> {
  * during the per-market resolution flow.
  */
 async function stampPredictionScoring(userId: string): Promise<void> {
-  const rows = await db
-    .select({
-      id: predictions.id,
-      probability: predictions.probability,
-      outcome: markets.outcome,
-      resolved_at: markets.resolved_at,
-    })
-    .from(predictions)
-    .innerJoin(markets, eq(predictions.market_id, markets.id))
-    .where(
-      and(eq(predictions.user_id, userId), isNotNull(markets.resolved_at)),
-    );
+  await db.execute(sql`
+    update predictions as p
+    set
+      brier = case
+        when m.outcome = 'invalid' then null
+        when m.outcome = 'yes' then power(p.probability - 1.0, 2)::real
+        when m.outcome = 'no' then power(p.probability, 2)::real
+        else null
+      end,
+      was_correct = case
+        when m.outcome = 'yes' then p.probability > 0.5
+        when m.outcome = 'no' then p.probability < 0.5
+        else null
+      end,
+      resolved_at = case
+        when m.outcome in ('yes', 'no') then m.resolved_at
+        else null
+      end
+    from markets as m
+    where p.market_id = m.id
+      and p.user_id = ${userId}
+      and m.resolved_at is not null
+  `);
+}
 
-  if (rows.length === 0) return;
-
-  // Group updates by their stamped values to minimise round-trips.
-  for (const r of rows) {
-    if (r.outcome === "invalid" || !r.resolved_at) {
-      // Clear scoring stamps on invalid markets so they don't pollute
-      // future recomputes (SCORING.md §11 edge case).
-      await db
-        .update(predictions)
-        .set({ brier: null, was_correct: null, resolved_at: null })
-        .where(eq(predictions.id, r.id));
-      continue;
-    }
-    if (r.outcome !== "yes" && r.outcome !== "no") continue;
-    const b = brier(r.probability, r.outcome === "yes");
-    const correct = wasCorrect(r.probability, r.outcome === "yes");
-    await db
-      .update(predictions)
-      .set({
-        brier: b,
-        was_correct: correct,
-        resolved_at: r.resolved_at,
-      })
-      .where(eq(predictions.id, r.id));
-  }
+async function stampMarketPredictionScoring(marketId: string): Promise<void> {
+  await db.execute(sql`
+    update predictions as p
+    set
+      brier = case
+        when m.outcome = 'invalid' then null
+        when m.outcome = 'yes' then power(p.probability - 1.0, 2)::real
+        when m.outcome = 'no' then power(p.probability, 2)::real
+        else null
+      end,
+      was_correct = case
+        when m.outcome = 'yes' then p.probability > 0.5
+        when m.outcome = 'no' then p.probability < 0.5
+        else null
+      end,
+      resolved_at = case
+        when m.outcome in ('yes', 'no') then m.resolved_at
+        else null
+      end
+    from markets as m
+    where p.market_id = m.id
+      and m.id = ${marketId}
+      and m.resolved_at is not null
+  `);
 }
 
 /**
@@ -284,11 +300,30 @@ export async function recomputeUsersForMarket(
   const userIds = rows.map((r) => r.user_id);
   if (userIds.length === 0) return 0;
 
-  // Run sequentially. Phase 3 has small N; we can parallelise later.
-  for (const userId of userIds) {
-    await recomputeUserScore(userId);
-  }
+  await stampMarketPredictionScoring(marketId);
+  await recomputeUsers(userIds);
   return userIds.length;
 }
 
-void inArray; // reserved for batched updates in Phase 5
+export async function recomputeAllActiveUsers(): Promise<number> {
+  const rows = await db
+    .selectDistinct({ user_id: predictions.user_id })
+    .from(predictions)
+    .innerJoin(markets, eq(predictions.market_id, markets.id))
+    .where(and(isNotNull(markets.resolved_at), ne(markets.outcome, "invalid")));
+
+  const userIds = rows.map((row) => row.user_id);
+  await recomputeUsers(userIds);
+  return userIds.length;
+}
+
+async function recomputeUsers(userIds: string[]): Promise<void> {
+  for (let index = 0; index < userIds.length; index += RECOMPUTE_CONCURRENCY) {
+    const batch = userIds.slice(index, index + RECOMPUTE_CONCURRENCY);
+    await Promise.all(
+      batch.map((userId) =>
+        recomputeUserScore(userId, { stampPredictions: false }),
+      ),
+    );
+  }
+}

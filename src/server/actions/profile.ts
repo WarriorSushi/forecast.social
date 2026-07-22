@@ -79,7 +79,7 @@ export async function completeOnboarding(
     .where(eq(users.id, user.id));
 
   revalidatePath("/", "layout");
-  redirect("/feed");
+  redirect("/markets?sort=closing-soon");
 }
 
 /* =====================================================================

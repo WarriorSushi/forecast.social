@@ -90,11 +90,13 @@ Decay applies as a multiplier. A user who hasn't predicted in 3 months keeps hal
 
 ```
 let forecast_score =
-  round(
+  clamp(0, 3000,
+    round(
     shrunk_skill
     * (1 + streak_bonus)
     * decay
     * 3000
+    )
   )
 ```
 
@@ -129,7 +131,7 @@ For per-category ranks, do the same `dense_rank` per category.
 ## 10. When to recompute
 
 - **On market resolution:** recompute every affected user's score.
-- **Nightly cron (Inngest scheduled function):** recompute *every* ranked user's score to apply decay and rank shifts. Runs at 03:00 UTC.
+- **Nightly cron (Vercel Cron):** recompute every active forecaster's score to apply decay and rank shifts. `GET /api/cron/recompute-scores` runs at 03:00 UTC and requires `CRON_SECRET` bearer authentication.
 
 Recompute is idempotent. Always read predictions fresh, never trust the stored score.
 
@@ -194,7 +196,7 @@ export function computeForecastScore(input: {
     (1 + streakBonus(input.currentStreak)) *
     decayFor(input.daysIdle) *
     SCALE;
-  return Math.round(score);
+  return Math.min(SCALE, Math.max(0, Math.round(score)));
 }
 ```
 

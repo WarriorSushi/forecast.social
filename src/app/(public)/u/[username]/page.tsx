@@ -3,7 +3,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { db } from "@/lib/db";
 import {
   follows,
@@ -14,6 +13,7 @@ import {
 import { getCurrentProfile } from "@/lib/auth";
 import { ForecastScoreHero } from "@/components/profile/forecast-score-hero";
 import { FollowButton } from "@/components/profile/follow-button";
+import { ShareProfileButton } from "@/components/profile/share-profile-button";
 import { EmptyState } from "@/components/app/empty-state";
 import { JsonLd } from "@/components/seo/json-ld";
 import { env } from "@/lib/env";
@@ -61,52 +61,67 @@ export default async function ProfilePage({
   const me = await getCurrentProfile();
   const isOwn = me?.id === profile.id;
 
-  // Follower / following counts and the viewer's relationship to this
-  // profile. All three queries are tiny — index hits on (followee_id)
-  // and the composite PK.
-  const [followerAgg] = await db
-    .select({ count: sql<number>`COUNT(*)` })
-    .from(follows)
-    .where(eq(follows.followee_id, profile.id));
-  const followerCount = Number(followerAgg?.count ?? 0);
-
-  const [followingAgg] = await db
-    .select({ count: sql<number>`COUNT(*)` })
-    .from(follows)
-    .where(eq(follows.follower_id, profile.id));
-  const followingCount = Number(followingAgg?.count ?? 0);
-
-  let viewerFollows = false;
-  if (me && !isOwn) {
-    const [existing] = await db
-      .select({ follower_id: follows.follower_id })
-      .from(follows)
-      .where(
-        and(
-          eq(follows.follower_id, me.id),
-          eq(follows.followee_id, profile.id),
+  // These reads are independent and share indexes, so keep the public profile
+  // to one database round after identity/auth instead of a sequential chain.
+  const [followerRows, followingRows, viewerRows, resolvedRows, history] =
+    await Promise.all([
+      db
+        .select({ count: sql<number>`COUNT(*)` })
+        .from(follows)
+        .where(eq(follows.followee_id, profile.id)),
+      db
+        .select({ count: sql<number>`COUNT(*)` })
+        .from(follows)
+        .where(eq(follows.follower_id, profile.id)),
+      me && !isOwn
+        ? db
+            .select({ follower_id: follows.follower_id })
+            .from(follows)
+            .where(
+              and(
+                eq(follows.follower_id, me.id),
+                eq(follows.followee_id, profile.id),
+              ),
+            )
+            .limit(1)
+        : Promise.resolve([]),
+      db
+        .select({
+          resolved_count: sql<number>`COUNT(DISTINCT ${markets.id})`.as(
+            "resolved_count",
+          ),
+        })
+        .from(predictions)
+        .innerJoin(markets, eq(predictions.market_id, markets.id))
+        .where(
+          and(
+            eq(predictions.user_id, profile.id),
+            isNotNull(markets.resolved_at),
+            ne(markets.outcome, "invalid"),
+          ),
         ),
-      )
-      .limit(1);
-    viewerFollows = !!existing;
-  }
+      db
+        .select({
+          id: predictions.id,
+          probability: predictions.probability,
+          consensus_at_time: predictions.consensus_at_time,
+          created_at: predictions.created_at,
+          market_slug: markets.slug,
+          market_title: markets.title,
+          market_outcome: markets.outcome,
+          market_resolved_at: markets.resolved_at,
+        })
+        .from(predictions)
+        .innerJoin(markets, eq(predictions.market_id, markets.id))
+        .where(eq(predictions.user_id, profile.id))
+        .orderBy(desc(predictions.created_at))
+        .limit(25),
+    ]);
 
-  // Resolved-prediction count gates the public Forecast Score. Only
-  // counts non-invalid resolved markets, matching SCORING.md §8.
-  const [resolvedAgg] = await db
-    .select({
-      resolved_count: sql<number>`COUNT(DISTINCT ${markets.id})`.as("resolved_count"),
-    })
-    .from(predictions)
-    .innerJoin(markets, eq(predictions.market_id, markets.id))
-    .where(
-      and(
-        eq(predictions.user_id, profile.id),
-        isNotNull(markets.resolved_at),
-        ne(markets.outcome, "invalid"),
-      ),
-    );
-  const resolvedCount = Number(resolvedAgg?.resolved_count ?? 0);
+  const followerCount = Number(followerRows[0]?.count ?? 0);
+  const followingCount = Number(followingRows[0]?.count ?? 0);
+  const viewerFollows = viewerRows.length > 0;
+  const resolvedCount = Number(resolvedRows[0]?.resolved_count ?? 0);
 
   // Rank: dense rank over users.forecast_score desc among ranked users.
   // We pull the user's rank only if they're ranked themselves.
@@ -125,27 +140,6 @@ export default async function ProfilePage({
       .where(gt(users.forecast_score, profile.forecast_score));
     rank = Number(rankAgg?.rank ?? 1);
   }
-
-  // Profile prediction history — pulls the latest 25 calls across all
-  // markets, with the market title + consensus snapshot for context.
-  // Status pill derives from the market state: resolved + outcome
-  // versus the user's call gives correct/missed; otherwise pending.
-  const history = await db
-    .select({
-      id: predictions.id,
-      probability: predictions.probability,
-      consensus_at_time: predictions.consensus_at_time,
-      created_at: predictions.created_at,
-      market_slug: markets.slug,
-      market_title: markets.title,
-      market_outcome: markets.outcome,
-      market_resolved_at: markets.resolved_at,
-    })
-    .from(predictions)
-    .innerJoin(markets, eq(predictions.market_id, markets.id))
-    .where(eq(predictions.user_id, profile.id))
-    .orderBy(desc(predictions.created_at))
-    .limit(25);
 
   const baseUrl = env.NEXT_PUBLIC_SITE_URL.replace(/\/+$/, "");
   const profileLd = {
@@ -193,12 +187,18 @@ export default async function ProfilePage({
                 @{profile.username}
               </p>
             </div>
-            {me && !isOwn ? (
-              <FollowButton
-                targetUserId={profile.id}
-                initialIsFollowing={viewerFollows}
+            <div className="flex shrink-0 items-center gap-2">
+              {me && !isOwn ? (
+                <FollowButton
+                  targetUserId={profile.id}
+                  initialIsFollowing={viewerFollows}
+                />
+              ) : null}
+              <ShareProfileButton
+                username={profile.username}
+                displayName={profile.display_name}
               />
-            ) : null}
+            </div>
           </div>
           <div className="mt-2 flex items-center gap-4 text-body-sm text-muted-foreground">
             <span>

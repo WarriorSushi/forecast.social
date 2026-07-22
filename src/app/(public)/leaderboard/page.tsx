@@ -91,7 +91,7 @@ export default async function LeaderboardPage({
         </h1>
       </header>
 
-      <nav className="flex flex-wrap items-center gap-2 mb-8">
+      <nav className="scrollbar-none -mx-5 mb-8 flex flex-nowrap items-center gap-2 overflow-x-auto px-5 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
         <Pill href="/leaderboard" active={activeCategory === "all"}>
           All
         </Pill>
@@ -187,8 +187,8 @@ function Pill({
       href={href}
       className={
         active
-          ? "inline-flex items-center px-3 h-8 rounded-full text-body-sm font-medium bg-foreground text-background"
-          : "inline-flex items-center px-3 h-8 rounded-full text-body-sm font-medium bg-muted text-muted-foreground hover:text-foreground transition-colors"
+          ? "inline-flex shrink-0 items-center px-3 h-8 rounded-full text-body-sm font-medium bg-foreground text-background"
+          : "inline-flex shrink-0 items-center px-3 h-8 rounded-full text-body-sm font-medium bg-muted text-muted-foreground hover:text-foreground transition-colors"
       }
     >
       {children}

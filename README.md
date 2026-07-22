@@ -25,6 +25,7 @@ cp .env.example .env.local
 
 pnpm migrate          # apply Drizzle migrations
 pnpm dev              # http://localhost:3000
+pnpm check            # lint + generated route types + TypeScript + tests
 ```
 
 You'll need a Supabase project (free tier works). See `docs/PRODUCTION.md` for which Supabase keys go where.
@@ -50,6 +51,9 @@ pnpm tsx scripts/seed-test-predictions.ts # resolved test predictions for the ad
 ## Deploy
 
 See `docs/PRODUCTION.md` for the full Vercel + Supabase production checklist.
+
+Score decay is refreshed nightly by the authenticated Vercel Cron route. Run
+`pnpm scores:recompute` locally for an idempotent manual backfill.
 
 ## Documentation
 

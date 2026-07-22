@@ -10,7 +10,7 @@ export function AppMobileHeader({
   unreadNotifications?: number;
 }) {
   return (
-    <header className="lg:hidden sticky top-0 z-30 backdrop-blur-[10px] bg-background/90 border-b border-border">
+    <header className="lg:hidden sticky top-0 z-30 bg-background border-b border-border">
       <div className="flex items-center justify-between h-14 px-5">
         <Link
           href="/feed"

@@ -45,7 +45,7 @@ export default async function PublicLayout({
     return (
       <div className="min-h-screen bg-background">
         <AppMobileHeader unreadNotifications={unread} />
-        <div className="mx-auto w-full max-w-[1120px] lg:flex lg:gap-10 lg:px-8">
+        <div className="mx-auto w-full max-w-[1320px] lg:flex lg:gap-12 lg:px-8">
           <AppRail
             profile={profile}
             unreadNotifications={unread}
@@ -62,11 +62,11 @@ export default async function PublicLayout({
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="sticky top-0 z-30 backdrop-blur-[10px] bg-background/80 border-b border-border/60">
+      <header className="sticky top-0 z-30 bg-background border-b border-border/60">
         <div className="mx-auto w-full max-w-[1120px] flex items-center justify-between px-5 sm:px-8 h-14">
           <Link
             href="/"
-            className="font-stylized text-title font-semibold leading-none tracking-tight hover:opacity-90 transition-opacity"
+            className="shrink-0 font-stylized text-title font-semibold leading-none tracking-tight hover:opacity-90 transition-opacity"
           >
             forecast<span className="text-accent">.</span>social
           </Link>
@@ -79,7 +79,7 @@ export default async function PublicLayout({
             </Link>
             <Link
               href="/sign-in"
-              className="text-body-sm text-muted-foreground hover:text-foreground transition-colors px-3 h-9 inline-flex items-center"
+              className="hidden sm:inline-flex text-body-sm text-muted-foreground hover:text-foreground transition-colors px-3 h-9 items-center"
             >
               Sign in
             </Link>
@@ -88,7 +88,10 @@ export default async function PublicLayout({
               size="sm"
               className="rounded-full px-4 h-9 font-medium"
             >
-              <Link href="/sign-up">Get started</Link>
+              <Link href="/sign-up">
+                <span className="sm:hidden">Join</span>
+                <span className="hidden sm:inline">Get started</span>
+              </Link>
             </Button>
             <ThemeToggle />
           </nav>
@@ -102,7 +105,7 @@ export default async function PublicLayout({
           <p className="font-stylized text-title font-semibold text-foreground leading-none tracking-tight">
             forecast<span className="text-accent">.</span>social
           </p>
-          <p className="text-overline">© 2026 · bet your reputation, not your money</p>
+          <p className="text-overline">© 2026 · say it before it happens</p>
         </div>
       </footer>
     </div>

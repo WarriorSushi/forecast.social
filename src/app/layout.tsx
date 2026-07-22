@@ -27,24 +27,24 @@ export const metadata: Metadata = {
     process.env.NEXT_PUBLIC_SITE_URL || "https://forecast.social",
   ),
   title: {
-    default: "forecast.social · be right. get famous.",
+    default: "forecast.social · say it before it happens",
     template: "%s · forecast.social",
   },
   description:
-    "Bet your reputation. Not your money. forecast.social is the track-record social network — call probabilities on anything, build a permanent Forecast Score, never wager a cent.",
+    "Say it before it happens. Make probabilistic calls, build a permanent Forecast Score, and keep the receipt when the world catches up.",
   applicationName: "forecast.social",
   openGraph: {
-    title: "forecast.social — bet your reputation, not your money.",
+    title: "forecast.social · say it before it happens",
     description:
-      "The track-record social network. Call a probability on anything. Reputation compounds, money never enters the equation.",
+      "The track-record social network. Make a probability call, keep the timestamp, and build a public record nobody can rewrite.",
     type: "website",
     siteName: "forecast.social",
   },
   twitter: {
     card: "summary_large_image",
-    title: "forecast.social — bet your reputation, not your money.",
+    title: "forecast.social · say it before it happens",
     description:
-      "The track-record social network. Call a probability on anything. Reputation compounds, money never enters the equation.",
+      "Make a probability call, keep the timestamp, and build a public record nobody can rewrite.",
   },
   robots: {
     index: true,

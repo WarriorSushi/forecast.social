@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { desc } from "drizzle-orm";
+import { and, asc, desc, isNull, lte } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { markets } from "@/lib/db/schema";
@@ -9,20 +9,32 @@ import { EmptyState } from "@/components/app/empty-state";
 export const metadata = { title: "Admin · Markets" };
 
 export default async function AdminMarketsPage() {
-  const rows = await db
-    .select({
-      id: markets.id,
-      slug: markets.slug,
-      title: markets.title,
-      category_slug: markets.category_slug,
-      closes_at: markets.closes_at,
-      resolved_at: markets.resolved_at,
-      outcome: markets.outcome,
-      created_at: markets.created_at,
-    })
-    .from(markets)
-    .orderBy(desc(markets.created_at))
-    .limit(100);
+  const currentTime = new Date();
+  const selection = {
+    id: markets.id,
+    slug: markets.slug,
+    title: markets.title,
+    category_slug: markets.category_slug,
+    closes_at: markets.closes_at,
+    resolved_at: markets.resolved_at,
+    outcome: markets.outcome,
+    created_at: markets.created_at,
+  };
+
+  const [rows, awaitingResolution] = await Promise.all([
+    db
+      .select(selection)
+      .from(markets)
+      .orderBy(desc(markets.created_at))
+      .limit(100),
+    db
+      .select(selection)
+      .from(markets)
+      .where(
+        and(isNull(markets.resolved_at), lte(markets.closes_at, currentTime)),
+      )
+      .orderBy(asc(markets.closes_at)),
+  ]);
 
   return (
     <div className="mx-auto w-full max-w-[1080px] py-10 sm:py-14 flex flex-col gap-12">
@@ -44,6 +56,47 @@ export default async function AdminMarketsPage() {
         <CreateMarketForm />
       </section>
 
+      {awaitingResolution.length > 0 ? (
+        <section className="rounded-2xl border border-border-strong bg-muted/50 p-5 sm:p-6">
+          <div className="mb-5 flex items-start justify-between gap-4">
+            <div>
+              <p className="text-overline text-muted-foreground mb-2">
+                action required
+              </p>
+              <h2 className="font-display text-headline text-foreground">
+                Resolve closed markets.
+              </h2>
+            </div>
+            <span className="font-mono text-headline tabular-nums text-foreground">
+              {awaitingResolution.length}
+            </span>
+          </div>
+          <ul>
+            {awaitingResolution.map((market) => (
+              <li
+                key={market.id}
+                className="flex items-center justify-between gap-4 border-t border-border py-3 first:border-t-0 first:pt-0 last:pb-0"
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-body font-medium text-foreground">
+                    {market.title}
+                  </p>
+                  <p className="font-mono text-caption text-muted-foreground">
+                    closed {formatDate(market.closes_at)}
+                  </p>
+                </div>
+                <Link
+                  href={`/markets/${market.slug}`}
+                  className="shrink-0 text-body-sm font-medium text-foreground hover:underline"
+                >
+                  Resolve →
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
       <section>
         <div className="flex items-end justify-between border-b border-border pb-4 mb-6">
           <h2 className="font-display text-headline text-foreground">
@@ -64,7 +117,7 @@ export default async function AdminMarketsPage() {
             {rows.map((m) => (
               <li
                 key={m.id}
-                className="grid grid-cols-[1fr_120px_120px_80px] gap-4 items-center py-3 border-b border-border last:border-b-0"
+                className="grid grid-cols-[1fr_72px] sm:grid-cols-[1fr_120px_120px_80px] gap-4 items-center py-3 border-b border-border last:border-b-0"
               >
                 <div className="min-w-0">
                   <Link
@@ -77,10 +130,10 @@ export default async function AdminMarketsPage() {
                     /{m.slug}
                   </p>
                 </div>
-                <span className="text-caption text-muted-foreground font-mono uppercase tracking-wider">
+                <span className="hidden sm:inline text-caption text-muted-foreground font-mono uppercase tracking-wider">
                   {m.category_slug}
                 </span>
-                <span className="text-caption text-muted-foreground font-mono tabular-nums">
+                <span className="hidden sm:inline text-caption text-muted-foreground font-mono tabular-nums">
                   {new Intl.DateTimeFormat("en-US", {
                     month: "short",
                     day: "2-digit",
@@ -91,6 +144,7 @@ export default async function AdminMarketsPage() {
                   resolvedAt={m.resolved_at}
                   outcome={m.outcome}
                   closesAt={m.closes_at}
+                  now={currentTime}
                 />
               </li>
             ))}
@@ -105,13 +159,13 @@ function StatusPill({
   resolvedAt,
   outcome,
   closesAt,
+  now,
 }: {
   resolvedAt: Date | null;
   outcome: string | null;
   closesAt: Date;
+  now: Date;
 }) {
-  // eslint-disable-next-line react-hooks/purity -- intentional in RSC
-  const now = Date.now();
   if (resolvedAt && outcome) {
     const tone =
       outcome === "yes"
@@ -127,7 +181,7 @@ function StatusPill({
       </span>
     );
   }
-  if (new Date(closesAt).getTime() < now) {
+  if (new Date(closesAt).getTime() < now.getTime()) {
     return (
       <span className="inline-flex items-center px-2 py-0.5 rounded-full text-caption font-mono bg-muted text-muted-foreground">
         closed
@@ -139,4 +193,12 @@ function StatusPill({
       open
     </span>
   );
+}
+
+function formatDate(date: Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(new Date(date));
 }

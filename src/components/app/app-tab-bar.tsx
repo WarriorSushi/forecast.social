@@ -13,7 +13,7 @@ export function AppTabBar({ username }: { username: string }) {
   return (
     <nav
       aria-label="Primary"
-      className="lg:hidden fixed inset-x-0 bottom-0 z-30 backdrop-blur-[10px] bg-background/85 border-t border-border"
+      className="lg:hidden fixed inset-x-0 bottom-0 z-30 bg-background border-t border-border"
     >
       <div className="mx-auto w-full max-w-screen-sm grid grid-cols-4 h-16">
         {items.map((item) => (

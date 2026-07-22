@@ -113,6 +113,20 @@
       "when": 1778840000000,
       "tag": "0015_avatars_storage",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1784720461918,
+      "tag": "0016_p0_security_hardening",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1784722275786,
+      "tag": "0017_discovery_search_indexes",
+      "breakpoints": true
     }
   ]
 }

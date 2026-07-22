@@ -36,7 +36,7 @@ export default function MarketingLayout({
               size="sm"
               className="rounded-full px-4 h-9 font-medium"
             >
-              <Link href="/sign-up">Get started</Link>
+              <Link href="/sign-up">Make a call</Link>
             </Button>
             <ThemeToggle />
           </nav>
@@ -50,7 +50,7 @@ export default function MarketingLayout({
           <p className="font-stylized text-title font-semibold text-foreground leading-none tracking-tight">
             forecast<span className="text-accent">.</span>social
           </p>
-          <p className="text-overline">© 2026 · bet your reputation, not your money</p>
+          <p className="text-overline">© 2026 · say it before it happens</p>
         </div>
       </footer>
     </div>

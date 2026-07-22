@@ -41,7 +41,7 @@ export default async function CheckEmailPage({
 
       <div className="flex flex-col gap-3 text-body-sm text-muted-foreground">
         <p>
-          The link opens this site signed in. If you don't see the email
+          The link opens this site signed in. If you don&apos;t see the email
           within a minute, check your spam folder.
         </p>
         <ResendConfirmation email={email} action={resendConfirmation} />

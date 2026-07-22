@@ -149,6 +149,12 @@ function categoryLabel(slug: string) {
     crypto: "Crypto",
     sports: "Sports",
     "pop-culture": "Pop culture",
+    science: "Science",
+    business: "Business",
+    climate: "Climate",
+    gaming: "Gaming",
+    entertainment: "Entertainment",
+    music: "Music",
   };
   return map[slug] ?? slug;
 }

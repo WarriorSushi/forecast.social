@@ -13,7 +13,7 @@ import {
 } from "@/lib/db/schema";
 import { getCurrentProfile } from "@/lib/auth";
 import { recomputeUsersForMarket } from "@/lib/scoring/recompute";
-import { createNotification } from "@/lib/notifications";
+import { createNotifications } from "@/lib/notifications";
 import { wasCorrect } from "@/lib/scoring/score";
 
 const schema = z.object({
@@ -124,17 +124,22 @@ export async function resolveMarket(formData: FormData): Promise<ResolveResult> 
       )
       .orderBy(predictions.user_id, desc(predictions.created_at));
 
-    for (const p of allPreds) {
-      const correct = wasCorrect(p.probability, parsed.data.outcome === "yes");
-      await createNotification(p.user_id, {
-        kind: "market_resolved",
-        market_slug: marketRow.slug,
-        market_title: marketRow.title,
-        outcome: parsed.data.outcome,
-        user_call: p.probability,
-        was_correct: correct,
-      });
-    }
+    await createNotifications(
+      allPreds.map((p) => ({
+        userId: p.user_id,
+        payload: {
+          kind: "market_resolved" as const,
+          market_slug: marketRow.slug,
+          market_title: marketRow.title,
+          outcome: parsed.data.outcome,
+          user_call: p.probability,
+          was_correct: wasCorrect(
+            p.probability,
+            parsed.data.outcome === "yes",
+          ),
+        },
+      })),
+    );
   }
 
   revalidatePath(`/markets/${market.slug}`);

@@ -24,7 +24,7 @@ export default async function SignUpPage({
   return (
     <CredentialsForm
       action={signUp}
-      title="Stake your reputation."
+      title="Start your record."
       subtitle={
         env.INVITE_CODES_REQUIRED
           ? "Create an account with your invite code. Loud opinions, public record."

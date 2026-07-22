@@ -12,7 +12,6 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { AnimatedNumber } from "@/components/aceternity/animated-number";
 import {
   BentoGrid,
   BentoGridItem,
@@ -180,21 +179,21 @@ function Hero() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-x-10 xl:gap-x-16 gap-y-16 lg:gap-y-0 items-start">
         <div className="lg:col-span-7 flex flex-col">
           <h1 className="font-display font-extrabold text-foreground text-[40px] sm:text-[56px] lg:text-[72px] xl:text-[80px] leading-[0.98] tracking-[-0.04em]">
-            Bet your reputation.
+            Say it before
             <br />
-            <span className="text-muted-foreground">Not your money.</span>
+            <span className="text-muted-foreground">it happens.</span>
           </h1>
 
           <p className="font-stylized italic text-[22px] sm:text-[24px] lg:text-[26px] leading-[1.18] text-muted-foreground max-w-2xl mt-5 sm:mt-6">
-            Be early. Be right.{" "}
+            Make the call.{" "}
             <span className="text-foreground not-italic font-medium font-sans">
-              Be famous for it.
+              Keep the receipt.
             </span>
           </p>
 
           <p className="mt-7 text-body-lg text-muted-foreground max-w-md">
-            Call a probability on anything. Your accuracy compounds into a
-            permanent, public{" "}
+            Put a probability and timestamp behind what you believe. Every
+            resolved call compounds into a permanent, public{" "}
             <span className="text-foreground font-medium">Forecast Score</span>{" "}
             nobody can fake.
           </p>
@@ -206,12 +205,12 @@ function Hero() {
               className="h-14 px-7 text-base rounded-full"
             >
               <Link href="/sign-up" className="group">
-                Start a record
+                Make your first call
                 <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
               </Link>
             </Button>
             <p className="text-body-sm text-muted-foreground sm:pl-3">
-              Free. No card. Loud opinions welcome.
+              Free. No money at risk. Every call stays public.
             </p>
           </div>
         </div>
@@ -298,10 +297,9 @@ function ProfileCard() {
         <div className="flex flex-col gap-2">
           <p className="text-overline text-muted-foreground">forecast score</p>
           <div className="flex items-baseline gap-2">
-            <AnimatedNumber
-              to={2471}
-              className="font-display font-extrabold text-foreground text-[64px] sm:text-[72px] leading-none tabular-nums tracking-[-0.035em]"
-            />
+            <span className="font-display font-extrabold text-foreground text-[64px] sm:text-[72px] leading-none tabular-nums tracking-[-0.035em]">
+              2,471
+            </span>
             <span className="font-mono text-caption text-muted-foreground tabular-nums">
               / 3,000
             </span>
@@ -788,11 +786,11 @@ function ProofShowcase() {
             <p className="mt-7 text-body-lg text-muted-foreground max-w-md">
               Every correct call generates a shareable card. Crypto-clean
               numbers, the timestamp it was locked, the consensus at the time,
-              the resolved outcome. Permanent. Public. Unfakeable.
+              the resolved outcome. Permanent. Public. Verifiable.
             </p>
             <ul className="mt-7 flex flex-col gap-3 text-body-sm">
               <ProofPoint label="Locked at submission, never edited." />
-              <ProofPoint label="Hashed and timestamped." />
+              <ProofPoint label="Timestamped the moment it lands." />
               <ProofPoint label="One PNG. Goes anywhere." />
             </ul>
           </div>
@@ -1117,7 +1115,7 @@ function Categories({
               href="/markets?sort=most-predicted"
               className="text-foreground font-medium hover:underline underline-offset-4"
             >
-              See what's hot →
+              See what&apos;s hot →
             </Link>
             <Link
               href="/markets/propose"
@@ -1164,17 +1162,8 @@ function CategoryFooter({
 /* ==============================================================
    6. Leaderboard preview
 ============================================================== */
-const LEADERBOARD_FALLBACK: LeaderRow[] = [
-  { username: "itoldyouso", forecast_score: 2471, current_streak: 47 },
-  { username: "quanttrader", forecast_score: 2402, current_streak: 22 },
-  { username: "oddsbot", forecast_score: 2358, current_streak: 5 },
-  { username: "bayesfan", forecast_score: 2294, current_streak: 14 },
-  { username: "basecase", forecast_score: 2240, current_streak: 9 },
-];
-
 function Leaderboard({ leaders }: { leaders: LeaderRow[] }) {
   const isLive = leaders.length > 0;
-  const rows = isLive ? leaders : LEADERBOARD_FALLBACK;
 
   return (
     <section className="border-t border-border/60">
@@ -1183,7 +1172,7 @@ function Leaderboard({ leaders }: { leaders: LeaderRow[] }) {
           <div className="lg:col-span-5">
             <h2 className="font-display text-display-md sm:text-display-lg text-foreground leading-[0.98] tracking-[-0.035em]">
               The proven.{" "}
-              <span className="text-muted-foreground">Updated nightly.</span>
+              <span className="text-muted-foreground">Recomputed nightly.</span>
             </h2>
             <p className="mt-7 text-body-lg text-muted-foreground max-w-md">
               Rank lifts the highest-accuracy forecasters into the spotlight.
@@ -1198,24 +1187,42 @@ function Leaderboard({ leaders }: { leaders: LeaderRow[] }) {
                 <ArrowRight className="size-3.5" />
               </Link>
               <span className="font-mono text-caption text-muted-foreground">
-                {isLive ? "live top 5" : "preview · seed data"}
+                {isLive ? "live top 5" : "first places are open"}
               </span>
             </div>
           </div>
 
           <div className="lg:col-span-7">
-            <div className="rounded-2xl border border-border bg-surface overflow-hidden">
-              {rows.map((u, i) => (
-                <LeaderboardRow
-                  key={u.username}
-                  rank={i + 1}
-                  handle={u.username}
-                  score={u.forecast_score}
-                  streak={u.current_streak}
-                  highlight={i === 0}
-                />
-              ))}
-            </div>
+            {isLive ? (
+              <div className="rounded-2xl border border-border bg-surface overflow-hidden">
+                {leaders.map((u, i) => (
+                  <LeaderboardRow
+                    key={u.username}
+                    rank={i + 1}
+                    handle={u.username}
+                    score={u.forecast_score}
+                    streak={u.current_streak}
+                    highlight={i === 0}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-border-strong bg-surface p-8 sm:p-10">
+                <p className="font-display text-headline text-foreground">
+                  The board is waiting for proof.
+                </p>
+                <p className="mt-3 max-w-md text-body text-muted-foreground">
+                  Five resolved calls unlock a public score. The earliest
+                  forecasters get to set the number everyone else has to beat.
+                </p>
+                <Link
+                  href="/markets"
+                  className="mt-6 inline-flex text-body-sm font-medium text-foreground hover:underline"
+                >
+                  Start climbing →
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </Container>
@@ -1290,7 +1297,7 @@ function NotBetting() {
               "You deposit cash.",
               "Odds tilted toward the house.",
               "Wins get withdrawn. Losses get chased.",
-              "Banned in most jurisdictions.",
+              "Access depends on local law.",
             ]}
           />
           <ComparePanel
@@ -1300,7 +1307,7 @@ function NotBetting() {
               "You enter a probability.",
               "Score is math, not a market.",
               "Reputation compounds. Mistakes stay public.",
-              "Legal everywhere. Ethical by design.",
+              "No wagers or money flow by design.",
             ]}
           />
         </div>

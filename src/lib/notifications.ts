@@ -56,11 +56,21 @@ export async function createNotification(
   userId: string,
   payload: NotificationPayload,
 ): Promise<void> {
-  await db.insert(notifications).values({
-    user_id: userId,
-    kind: payload.kind as NotificationKind,
-    payload,
-  });
+  await createNotifications([{ userId, payload }]);
+}
+
+export async function createNotifications(
+  entries: { userId: string; payload: NotificationPayload }[],
+): Promise<void> {
+  if (entries.length === 0) return;
+
+  await db.insert(notifications).values(
+    entries.map(({ userId, payload }) => ({
+      user_id: userId,
+      kind: payload.kind as NotificationKind,
+      payload,
+    })),
+  );
 }
 
 /**

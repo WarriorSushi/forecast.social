@@ -1,13 +1,12 @@
 import Link from "next/link";
 
-import { AnimatedNumber } from "@/components/aceternity/animated-number";
 import { Button } from "@/components/ui/button";
 
 /**
  * The killer artifact on every profile per PRD §6 and DESIGN.md §6
  * "Forecast Score (the brand asset)". Big Geist 800 number with /3000,
- * count-up via AnimatedNumber, Top-X% pill in indigo if applicable,
- * streak in green. Falls back to "Unranked" before the volume gate.
+ * exact static score, Top-X% pill if applicable, and streak in green.
+ * Falls back to "Unranked" before the volume gate.
  */
 export function ForecastScoreHero({
   score,
@@ -69,11 +68,9 @@ export function ForecastScoreHero({
       </div>
 
       <div className="flex items-baseline gap-3">
-        <AnimatedNumber
-          to={score}
-          duration={1.4}
-          className="font-display font-extrabold text-foreground text-display-lg sm:text-display-xl leading-none tabular-nums"
-        />
+        <span className="font-display font-extrabold text-foreground text-display-lg sm:text-display-xl leading-none tabular-nums">
+          {score.toLocaleString()}
+        </span>
         <span className="font-mono text-body-sm text-muted-foreground tabular-nums">
           / 3,000
         </span>

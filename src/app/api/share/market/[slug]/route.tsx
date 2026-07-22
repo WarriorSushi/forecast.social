@@ -59,7 +59,7 @@ export async function GET(
           padding: 72,
           background: "#0f1115",
           color: "#fafbff",
-          fontFamily: "Inter, system-ui, sans-serif",
+          fontFamily: "Arial, sans-serif",
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between" }}>

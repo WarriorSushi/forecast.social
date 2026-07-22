@@ -4,7 +4,6 @@ import {
   Compass,
   LayoutGrid,
   MessageSquarePlus,
-  Plus,
   Trophy,
   type LucideIcon,
 } from "lucide-react";
@@ -13,8 +12,6 @@ export type NavItem = {
   href: string;
   label: string;
   Icon: LucideIcon;
-  /** When true, the tab-bar rendering treats this as a primary action. */
-  emphasised?: boolean;
   /**
    * Extra pathname patterns that should also light this item up. The
    * Profile item points at /u/<username>, but the rail and tab bar also
@@ -33,22 +30,21 @@ export type NavItem = {
  * (rather than a constant) so the href is always the current user's
  * profile, never stale.
  *
- * The Leaderboard item is desktopOnly — the mobile tab bar stays at the
- * 4 items DESIGN.md prescribes (Feed / Markets / Predict / Profile).
+ * The mobile tab bar stays at four distinct destinations. Prediction starts
+ * in Markets, so a separate Predict tab would only duplicate navigation.
  */
 export function getNavItems(username: string): readonly NavItem[] {
   return [
     { href: "/feed",          label: "Feed",          Icon: Compass },
     { href: "/markets",       label: "Markets",       Icon: LayoutGrid },
+    { href: "/leaderboard",   label: "Leaderboard",   Icon: Trophy },
     {
       href: "/markets/propose",
       label: "Propose",
       Icon: MessageSquarePlus,
       desktopOnly: true,
     },
-    { href: "/leaderboard",   label: "Leaderboard",   Icon: Trophy, desktopOnly: true },
     { href: "/notifications", label: "Notifications", Icon: Bell,   desktopOnly: true },
-    { href: "/predict",       label: "Predict",       Icon: Plus, emphasised: true },
     {
       href: `/u/${username}`,
       label: "Profile",

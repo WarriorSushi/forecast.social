@@ -5,9 +5,10 @@ import { and, eq, isNull } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "@/lib/db";
-import { invite_codes } from "@/lib/db/schema";
+import { invite_codes, users } from "@/lib/db/schema";
 import { env } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { AuthState } from "@/server/actions/auth.types";
 
 const credsSchema = z.object({
@@ -93,11 +94,41 @@ export async function signUp(
     };
   }
 
+  // Supabase deliberately returns an obfuscated user for an existing email
+  // when confirmation is enabled. Surface a useful response and, critically,
+  // do not consume an invite for that case.
+  if (data.user?.identities?.length === 0) {
+    return {
+      error: "An account already exists for that email. Try signing in.",
+      email: parsed.data.email,
+    };
+  }
+
   if (validCodeRow && data.user) {
-    await db
+    // Claim in one conditional write. The earlier lookup is only for a
+    // friendly response; this WHERE clause is the actual concurrency gate.
+    const [claimed] = await db
       .update(invite_codes)
       .set({ used_by: data.user.id, used_at: new Date() })
-      .where(eq(invite_codes.code, validCodeRow.code));
+      .where(
+        and(
+          eq(invite_codes.code, validCodeRow.code),
+          isNull(invite_codes.used_by),
+        ),
+      )
+      .returning({ code: invite_codes.code });
+
+    if (!claimed) {
+      // Another signup won the race. Remove the just-created account so the
+      // person can retry with a different invite instead of getting stranded.
+      await db.delete(users).where(eq(users.id, data.user.id));
+      const admin = createSupabaseAdminClient();
+      await admin.auth.admin.deleteUser(data.user.id);
+      return {
+        error: "That invite code has already been used.",
+        email: parsed.data.email,
+      };
+    }
   }
 
   // With "Confirm email" ON, signUp returns no session — the user has

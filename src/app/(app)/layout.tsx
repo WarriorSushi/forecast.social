@@ -37,7 +37,7 @@ export default async function AppLayout({
   return (
     <div className="min-h-screen bg-background">
       <AppMobileHeader unreadNotifications={unread} />
-      <div className="mx-auto w-full max-w-[1120px] lg:flex lg:gap-10 lg:px-8">
+      <div className="mx-auto w-full max-w-[1320px] lg:flex lg:gap-12 lg:px-8">
         <AppRail
           profile={profile}
           unreadNotifications={unread}

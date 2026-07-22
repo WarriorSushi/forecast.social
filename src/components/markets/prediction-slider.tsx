@@ -4,6 +4,7 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
 import { Slider as SliderPrimitive } from "radix-ui";
+import { track } from "@vercel/analytics";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -59,10 +60,14 @@ export function PredictionSlider({
     lastNotifiedAt.current = state.status;
     if (state.status === "success") {
       toast.success(`Locked in at ${Math.round(state.probability * 100)}%.`);
+      track("prediction_created", {
+        probability: Math.round(state.probability * 100),
+        is_reprediction: hasPrevious,
+      });
     } else if (state.status === "error") {
       toast.error(state.message);
     }
-  }, [state]);
+  }, [hasPrevious, state]);
 
   const valuePct = Math.round(value);
   const consensusPct = consensus != null ? Math.round(consensus * 100) : null;

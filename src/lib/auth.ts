@@ -2,6 +2,7 @@ import "server-only";
 
 import { cache } from "react";
 import { eq } from "drizzle-orm";
+import { cookies } from "next/headers";
 
 import { db } from "@/lib/db";
 import { users, type User } from "@/lib/db/schema";
@@ -14,6 +15,12 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
  */
 
 export const getAuthUser = cache(async () => {
+  const cookieStore = await cookies();
+  const hasAuthCookie = cookieStore
+    .getAll()
+    .some(({ name }) => name.startsWith("sb-") && name.includes("-auth-token"));
+  if (!hasAuthCookie) return null;
+
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
