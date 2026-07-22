@@ -215,7 +215,7 @@ export async function configureMarketResolution(
     status: "success",
     message:
       method === "http_json"
-        ? "Automatic resolution is active. The source will be checked hourly."
+        ? "Automatic resolution is active. The source will be checked every day."
         : "This market now uses manual review.",
   };
 }

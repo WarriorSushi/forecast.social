@@ -9,7 +9,7 @@
     },
     {
       "path": "/api/cron/resolve-markets",
-      "schedule": "17 * * * *"
+      "schedule": "17 2 * * *"
     }
   ]
 }
