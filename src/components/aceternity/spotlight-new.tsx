@@ -30,9 +30,9 @@ const DEFAULTS: Required<SpotlightProps> = {
   // not as a brand color. Same OKLCH range as our --border-strong and
   // --muted-foreground tokens; the gradient adapts to either theme
   // because the eye reads the alpha falloff, not the hue.
-  gradientFirst: `radial-gradient(68.54% 68.72% at 55.02% 31.46%, oklch(75% 0.01 250 / 0.07) 0, oklch(60% 0.01 250 / 0.025) 50%, oklch(50% 0.01 250 / 0) 80%)`,
-  gradientSecond: `radial-gradient(50% 50% at 50% 50%, oklch(75% 0.01 250 / 0.05) 0, oklch(60% 0.01 250 / 0.02) 80%, transparent 100%)`,
-  gradientThird: `radial-gradient(50% 50% at 50% 50%, oklch(75% 0.01 250 / 0.03) 0, oklch(50% 0.01 250 / 0.01) 80%, transparent 100%)`,
+  gradientFirst: `radial-gradient(68.54% 68.72% at 55.02% 31.46%, oklch(75% 0.012 250 / 0.16) 0, oklch(60% 0.012 250 / 0.07) 50%, oklch(50% 0.01 250 / 0) 80%)`,
+  gradientSecond: `radial-gradient(50% 50% at 50% 50%, oklch(75% 0.012 250 / 0.12) 0, oklch(60% 0.01 250 / 0.045) 80%, transparent 100%)`,
+  gradientThird: `radial-gradient(50% 50% at 50% 50%, oklch(75% 0.01 250 / 0.08) 0, oklch(50% 0.01 250 / 0.025) 80%, transparent 100%)`,
   translateY: -350,
   width: 560,
   height: 1380,
@@ -43,14 +43,23 @@ const DEFAULTS: Required<SpotlightProps> = {
 };
 
 const AMBIENT_POINTS = [
+  { left: "3%", top: "48%", delay: "-1s", duration: "21s" },
   { left: "8%", top: "24%", delay: "-9s", duration: "18s" },
+  { left: "12%", top: "84%", delay: "-15s", duration: "26s" },
   { left: "17%", top: "67%", delay: "-3s", duration: "22s" },
+  { left: "23%", top: "42%", delay: "-7s", duration: "19s" },
   { left: "29%", top: "15%", delay: "-14s", duration: "24s" },
+  { left: "35%", top: "54%", delay: "-2s", duration: "23s" },
   { left: "41%", top: "77%", delay: "-6s", duration: "20s" },
+  { left: "49%", top: "9%", delay: "-12s", duration: "25s" },
   { left: "56%", top: "31%", delay: "-17s", duration: "26s" },
+  { left: "61%", top: "88%", delay: "-4s", duration: "18s" },
   { left: "68%", top: "71%", delay: "-11s", duration: "21s" },
+  { left: "73%", top: "45%", delay: "-8s", duration: "24s" },
   { left: "79%", top: "18%", delay: "-5s", duration: "23s" },
+  { left: "85%", top: "81%", delay: "-16s", duration: "27s" },
   { left: "91%", top: "58%", delay: "-13s", duration: "25s" },
+  { left: "96%", top: "29%", delay: "-10s", duration: "20s" },
 ] as const;
 
 export const SpotlightNew = (props: SpotlightProps = {}) => {
@@ -87,10 +96,10 @@ export const SpotlightNew = (props: SpotlightProps = {}) => {
     >
       {showField ? (
         <div className="forecast-ambient-field absolute inset-0">
-          {AMBIENT_POINTS.map((point) => (
+          {AMBIENT_POINTS.map((point, index) => (
             <span
               key={`${point.left}-${point.top}`}
-              className="forecast-ambient-point"
+              className={`forecast-ambient-point ${index % 4 === 0 ? "forecast-ambient-point-ring" : ""}`}
               style={{
                 left: point.left,
                 top: point.top,

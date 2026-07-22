@@ -2,6 +2,7 @@ import Link from "next/link";
 import { and, asc, desc, eq, gt, isNull } from "drizzle-orm";
 import {
   ArrowRight,
+  ArrowUpRight,
   Atom,
   Bitcoin,
   Check,
@@ -12,10 +13,6 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  BentoGrid,
-  BentoGridItem,
-} from "@/components/aceternity/bento-grid";
 import { SpotlightNew } from "@/components/aceternity/spotlight-new";
 import { db } from "@/lib/db";
 import { markets, users } from "@/lib/db/schema";
@@ -1017,100 +1014,114 @@ function Categories({
   const techAi = highlights["tech-ai"];
   const techAiOthers =
     techAi && techAi.others.length > 0 ? techAi.others : TECH_AI_OTHERS_FALLBACK;
+  const secondaryCategories = [
+    {
+      index: "02",
+      slug: "crypto" as const,
+      name: "Crypto",
+      icon: Bitcoin,
+      live: highlights.crypto,
+    },
+    {
+      index: "03",
+      slug: "sports" as const,
+      name: "Sports",
+      icon: Trophy,
+      live: highlights.sports,
+    },
+    {
+      index: "04",
+      slug: "pop-culture" as const,
+      name: "Pop culture",
+      icon: Tv,
+      live: highlights["pop-culture"],
+    },
+  ];
+
   return (
     <section className="border-t border-border/60 bg-muted/40">
       <Container className="py-24 sm:py-32">
         <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-14">
           <div className="max-w-2xl">
             <h2 className="text-balance font-display text-[36px] font-extrabold leading-[1] tracking-[-0.035em] text-foreground sm:text-[48px] lg:text-[60px]">
-              Markets for{" "}
-              <span className="text-muted-foreground">everything you read.</span>
+              Pick your arena.
             </h2>
           </div>
           <p className="text-body-lg text-muted-foreground max-w-sm">
-            A focused set of resolvable questions, chosen for clarity. Your
-            category score updates with each call.
+            Technology, markets, sport, culture. Clear questions with public
+            outcomes, selected to settle arguments rather than extend them.
           </p>
         </div>
 
-        <BentoGrid>
-          <BentoGridItem
-            className="md:col-span-2 md:row-span-3 bg-surface"
-            icon={<Atom className="size-6" strokeWidth={1.5} />}
-            title="Tech & AI"
-            header={
-              <div className="flex flex-col gap-4">
-                <p className="text-overline text-muted-foreground">
-                  also live
-                </p>
-                <ul className="flex flex-col">
-                  {techAiOthers.map((title, i) => (
+        <div className="overflow-hidden rounded-[28px] border border-border bg-surface shadow-card">
+          <div className="grid lg:grid-cols-[1.22fr_0.78fr]">
+            <article className="market-map-feature relative isolate flex min-h-[500px] flex-col overflow-hidden p-7 text-[var(--feature-foreground)] sm:p-10 lg:p-12">
+              <div className="relative z-10 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="grid size-10 place-items-center rounded-full border border-[var(--feature-border)] bg-[var(--feature-soft)]">
+                    <Atom className="size-5" strokeWidth={1.5} />
+                  </span>
+                  <div>
+                    <p className="text-overline text-[var(--feature-muted)]">featured arena</p>
+                    <p className="mt-0.5 text-body-sm font-medium text-[var(--feature-foreground)]">
+                      Tech &amp; AI
+                    </p>
+                  </div>
+                </div>
+                <span className="font-mono text-caption text-[var(--feature-muted)] tabular-nums">
+                  01 / 04
+                </span>
+              </div>
+
+              <div className="relative z-10 my-auto py-8 sm:py-10">
+                <p className="text-overline text-[var(--feature-muted)]">call on the board</p>
+                <Link
+                  href="/markets?category=tech-ai"
+                  className="group mt-4 block max-w-[27rem]"
+                >
+                  <h3 className="font-display text-[30px] font-bold leading-[1.06] tracking-[-0.03em] text-[var(--feature-foreground)] sm:text-[34px]">
+                    {categoryLine("tech-ai", techAi)}
+                  </h3>
+                  <span className="mt-6 inline-flex items-center gap-2 text-body-sm font-medium text-[var(--feature-foreground)]">
+                    Browse Tech &amp; AI
+                    <ArrowUpRight className="size-4 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                  </span>
+                </Link>
+              </div>
+
+              <div className="relative z-10 border-t border-[var(--feature-border)] pt-5">
+                <div className="mb-2 flex items-center justify-between">
+                  <p className="text-overline text-[var(--feature-faint)]">also live</p>
+                  <span className="font-mono text-caption text-[var(--feature-faint)]">
+                    {marketCountLabel(techAi)}
+                  </span>
+                </div>
+                <ul>
+                  {techAiOthers.map((title, index) => (
                     <li
-                      key={`${i}-${title}`}
-                      className="flex items-baseline gap-3 py-2.5 border-b border-border last:border-b-0"
+                      key={title}
+                      className="grid grid-cols-[28px_1fr] gap-3 border-t border-[var(--feature-rule)] py-2.5 first:border-t-0"
                     >
-                      <span className="font-mono text-caption text-muted-foreground tabular-nums shrink-0">
-                        {String(i + 2).padStart(2, "0")}
+                      <span className="font-mono text-caption text-[var(--feature-faint)] tabular-nums">
+                        {String(index + 2).padStart(2, "0")}
                       </span>
-                      <span className="text-body-sm text-foreground leading-[1.5] line-clamp-2">
+                      <span className="line-clamp-1 text-body-sm text-[var(--feature-muted)]">
                         {title}
                       </span>
                     </li>
                   ))}
                 </ul>
               </div>
-            }
-            description={
-              <span className="text-body text-muted-foreground">
-                <span className="font-mono text-caption text-foreground tabular-nums mr-2">
-                  01
-                </span>
-                {categoryLine("tech-ai", techAi)}
-              </span>
-            }
-            footer={<CategoryFooter slug="tech-ai" live={techAi} />}
-          />
-          <BentoGridItem
-            icon={<Bitcoin className="size-5" strokeWidth={1.5} />}
-            title="Crypto"
-            description={
-              <span className="text-muted-foreground">
-                {categoryLine("crypto", highlights.crypto)}
-              </span>
-            }
-            footer={<CategoryFooter slug="crypto" live={highlights.crypto} />}
-          />
-          <BentoGridItem
-            icon={<Trophy className="size-5" strokeWidth={1.5} />}
-            title="Sports"
-            description={
-              <span className="text-muted-foreground">
-                {categoryLine("sports", highlights.sports)}
-              </span>
-            }
-            footer={<CategoryFooter slug="sports" live={highlights.sports} />}
-          />
-          <BentoGridItem
-            icon={<Tv className="size-5" strokeWidth={1.5} />}
-            title="Pop culture"
-            description={
-              <span className="text-muted-foreground">
-                {categoryLine("pop-culture", highlights["pop-culture"])}
-              </span>
-            }
-            footer={
-              <CategoryFooter
-                slug="pop-culture"
-                live={highlights["pop-culture"]}
-              />
-            }
-          />
-        </BentoGrid>
+            </article>
 
-        {/* Meta strip — what to do beyond browsing the four categories.
-            Was previously two bento cells competing for space with the
-            category cells; pulled out as a thin text-only band so the
-            Bento can stay focused on the four real categories. */}
+            <div className="grid grid-rows-3 divide-y divide-border">
+              {secondaryCategories.map((category) => (
+                <CategoryIndexRow key={category.slug} {...category} />
+              ))}
+            </div>
+          </div>
+        </div>
+
         <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-border pt-6">
           <p className="font-mono text-caption text-muted-foreground">
             {totals.openMarkets} open markets across {totals.totalCategories}{" "}
@@ -1151,27 +1162,49 @@ function Categories({
   );
 }
 
-function CategoryFooter({
+function CategoryIndexRow({
+  index,
   slug,
+  name,
+  icon: Icon,
   live,
 }: {
+  index: string;
   slug: CategoryHighlight["slug"];
+  name: string;
+  icon: typeof Bitcoin;
   live: CategoryHighlight | null;
 }) {
-  const count = live?.prediction_count ?? 0;
   return (
-    <div className="flex items-baseline justify-between gap-3 border-t border-border pt-3">
-      <span className="font-mono text-caption text-muted-foreground">
-        {count > 0 ? `${count} call${count === 1 ? "" : "s"}` : "open"}
+    <Link
+      href={`/markets?category=${slug}`}
+      className="group grid min-h-[166px] grid-cols-[36px_1fr_auto] gap-4 p-6 transition-colors duration-200 hover:bg-muted/60 sm:min-h-[170px] sm:gap-5 sm:p-8"
+    >
+      <span className="font-mono text-caption text-muted-foreground tabular-nums">
+        {index}
       </span>
-      <Link
-        href={`/markets?category=${slug}`}
-        className="font-mono text-caption text-foreground hover:underline underline-offset-4"
-      >
-        browse →
-      </Link>
-    </div>
+      <div className="min-w-0">
+        <div className="flex items-center gap-2.5">
+          <Icon className="size-4 text-muted-foreground" strokeWidth={1.5} />
+          <h3 className="font-display text-title font-bold text-foreground">
+            {name}
+          </h3>
+        </div>
+        <p className="mt-4 line-clamp-2 max-w-[32ch] text-body text-muted-foreground">
+          {categoryLine(slug, live)}
+        </p>
+        <p className="mt-4 font-mono text-caption text-muted-foreground">
+          {marketCountLabel(live)}
+        </p>
+      </div>
+      <ArrowUpRight className="mt-0.5 size-4 text-muted-foreground transition duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-foreground" />
+    </Link>
   );
+}
+
+function marketCountLabel(live: CategoryHighlight | null) {
+  const count = live?.prediction_count ?? 0;
+  return count > 0 ? `${count} call${count === 1 ? "" : "s"}` : "open now";
 }
 
 /* ==============================================================

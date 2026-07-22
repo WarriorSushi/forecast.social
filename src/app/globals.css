@@ -40,6 +40,7 @@
   --radius:               0.75rem;
 
   --ambient-point:        oklch(36% 0.015 255 / 0.28);
+  --ambient-grid:         oklch(36% 0.012 255 / 0.12);
 }
 
 /* =====================================================================
@@ -80,6 +81,7 @@
   --ring:                 oklch(97% 0.004 250);
 
   --ambient-point:        oklch(86% 0.012 250 / 0.22);
+  --ambient-grid:         oklch(86% 0.010 250 / 0.10);
 }
 
 /* =====================================================================
@@ -254,6 +256,16 @@
     mask-image: linear-gradient(to bottom, transparent, black 12%, black 82%, transparent);
   }
 
+  .forecast-ambient-field::before {
+    position: absolute;
+    inset: 0;
+    content: "";
+    background-image: radial-gradient(circle, var(--ambient-grid) 1px, transparent 1.25px);
+    background-size: 42px 42px;
+    background-position: center;
+    opacity: 0.7;
+  }
+
   .forecast-ambient-point {
     position: absolute;
     width: 2px;
@@ -261,6 +273,26 @@
     border-radius: 999px;
     background: var(--ambient-point);
     animation: forecast-ambient-drift 20s cubic-bezier(0.22, 1, 0.36, 1) infinite alternate;
+  }
+
+  .forecast-ambient-point-ring {
+    width: 6px;
+    height: 6px;
+    border: 1px solid var(--ambient-point);
+    background: transparent;
+  }
+
+  .market-map-feature {
+    --feature-foreground: oklch(97% 0.004 250);
+    --feature-muted: oklch(97% 0.004 250 / 0.68);
+    --feature-faint: oklch(97% 0.004 250 / 0.44);
+    --feature-border: oklch(97% 0.004 250 / 0.16);
+    --feature-rule: oklch(97% 0.004 250 / 0.10);
+    --feature-soft: oklch(97% 0.004 250 / 0.06);
+    background-color: oklch(18% 0.018 260);
+    background-image:
+      radial-gradient(circle at 86% 18%, transparent 0 54px, oklch(94% 0.01 250 / 0.10) 55px 56px, transparent 57px 96px, oklch(94% 0.01 250 / 0.065) 97px 98px, transparent 99px),
+      linear-gradient(135deg, transparent 0 58%, oklch(94% 0.01 250 / 0.035) 58.1% 58.3%, transparent 58.4%);
   }
 
   .scrollbar-none {
