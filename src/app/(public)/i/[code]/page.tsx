@@ -91,7 +91,7 @@ export default async function InviteLandingPage({ params }: { params: Promise<Pa
           </Button>
         ) : (
           <Button asChild size="lg">
-            <Link href="/early-access">Request early access</Link>
+            <Link href="/early-access">Request an invitation</Link>
           </Button>
         )}
         {invite.marketSlug ? (

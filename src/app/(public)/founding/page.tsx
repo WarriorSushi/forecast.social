@@ -35,7 +35,7 @@ export default async function FoundingForecastersPage() {
           Three permanent calls earn a permanent founding number. These are the people who arrived before the scoreboard mattered.
         </p>
         <Button asChild size="lg" className="mt-8">
-          <Link href="/early-access">Request early access</Link>
+          <Link href="/early-access">Request an invitation</Link>
         </Button>
       </header>
 
