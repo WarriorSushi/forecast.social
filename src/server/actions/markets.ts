@@ -7,6 +7,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { markets } from "@/lib/db/schema";
 import { getCurrentProfile } from "@/lib/auth";
+import { parseHttpJsonResolutionConfig } from "@/lib/resolution/evaluate";
 import type { CreateMarketState } from "./markets.types";
 
 const ALLOWED_CATEGORIES = [
@@ -136,4 +137,85 @@ export async function createMarket(
   revalidatePath("/markets");
 
   return { status: "success", slug };
+}
+
+export type ConfigureResolutionResult =
+  | { status: "success"; message: string }
+  | { status: "error"; message: string };
+
+export async function configureMarketResolution(
+  formData: FormData,
+): Promise<ConfigureResolutionResult> {
+  const profile = await getCurrentProfile();
+  if (!profile?.is_admin) {
+    return { status: "error", message: "Admin only." };
+  }
+
+  const marketId = formData.get("marketId")?.toString() ?? "";
+  const method = formData.get("method")?.toString() ?? "manual";
+  if (!z.string().uuid().safeParse(marketId).success) {
+    return { status: "error", message: "Invalid market." };
+  }
+  if (method !== "manual" && method !== "http_json") {
+    return { status: "error", message: "Unsupported resolution method." };
+  }
+
+  let config: ReturnType<typeof parseHttpJsonResolutionConfig> | null = null;
+  if (method === "http_json") {
+    const expectedType = formData.get("expectedType")?.toString();
+    const expectedRaw = formData.get("expected")?.toString() ?? "";
+    let expected: string | number | boolean = expectedRaw;
+    if (expectedType === "number") {
+      expected = Number(expectedRaw);
+      if (!Number.isFinite(expected)) {
+        return { status: "error", message: "Expected value must be a number." };
+      }
+    } else if (expectedType === "boolean") {
+      if (expectedRaw !== "true" && expectedRaw !== "false") {
+        return { status: "error", message: "Boolean must be true or false." };
+      }
+      expected = expectedRaw === "true";
+    }
+
+    try {
+      config = parseHttpJsonResolutionConfig({
+        url: formData.get("url")?.toString() ?? "",
+        path: formData.get("path")?.toString() ?? "",
+        operator: formData.get("operator")?.toString() ?? "eq",
+        expected,
+        outcomeOnMatch: formData.get("outcomeOnMatch")?.toString() ?? "yes",
+        outcomeOnMiss: formData.get("outcomeOnMiss")?.toString() ?? "no",
+        resolveEarlyOnMatch: formData.get("resolveEarlyOnMatch") === "on",
+        label: formData.get("label")?.toString() || undefined,
+      });
+    } catch (error) {
+      return {
+        status: "error",
+        message: error instanceof Error ? error.message : "Invalid automation settings.",
+      };
+    }
+  }
+
+  const [updated] = await db
+    .update(markets)
+    .set({
+      resolution_method: method,
+      resolution_config: config,
+      resolution_status: "pending",
+      resolution_evidence: null,
+      resolution_checked_at: null,
+    })
+    .where(eq(markets.id, marketId))
+    .returning({ slug: markets.slug });
+
+  if (!updated) return { status: "error", message: "Market not found." };
+  revalidatePath("/admin/markets");
+  revalidatePath(`/markets/${updated.slug}`);
+  return {
+    status: "success",
+    message:
+      method === "http_json"
+        ? "Automatic resolution is active. The source will be checked hourly."
+        : "This market now uses manual review.",
+  };
 }

@@ -1,0 +1,4 @@
+.checkpoints/
+*.png
+dev.log
+.playwright-mcp/

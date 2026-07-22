@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Inbox, Pencil, Ticket } from "lucide-react";
+import { ChartNoAxesColumn, Inbox, Pencil, Ticket } from "lucide-react";
 
 import { getNavItems, type NavItem } from "@/components/app/nav-items";
 import { UserMenu } from "@/components/app/user-menu";
@@ -14,6 +14,7 @@ const ADMIN_ITEMS: readonly NavItem[] = [
   { href: "/admin/markets", label: "Markets", Icon: Pencil },
   { href: "/admin/proposals", label: "Proposals", Icon: Inbox },
   { href: "/admin/invites", label: "Invites", Icon: Ticket },
+  { href: "/admin/growth", label: "Growth", Icon: ChartNoAxesColumn },
 ];
 
 export function AppRail({

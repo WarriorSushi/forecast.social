@@ -27,6 +27,7 @@ export const getPredictionReceipt = cache(async (id: string) => {
       market_resolves_at: markets.resolves_at,
       resolution_source: markets.resolution_source,
       user_username: users.username,
+      user_id: users.id,
       user_display_name: users.display_name,
       user_avatar_url: users.avatar_url,
     })

@@ -20,7 +20,7 @@ export default function AuthLayout({
         <ThemeToggle />
       </header>
       <main className="flex-1 flex items-start sm:items-center justify-center px-5 sm:px-8 pb-12 pt-4 sm:pt-0">
-        <div className="w-full max-w-[420px]">
+        <div className="w-full max-w-[780px]">
           <AuthTabs />
           {children}
         </div>

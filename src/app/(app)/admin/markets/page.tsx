@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { and, asc, desc, isNull, lte } from "drizzle-orm";
+import { and, asc, desc, inArray, isNull, lte } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { markets } from "@/lib/db/schema";
@@ -18,6 +18,9 @@ export default async function AdminMarketsPage() {
     closes_at: markets.closes_at,
     resolved_at: markets.resolved_at,
     outcome: markets.outcome,
+    resolves_at: markets.resolves_at,
+    resolution_method: markets.resolution_method,
+    resolution_status: markets.resolution_status,
     created_at: markets.created_at,
   };
 
@@ -31,9 +34,13 @@ export default async function AdminMarketsPage() {
       .select(selection)
       .from(markets)
       .where(
-        and(isNull(markets.resolved_at), lte(markets.closes_at, currentTime)),
+        and(
+          isNull(markets.resolved_at),
+          lte(markets.resolves_at, currentTime),
+          inArray(markets.resolution_status, ["review", "failed", "pending"]),
+        ),
       )
-      .orderBy(asc(markets.closes_at)),
+      .orderBy(asc(markets.resolves_at)),
   ]);
 
   return (
@@ -64,7 +71,7 @@ export default async function AdminMarketsPage() {
                 action required
               </p>
               <h2 className="font-display text-headline text-foreground">
-                Resolve closed markets.
+                Review unresolved markets.
               </h2>
             </div>
             <span className="font-mono text-headline tabular-nums text-foreground">
@@ -82,7 +89,7 @@ export default async function AdminMarketsPage() {
                     {market.title}
                   </p>
                   <p className="font-mono text-caption text-muted-foreground">
-                    closed {formatDate(market.closes_at)}
+                    {market.resolution_status} · due {formatDate(market.resolves_at)}
                   </p>
                 </div>
                 <Link
@@ -144,6 +151,8 @@ export default async function AdminMarketsPage() {
                   resolvedAt={m.resolved_at}
                   outcome={m.outcome}
                   closesAt={m.closes_at}
+                  resolutionMethod={m.resolution_method}
+                  resolutionStatus={m.resolution_status}
                   now={currentTime}
                 />
               </li>
@@ -159,11 +168,15 @@ function StatusPill({
   resolvedAt,
   outcome,
   closesAt,
+  resolutionMethod,
+  resolutionStatus,
   now,
 }: {
   resolvedAt: Date | null;
   outcome: string | null;
   closesAt: Date;
+  resolutionMethod: string;
+  resolutionStatus: string;
   now: Date;
 }) {
   if (resolvedAt && outcome) {
@@ -184,13 +197,13 @@ function StatusPill({
   if (new Date(closesAt).getTime() < now.getTime()) {
     return (
       <span className="inline-flex items-center px-2 py-0.5 rounded-full text-caption font-mono bg-muted text-muted-foreground">
-        closed
+        {resolutionStatus === "failed" ? "failed" : "review"}
       </span>
     );
   }
   return (
     <span className="inline-flex items-center px-2 py-0.5 rounded-full text-caption font-mono bg-accent/12 text-accent">
-      open
+      {resolutionMethod === "http_json" ? "auto" : "open"}
     </span>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Slider as SliderPrimitive } from "radix-ui";
 import { track } from "@vercel/analytics";
@@ -48,6 +49,7 @@ export function PredictionSlider({
   disabledReason?: string;
 }) {
   const [value, setValue] = useState(initialValue);
+  const router = useRouter();
   const [isDragging, setIsDragging] = useState(false);
   const [state, formAction] = useActionState<SubmitPredictionState, FormData>(
     submitPrediction,
@@ -59,15 +61,20 @@ export function PredictionSlider({
     if (state.status === lastNotifiedAt.current) return;
     lastNotifiedAt.current = state.status;
     if (state.status === "success") {
-      toast.success(`Locked in at ${Math.round(state.probability * 100)}%.`);
+      toast.success(
+        state.inviteUnlocked
+          ? `Locked in. Invite ${state.inviteCredits} of 5 unlocked.`
+          : `Locked in at ${Math.round(state.probability * 100)}%.`,
+      );
       track("prediction_created", {
         probability: Math.round(state.probability * 100),
         is_reprediction: hasPrevious,
       });
+      router.refresh();
     } else if (state.status === "error") {
       toast.error(state.message);
     }
-  }, [hasPrevious, state]);
+  }, [hasPrevious, router, state]);
 
   const valuePct = Math.round(value);
   const consensusPct = consensus != null ? Math.round(consensus * 100) : null;

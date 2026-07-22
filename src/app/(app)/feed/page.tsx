@@ -34,13 +34,26 @@ import { VOLUME_GATE } from "@/lib/scoring/score";
 
 export const metadata = { title: "Feed" };
 
+type Horizon = "daily" | "weekly" | "monthly" | "yearly" | "long-term";
+const HORIZONS: Array<{ value: Horizon; label: string }> = [
+  { value: "daily", label: "Daily" },
+  { value: "weekly", label: "Weekly" },
+  { value: "monthly", label: "Monthly" },
+  { value: "yearly", label: "Yearly" },
+  { value: "long-term", label: "Long term" },
+];
+
 const FOLLOW_WINDOW_HOURS = 48;
 const TRENDING_WINDOW_HOURS = 24;
 const BOLD_CALL_THRESHOLD_LOW = 0.15;
 const BOLD_CALL_THRESHOLD_HIGH = 0.85;
 const BOLD_CALL_CATEGORY_SCORE_MIN = 1800;
 
-export default async function FeedPage() {
+export default async function FeedPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ horizon?: string }>;
+}) {
   const me = await getCurrentProfile();
   if (!me) {
     return (
@@ -59,6 +72,11 @@ export default async function FeedPage() {
   // Server-component reads of Date.now() are per-request, not per-render.
   // eslint-disable-next-line react-hooks/purity -- intentional in RSC
   const now = Date.now();
+  const params = await searchParams;
+  const horizon = HORIZONS.some((item) => item.value === params.horizon)
+    ? (params.horizon as Horizon)
+    : "yearly";
+  const horizonCondition = getHorizonCondition(horizon, now);
   const followCutoff = new Date(now - FOLLOW_WINDOW_HOURS * 3600_000);
   const trendingCutoff = new Date(now - TRENDING_WINDOW_HOURS * 3600_000);
 
@@ -142,6 +160,7 @@ export default async function FeedPage() {
       and(
         eq(follows.follower_id, me.id),
         gt(predictions.created_at, followCutoff),
+        ne(markets.discovery_state, "hidden"),
         lt(predictions.created_at, markets.closes_at),
         or(
           isNull(markets.resolved_at),
@@ -191,6 +210,9 @@ export default async function FeedPage() {
         lt(predictions.created_at, markets.closes_at),
         isNull(markets.resolved_at),
         gt(markets.closes_at, new Date()),
+        ne(markets.discovery_state, "hidden"),
+        eq(markets.discovery_state, "featured"),
+        horizonCondition,
       ),
     )
     .groupBy(predictions.market_id)
@@ -226,6 +248,8 @@ export default async function FeedPage() {
                 : sql`true`,
               isNull(markets.resolved_at),
               gt(markets.closes_at, new Date()),
+              eq(markets.discovery_state, "featured"),
+              horizonCondition,
             ),
           )
           .orderBy(markets.closes_at)
@@ -260,6 +284,7 @@ export default async function FeedPage() {
     .where(
       and(
         gt(predictions.created_at, boldWindow),
+        ne(markets.discovery_state, "hidden"),
         lt(predictions.created_at, markets.closes_at),
         or(
           isNull(markets.resolved_at),
@@ -284,7 +309,7 @@ export default async function FeedPage() {
             Your forecasting desk.
           </h1>
           <p className="mt-3 text-body text-muted-foreground max-w-xl">
-            Your record, the calls still in play, and the best next questions—together.
+            Your record, the calls still in play, and the best next questions together.
           </p>
         </div>
         <Button asChild size="lg" className="self-start sm:self-auto rounded-full">
@@ -309,11 +334,32 @@ export default async function FeedPage() {
             note={pendingCount === 1 ? "1 market awaiting an outcome" : `${pendingCount} markets awaiting outcomes`}
           />
           <DashboardStat
-            label="Current streak"
-            value={me.current_streak.toLocaleString()}
-            note={me.longest_streak > 0 ? `Best: ${me.longest_streak}` : "Build it one resolved call at a time"}
+            label="Invitations"
+            value={`${me.invite_credits}/5`}
+            note="One unlocks on each new market"
           />
         </div>
+      </section>
+
+      <section className="grid gap-5 border-y border-border py-6 sm:grid-cols-[1fr_auto] sm:items-center">
+        <div>
+          <p className="text-overline text-muted-foreground">
+            {me.founding_member_number
+              ? `founding forecaster #${me.founding_member_number}`
+              : "founding forecaster program"}
+          </p>
+          <h2 className="mt-2 font-display text-headline text-foreground">
+            {me.founding_member_number
+              ? "Your founding place is permanent."
+              : "Make three calls. Earn your founding number."}
+          </h2>
+          <p className="mt-1 text-body-sm text-muted-foreground">
+            Share a question with someone whose judgment you respect.
+          </p>
+        </div>
+        <Button asChild variant="outline" size="lg">
+          <Link href="/invites">Invite or challenge</Link>
+        </Button>
       </section>
 
       <FeedSection title="Your calls in play" eyebrow="latest call per market">
@@ -427,13 +473,28 @@ export default async function FeedPage() {
         )}
       </FeedSection>
 
-      <FeedSection title="Make your next call" eyebrow="open questions">
+      <FeedSection title="Make your next call" eyebrow="curated questions">
+        <nav aria-label="Forecast horizon" className="mb-5 flex gap-1 overflow-x-auto pb-1">
+          {HORIZONS.map((item) => (
+            <Link
+              key={item.value}
+              href={`/feed?horizon=${item.value}`}
+              className={`inline-flex h-9 shrink-0 items-center rounded-full px-4 text-body-sm transition-colors ${
+                item.value === horizon
+                  ? "bg-foreground text-background"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              }`}
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
         {trendingFinal.length === 0 ? (
           <EmptyState
             variant="lane"
-            title="Caught up."
-            body="No open markets need your call right now."
-            cta={{ label: "Browse all markets", href: "/markets" }}
+            title={`No ${horizonLabel(horizon).toLowerCase()} questions yet.`}
+            body="The shelf is deliberately small. Try another time horizon."
+            cta={{ label: "See all open markets", href: "/markets?status=open" }}
           />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
@@ -624,4 +685,24 @@ function relativeTime(date: Date) {
   if (h < 48) return `${h}h ago`;
   const d = Math.round(h / 24);
   return `${d}d ago`;
+}
+
+function getHorizonCondition(horizon: Horizon, now: number) {
+  const after = (days: number) => new Date(now + days * 24 * 60 * 60 * 1000);
+  switch (horizon) {
+    case "daily":
+      return lte(markets.closes_at, after(1));
+    case "weekly":
+      return and(gt(markets.closes_at, after(1)), lte(markets.closes_at, after(7)));
+    case "monthly":
+      return and(gt(markets.closes_at, after(7)), lte(markets.closes_at, after(31)));
+    case "yearly":
+      return and(gt(markets.closes_at, after(31)), lte(markets.closes_at, after(365)));
+    case "long-term":
+      return gt(markets.closes_at, after(365));
+  }
+}
+
+function horizonLabel(horizon: Horizon) {
+  return HORIZONS.find((item) => item.value === horizon)?.label ?? "Open";
 }

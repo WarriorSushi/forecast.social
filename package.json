@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "node scripts/clean-next-types.mjs && next typegen && tsc --noEmit",
-    "test": "node --import tsx --test src/lib/scoring/score.test.ts",
+    "test": "node --import tsx --test src/lib/scoring/score.test.ts src/lib/resolution/core.test.ts",
     "check": "pnpm lint && pnpm typecheck && pnpm test",
     "migrate": "tsx scripts/migrate.ts",
     "scores:recompute": "tsx scripts/recompute-all-scores.ts",

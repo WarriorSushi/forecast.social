@@ -24,7 +24,7 @@ export function AuthTabs() {
     <div
       role="tablist"
       aria-label="Authentication"
-      className="relative grid grid-cols-2 rounded-full border border-border bg-card p-1 mb-8"
+      className="relative mx-auto grid max-w-[420px] grid-cols-2 rounded-full border border-border bg-card p-1 mb-8"
     >
       {TABS.map((tab) => {
         const isActive = tab.href === active;

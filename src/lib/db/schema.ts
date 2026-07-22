@@ -9,6 +9,7 @@ import {
   real,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
@@ -35,6 +36,16 @@ export const users = pgTable(
     longest_streak: integer("longest_streak").notNull().default(0),
     is_admin: boolean("is_admin").notNull().default(false),
     onboarded_at: timestamp("onboarded_at", { withTimezone: true }),
+    onboarding_step: text("onboarding_step", {
+      enum: ["profile", "forecast", "complete"],
+    })
+      .notNull()
+      .default("profile"),
+    invite_credits: integer("invite_credits").notNull().default(0),
+    founding_member_number: integer("founding_member_number"),
+    founding_member_since: timestamp("founding_member_since", {
+      withTimezone: true,
+    }),
     created_at: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
@@ -51,6 +62,13 @@ export const users = pgTable(
       "users_username_format",
       sql`${table.username} ~ '^[a-z0-9_]{3,20}$'`,
     ),
+    check(
+      "users_invite_credits_range",
+      sql`${table.invite_credits} >= 0 AND ${table.invite_credits} <= 5`,
+    ),
+    uniqueIndex("users_founding_member_number_idx")
+      .on(table.founding_member_number)
+      .where(sql`${table.founding_member_number} is not null`),
   ],
 );
 
@@ -63,6 +81,25 @@ export const categories = pgTable("categories", {
   description: text("description"),
   sort_order: integer("sort_order").notNull().default(0),
 });
+
+export const user_interests = pgTable(
+  "user_interests",
+  {
+    user_id: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    category_slug: text("category_slug")
+      .notNull()
+      .references(() => categories.slug, { onDelete: "cascade" }),
+    created_at: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.user_id, table.category_slug] }),
+    index("user_interests_category_idx").on(table.category_slug),
+  ],
+);
 
 /* =====================================================================
    markets — resolvable prediction questions
@@ -91,6 +128,27 @@ export const markets = pgTable(
     outcome: text("outcome", { enum: ["yes", "no", "invalid"] }),
     prediction_count: integer("prediction_count").notNull().default(0),
     consensus_probability: real("consensus_probability"),
+    discovery_state: text("discovery_state", {
+      enum: ["featured", "standard", "hidden"],
+    })
+      .notNull()
+      .default("standard"),
+    onboarding_rank: integer("onboarding_rank"),
+    resolution_method: text("resolution_method", {
+      enum: ["manual", "http_json"],
+    })
+      .notNull()
+      .default("manual"),
+    resolution_config: jsonb("resolution_config"),
+    resolution_status: text("resolution_status", {
+      enum: ["pending", "review", "resolving", "resolved", "failed"],
+    })
+      .notNull()
+      .default("pending"),
+    resolution_evidence: jsonb("resolution_evidence"),
+    resolution_checked_at: timestamp("resolution_checked_at", {
+      withTimezone: true,
+    }),
     created_at: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
@@ -105,6 +163,14 @@ export const markets = pgTable(
     ),
     index("markets_resolves_at_idx").on(table.resolves_at),
     index("markets_created_at_idx").on(table.created_at.desc()),
+    index("markets_discovery_closes_idx").on(
+      table.discovery_state,
+      table.closes_at,
+    ),
+    index("markets_resolution_queue_idx").on(
+      table.resolution_status,
+      table.resolves_at,
+    ),
     check(
       "markets_closes_before_resolves",
       sql`${table.closes_at} <= ${table.resolves_at}`,
@@ -127,9 +193,11 @@ export const market_resolutions = pgTable(
       .notNull()
       .references(() => markets.id, { onDelete: "cascade" }),
     outcome: text("outcome", { enum: ["yes", "no", "invalid"] }).notNull(),
-    resolved_by: uuid("resolved_by")
+    resolved_by: uuid("resolved_by").references(() => users.id),
+    resolver: text("resolver", { enum: ["admin", "automation"] })
       .notNull()
-      .references(() => users.id),
+      .default("admin"),
+    evidence: jsonb("evidence"),
     notes: text("notes"),
     resolved_at: timestamp("resolved_at", { withTimezone: true })
       .defaultNow()
@@ -241,6 +309,12 @@ export const invite_codes = pgTable(
     }),
     used_at: timestamp("used_at", { withTimezone: true }),
     note: text("note"),
+    source_prediction_id: uuid("source_prediction_id").references(
+      () => predictions.id,
+      { onDelete: "set null" },
+    ),
+    expires_at: timestamp("expires_at", { withTimezone: true }),
+    activated_at: timestamp("activated_at", { withTimezone: true }),
     created_at: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
@@ -248,6 +322,120 @@ export const invite_codes = pgTable(
   (table) => [
     index("invite_codes_created_at_idx").on(table.created_at.desc()),
     index("invite_codes_used_by_idx").on(table.used_by),
+    index("invite_codes_source_prediction_idx").on(
+      table.source_prediction_id,
+    ),
+  ],
+);
+
+export const invite_grants = pgTable(
+  "invite_grants",
+  {
+    user_id: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    market_id: uuid("market_id")
+      .notNull()
+      .references(() => markets.id, { onDelete: "cascade" }),
+    prediction_id: uuid("prediction_id")
+      .notNull()
+      .references(() => predictions.id, { onDelete: "cascade" }),
+    granted_at: timestamp("granted_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.user_id, table.market_id] }),
+    uniqueIndex("invite_grants_prediction_idx").on(table.prediction_id),
+  ],
+);
+
+export const referrals = pgTable(
+  "referrals",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    invite_code: text("invite_code")
+      .notNull()
+      .references(() => invite_codes.code, { onDelete: "cascade" }),
+    inviter_id: uuid("inviter_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    invitee_id: uuid("invitee_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    source_prediction_id: uuid("source_prediction_id").references(
+      () => predictions.id,
+      { onDelete: "set null" },
+    ),
+    activated_at: timestamp("activated_at", { withTimezone: true }),
+    retained_at: timestamp("retained_at", { withTimezone: true }),
+    created_at: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("referrals_invite_code_idx").on(table.invite_code),
+    uniqueIndex("referrals_invitee_idx").on(table.invitee_id),
+    index("referrals_inviter_created_idx").on(
+      table.inviter_id,
+      table.created_at.desc(),
+    ),
+  ],
+);
+
+export const early_access_applications = pgTable(
+  "early_access_applications",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    email: text("email").notNull(),
+    handle: text("handle"),
+    interests: text("interests").array().notNull().default(sql`'{}'::text[]`),
+    prediction: text("prediction"),
+    source: text("source"),
+    status: text("status", {
+      enum: ["pending", "invited", "joined", "declined"],
+    })
+      .notNull()
+      .default("pending"),
+    created_at: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updated_at: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("early_access_email_idx").on(sql`lower(${table.email})`),
+    index("early_access_status_created_idx").on(
+      table.status,
+      table.created_at.desc(),
+    ),
+  ],
+);
+
+export const growth_events = pgTable(
+  "growth_events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    event: text("event").notNull(),
+    user_id: uuid("user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    invite_code: text("invite_code"),
+    metadata: jsonb("metadata").notNull().default(sql`'{}'::jsonb`),
+    created_at: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("growth_events_event_created_idx").on(
+      table.event,
+      table.created_at.desc(),
+    ),
+    index("growth_events_user_created_idx").on(
+      table.user_id,
+      table.created_at.desc(),
+    ),
   ],
 );
 
@@ -430,6 +618,7 @@ export const notifications = pgTable(
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Category = typeof categories.$inferSelect;
+export type UserInterest = typeof user_interests.$inferSelect;
 export type Market = typeof markets.$inferSelect;
 export type NewMarket = typeof markets.$inferInsert;
 export type MarketResolution = typeof market_resolutions.$inferSelect;
@@ -448,3 +637,8 @@ export type NewMarketProposal = typeof market_proposals.$inferInsert;
 export type ProposalStatus = MarketProposal["status"];
 export type InviteCode = typeof invite_codes.$inferSelect;
 export type NewInviteCode = typeof invite_codes.$inferInsert;
+export type InviteGrant = typeof invite_grants.$inferSelect;
+export type Referral = typeof referrals.$inferSelect;
+export type EarlyAccessApplication =
+  typeof early_access_applications.$inferSelect;
+export type GrowthEvent = typeof growth_events.$inferSelect;

@@ -197,6 +197,11 @@ export default async function ProfilePage({
               <p className="font-mono text-body-sm text-muted-foreground mt-1">
                 @{profile.username}
               </p>
+              {profile.founding_member_number ? (
+                <span className="mt-3 inline-flex items-center rounded-full border border-border px-2.5 py-1 font-mono text-caption text-foreground">
+                  Founding Forecaster #{profile.founding_member_number}
+                </span>
+              ) : null}
             </div>
             <div className="flex shrink-0 items-center gap-2">
               {me && !isOwn ? (

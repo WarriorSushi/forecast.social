@@ -12,9 +12,11 @@ import { initialOnboardingState } from "@/server/actions/profile.types";
 export function OnboardingForm({
   defaultUsername,
   defaultDisplayName,
+  topics,
 }: {
   defaultUsername?: string;
   defaultDisplayName?: string;
+  topics: Array<{ slug: string; name: string }>;
 }) {
   const [state, formAction] = useActionState(
     completeOnboarding,
@@ -51,6 +53,31 @@ export function OnboardingForm({
         </p>
       </div>
 
+      <fieldset className="flex flex-col gap-3">
+        <legend className="text-overline text-muted-foreground">
+          What do you follow?
+        </legend>
+        <p className="text-caption text-muted-foreground">
+          Choose 2–4. This only picks your starter questions.
+        </p>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          {topics.map((topic) => (
+            <label
+              key={topic.slug}
+              className="flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-border px-3 text-body-sm text-foreground transition-colors has-[:checked]:border-foreground has-[:checked]:bg-muted"
+            >
+              <input
+                type="checkbox"
+                name="interests"
+                value={topic.slug}
+                className="size-4 accent-current"
+              />
+              {topic.name}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
       <div className="flex flex-col gap-2">
         <Label htmlFor="displayName" className="text-overline text-muted-foreground">
           Display name
@@ -82,7 +109,7 @@ function SubmitButton() {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" size="lg" disabled={pending} className="h-12 mt-2">
-      {pending ? "Claiming…" : "Claim handle"}
+      {pending ? "Saving…" : "Choose my questions"}
     </Button>
   );
 }

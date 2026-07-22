@@ -8,6 +8,7 @@ import {
   ilike,
   isNull,
   lt,
+  ne,
   or,
   sql,
 } from "drizzle-orm";
@@ -38,6 +39,7 @@ export default async function MarketsListPage({
     sort?: string;
     q?: string;
     page?: string;
+    view?: string;
   }>;
 }) {
   const params = await searchParams;
@@ -45,6 +47,7 @@ export default async function MarketsListPage({
   const activeSort: SortKey =
     params.sort && params.sort in SORTS ? (params.sort as SortKey) : DEFAULT_SORT;
   const query = (params.q ?? "").trim().slice(0, 100);
+  const activeView = params.view === "all" ? "all" : "featured";
   const requestedPage = Math.max(1, Number.parseInt(params.page ?? "1", 10) || 1);
   const currentTime = new Date();
 
@@ -58,6 +61,10 @@ export default async function MarketsListPage({
   const whereClause = and(
     isNull(markets.resolved_at),
     gt(markets.closes_at, currentTime),
+    ne(markets.discovery_state, "hidden"),
+    activeView === "featured"
+      ? eq(markets.discovery_state, "featured")
+      : undefined,
     activeCategory && activeCategory !== "all"
       ? eq(markets.category_slug, activeCategory)
       : undefined,
@@ -140,6 +147,21 @@ export default async function MarketsListPage({
         <StatCell label="closing 24h" value={closingToday} />
       </div>
 
+      <nav className="mb-6 flex items-center gap-1" aria-label="Market shelf">
+        <Link
+          href="/markets"
+          className={`inline-flex h-9 items-center rounded-full px-4 text-body-sm ${activeView === "featured" ? "bg-foreground text-background" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
+        >
+          Curated
+        </Link>
+        <Link
+          href="/markets?view=all"
+          className={`inline-flex h-9 items-center rounded-full px-4 text-body-sm ${activeView === "all" ? "bg-foreground text-background" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
+        >
+          All questions
+        </Link>
+      </nav>
+
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <nav className="scrollbar-none -mx-5 flex flex-nowrap items-center gap-2 overflow-x-auto px-5 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
           <CategoryPill
@@ -147,6 +169,7 @@ export default async function MarketsListPage({
               category: undefined,
               sort: activeSort,
               q: query,
+              view: activeView,
             })}
             active={activeCategory === "all"}
           >
@@ -159,6 +182,7 @@ export default async function MarketsListPage({
                 category: c.slug,
                 sort: activeSort,
                 q: query,
+                view: activeView,
               })}
               active={activeCategory === c.slug}
             >
@@ -175,6 +199,7 @@ export default async function MarketsListPage({
                 category: activeCategory === "all" ? undefined : activeCategory,
                 sort: key,
                 q: query,
+                view: activeView,
               })}
               active={activeSort === key}
             >
@@ -194,6 +219,9 @@ export default async function MarketsListPage({
         {activeSort !== DEFAULT_SORT ? (
           <input type="hidden" name="sort" value={activeSort} />
         ) : null}
+        {activeView === "all" ? (
+          <input type="hidden" name="view" value="all" />
+        ) : null}
         <Input
           type="search"
           name="q"
@@ -211,6 +239,7 @@ export default async function MarketsListPage({
               category:
                 activeCategory === "all" ? undefined : activeCategory,
               sort: activeSort,
+              view: activeView,
             })}
             className="text-body-sm text-muted-foreground hover:text-foreground"
           >
@@ -254,6 +283,7 @@ export default async function MarketsListPage({
                         activeCategory === "all" ? undefined : activeCategory,
                       sort: activeSort,
                       q: query,
+                      view: activeView,
                       page: activePage - 1,
                     })}
                   >
@@ -271,6 +301,7 @@ export default async function MarketsListPage({
                         activeCategory === "all" ? undefined : activeCategory,
                       sort: activeSort,
                       q: query,
+                      view: activeView,
                       page: activePage + 1,
                     })}
                   >
@@ -304,17 +335,20 @@ function buildHref({
   sort,
   q,
   page,
+  view,
 }: {
   category?: string;
   sort: SortKey;
   q?: string;
   page?: number;
+  view?: "featured" | "all";
 }) {
   const sp = new URLSearchParams();
   if (category && category !== "all") sp.set("category", category);
   if (sort && sort !== DEFAULT_SORT) sp.set("sort", sort);
   if (q) sp.set("q", q);
   if (page && page > 1) sp.set("page", String(page));
+  if (view === "all") sp.set("view", "all");
   const qs = sp.toString();
   return qs ? `/markets?${qs}` : "/markets";
 }

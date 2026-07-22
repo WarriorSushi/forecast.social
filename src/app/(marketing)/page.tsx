@@ -204,8 +204,8 @@ function Hero() {
               size="lg"
               className="h-14 px-7 text-base rounded-full"
             >
-              <Link href="/sign-up" className="group">
-                Make your first call
+              <Link href="/early-access" className="group">
+                Request early access
                 <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
               </Link>
             </Button>
@@ -1455,7 +1455,7 @@ function FinalCTA() {
               size="lg"
               className="h-14 px-8 text-base rounded-full"
             >
-              <Link href="/sign-up" className="group">
+              <Link href="/early-access" className="group">
                 Get early access
                 <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
               </Link>

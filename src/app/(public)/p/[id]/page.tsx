@@ -4,9 +4,11 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowUpRight, LockKeyhole } from "lucide-react";
 
 import { SharePredictionButton } from "@/components/profile/share-prediction-button";
+import { CreateInviteButton } from "@/components/invites/create-invite-button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { getPredictionReceipt } from "@/lib/prediction-receipt";
+import { getCurrentProfile } from "@/lib/auth";
 
 type Params = { id: string };
 
@@ -48,7 +50,10 @@ export default async function PredictionReceiptPage({
   params: Promise<Params>;
 }) {
   const { id } = await params;
-  const receipt = await getPredictionReceipt(id);
+  const [receipt, viewer] = await Promise.all([
+    getPredictionReceipt(id),
+    getCurrentProfile(),
+  ]);
   if (!receipt) notFound();
 
   const callPct = Math.round(receipt.probability * 100);
@@ -151,6 +156,13 @@ export default async function PredictionReceiptPage({
       </section>
 
       <div className="mt-8 flex flex-col sm:flex-row gap-3">
+        {viewer?.id === receipt.user_id ? (
+          <CreateInviteButton
+            predictionId={receipt.id}
+            label="Challenge a friend"
+            disabled={viewer.invite_credits === 0}
+          />
+        ) : null}
         <Button asChild variant="outline" size="lg">
           <Link href={`/markets/${receipt.market_slug}`}>
             See the market <ArrowUpRight className="size-4" />

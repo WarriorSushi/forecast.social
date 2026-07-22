@@ -1,12 +1,17 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { db } from "@/lib/db";
-import { users } from "@/lib/db/schema";
+import {
+  categories,
+  growth_events,
+  user_interests,
+  users,
+} from "@/lib/db/schema";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type {
   EditProfileState,
@@ -28,6 +33,10 @@ const onboardingSchema = z.object({
     .string()
     .min(1, "Display name is required.")
     .max(40, "Display name must be at most 40 characters."),
+  interests: z
+    .array(z.string().min(1))
+    .min(2, "Choose at least two topics.")
+    .max(4, "Choose up to four topics."),
 });
 
 export async function completeOnboarding(
@@ -36,13 +45,32 @@ export async function completeOnboarding(
 ): Promise<OnboardingState> {
   const username = String(formData.get("username") ?? "").toLowerCase().trim();
   const displayName = String(formData.get("displayName") ?? "").trim();
+  const interests = formData
+    .getAll("interests")
+    .map((value) => String(value));
 
-  const parsed = onboardingSchema.safeParse({ username, displayName });
+  const parsed = onboardingSchema.safeParse({
+    username,
+    displayName,
+    interests,
+  });
   if (!parsed.success) {
     return {
       error: parsed.error.issues[0]?.message ?? "Invalid input.",
       username,
       displayName,
+    };
+  }
+
+  const validCategories = await db
+    .select({ slug: categories.slug })
+    .from(categories)
+    .where(inArray(categories.slug, parsed.data.interests));
+  if (validCategories.length !== parsed.data.interests.length) {
+    return {
+      error: "One of those topics is no longer available.",
+      username: parsed.data.username,
+      displayName: parsed.data.displayName,
     };
   }
 
@@ -69,17 +97,32 @@ export async function completeOnboarding(
     };
   }
 
-  await db
-    .update(users)
-    .set({
-      username: parsed.data.username,
-      display_name: parsed.data.displayName,
-      onboarded_at: new Date(),
-    })
-    .where(eq(users.id, user.id));
+  await db.transaction(async (tx) => {
+    await tx
+      .update(users)
+      .set({
+        username: parsed.data.username,
+        display_name: parsed.data.displayName,
+        onboarding_step: "forecast",
+      })
+      .where(eq(users.id, user.id));
+
+    await tx.delete(user_interests).where(eq(user_interests.user_id, user.id));
+    await tx.insert(user_interests).values(
+      parsed.data.interests.map((categorySlug) => ({
+        user_id: user.id,
+        category_slug: categorySlug,
+      })),
+    );
+    await tx.insert(growth_events).values({
+      event: "onboarding_profile_completed",
+      user_id: user.id,
+      metadata: { interests: parsed.data.interests },
+    });
+  });
 
   revalidatePath("/", "layout");
-  redirect("/markets?sort=closing-soon");
+  redirect("/onboarding");
 }
 
 /* =====================================================================

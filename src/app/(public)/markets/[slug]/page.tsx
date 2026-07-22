@@ -328,6 +328,9 @@ export default async function MarketDetailPage({
               <ResolveMarketPanel
                 marketId={market.id}
                 alreadyResolved={resolved}
+                resolutionMethod={market.resolution_method}
+                resolutionStatus={market.resolution_status}
+                resolutionConfig={market.resolution_config as Record<string, unknown> | null}
               />
             ) : null}
           </div>

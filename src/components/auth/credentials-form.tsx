@@ -37,7 +37,7 @@ export function CredentialsForm({
   const [state, formAction] = useActionState(action, initialAuthState);
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="mx-auto flex max-w-[420px] flex-col gap-8">
       <header className="flex flex-col gap-3">
         <h1 className="font-display text-display-sm text-foreground leading-[1.05]">
           {title}

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronsUpDown, LogOut, Settings } from "lucide-react";
+import { ChevronsUpDown, LogOut, Settings, Users } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -75,6 +75,12 @@ export function UserMenu({ username, displayName, email, avatarUrl }: Props) {
               <span className="size-2 rounded-full bg-foreground" />
             </span>
             View profile
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/invites">
+            <Users className="size-4" />
+            Invitations
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>

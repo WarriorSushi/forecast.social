@@ -1,11 +1,16 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, gt, isNull, or } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "@/lib/db";
-import { invite_codes, users } from "@/lib/db/schema";
+import {
+  growth_events,
+  invite_codes,
+  referrals,
+  users,
+} from "@/lib/db/schema";
 import { env } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -51,8 +56,12 @@ export async function signUp(
   // code must exist and be unused. We pre-validate here so the user
   // gets a friendly error before we even call Supabase Auth. We DON'T
   // mark the code used until after the auth row is created — see below.
-  let validCodeRow: { code: string } | null = null;
-  if (env.INVITE_CODES_REQUIRED) {
+  let validCodeRow: {
+    code: string;
+    createdBy: string;
+    sourcePredictionId: string | null;
+  } | null = null;
+  if (env.INVITE_CODES_REQUIRED || parsed.data.invite_code) {
     if (!parsed.data.invite_code) {
       return {
         error: "An invite code is required to sign up.",
@@ -60,12 +69,20 @@ export async function signUp(
       };
     }
     const [row] = await db
-      .select({ code: invite_codes.code })
+      .select({
+        code: invite_codes.code,
+        createdBy: invite_codes.created_by,
+        sourcePredictionId: invite_codes.source_prediction_id,
+      })
       .from(invite_codes)
       .where(
         and(
           eq(invite_codes.code, parsed.data.invite_code),
           isNull(invite_codes.used_by),
+          or(
+            isNull(invite_codes.expires_at),
+            gt(invite_codes.expires_at, new Date()),
+          ),
         ),
       )
       .limit(1);
@@ -105,30 +122,52 @@ export async function signUp(
   }
 
   if (validCodeRow && data.user) {
-    // Claim in one conditional write. The earlier lookup is only for a
-    // friendly response; this WHERE clause is the actual concurrency gate.
-    const [claimed] = await db
-      .update(invite_codes)
-      .set({ used_by: data.user.id, used_at: new Date() })
-      .where(
-        and(
-          eq(invite_codes.code, validCodeRow.code),
-          isNull(invite_codes.used_by),
-        ),
-      )
-      .returning({ code: invite_codes.code });
+    const newUserId = data.user.id;
+    // The claim, referral, and event commit together. The earlier lookup is
+    // only for a friendly response; this conditional update is the race gate.
+    const claimed = await db.transaction(async (tx) => {
+      const [row] = await tx
+        .update(invite_codes)
+        .set({ used_by: newUserId, used_at: new Date() })
+        .where(
+          and(
+            eq(invite_codes.code, validCodeRow.code),
+            isNull(invite_codes.used_by),
+          ),
+        )
+        .returning({ code: invite_codes.code });
+      if (!row) return false;
+
+      await tx.insert(referrals).values({
+        invite_code: validCodeRow.code,
+        inviter_id: validCodeRow.createdBy,
+        invitee_id: newUserId,
+        source_prediction_id: validCodeRow.sourcePredictionId,
+      });
+      await tx.insert(growth_events).values({
+        event: "invite_claimed",
+        user_id: newUserId,
+        invite_code: validCodeRow.code,
+        metadata: {
+          inviterId: validCodeRow.createdBy,
+          sourcePredictionId: validCodeRow.sourcePredictionId,
+        },
+      });
+      return true;
+    });
 
     if (!claimed) {
       // Another signup won the race. Remove the just-created account so the
       // person can retry with a different invite instead of getting stranded.
-      await db.delete(users).where(eq(users.id, data.user.id));
+      await db.delete(users).where(eq(users.id, newUserId));
       const admin = createSupabaseAdminClient();
-      await admin.auth.admin.deleteUser(data.user.id);
+      await admin.auth.admin.deleteUser(newUserId);
       return {
         error: "That invite code has already been used.",
         email: parsed.data.email,
       };
     }
+
   }
 
   // With "Confirm email" ON, signUp returns no session — the user has

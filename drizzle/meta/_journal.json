@@ -141,6 +141,13 @@
       "when": 1784724721579,
       "tag": "0019_prediction_resolution_integrity",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1784728859714,
+      "tag": "0020_deep_the_enforcers",
+      "breakpoints": true
     }
   ]
 }

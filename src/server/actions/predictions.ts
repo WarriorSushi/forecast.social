@@ -1,11 +1,18 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { and, desc, eq } from "drizzle-orm";
+import { and, count, desc, eq, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "@/lib/db";
-import { markets, predictions } from "@/lib/db/schema";
+import {
+  growth_events,
+  invite_grants,
+  markets,
+  predictions,
+  referrals,
+  users,
+} from "@/lib/db/schema";
 import { getCurrentProfile } from "@/lib/auth";
 import { rateLimit } from "@/lib/rate-limit";
 import type { SubmitPredictionState } from "./predictions.types";
@@ -78,12 +85,140 @@ export async function submitPrediction(
     return { status: "error", message: "This market has closed." };
   }
 
+  let result: {
+    predictionId: string;
+    inviteUnlocked: boolean;
+    inviteCredits: number;
+    foundingMemberNumber: number | null;
+  };
+
   try {
-    await db.insert(predictions).values({
-      market_id: parsed.data.marketId,
-      user_id: profile.id,
-      probability: parsed.data.probability,
-      // consensus_at_time is snapshotted by the BEFORE INSERT trigger.
+    result = await db.transaction(async (tx) => {
+      const [created] = await tx
+        .insert(predictions)
+        .values({
+          market_id: parsed.data.marketId,
+          user_id: profile.id,
+          probability: parsed.data.probability,
+          // consensus_at_time is snapshotted by the BEFORE INSERT trigger.
+        })
+        .returning({ id: predictions.id });
+
+      const [grantCount] = await tx
+        .select({ value: count() })
+        .from(invite_grants)
+        .where(eq(invite_grants.user_id, profile.id));
+
+      let inviteUnlocked = false;
+      if ((grantCount?.value ?? 0) < 5) {
+        const [grant] = await tx
+          .insert(invite_grants)
+          .values({
+            user_id: profile.id,
+            market_id: parsed.data.marketId,
+            prediction_id: created.id,
+          })
+          .onConflictDoNothing()
+          .returning({ predictionId: invite_grants.prediction_id });
+
+        if (grant) {
+          inviteUnlocked = true;
+          await tx
+            .update(users)
+            .set({
+              invite_credits: sql`least(5, ${users.invite_credits} + 1)`,
+            })
+            .where(eq(users.id, profile.id));
+          await tx.insert(growth_events).values({
+            event: "invite_unlocked",
+            user_id: profile.id,
+            metadata: { marketId: parsed.data.marketId },
+          });
+        }
+      }
+
+      await tx.insert(growth_events).values({
+        event: "prediction_created",
+        user_id: profile.id,
+        metadata: {
+          marketId: parsed.data.marketId,
+          predictionId: created.id,
+          probability: parsed.data.probability,
+        },
+      });
+
+      const [distinctCalls] = await tx
+        .select({ value: count() })
+        .from(invite_grants)
+        .where(eq(invite_grants.user_id, profile.id));
+
+      if ((distinctCalls?.value ?? 0) >= 3) {
+        await tx.execute(
+          sql`select pg_advisory_xact_lock(hashtext('founding-forecaster-number'))`,
+        );
+        const [activated] = await tx
+          .update(users)
+          .set({
+            onboarding_step: "complete",
+            onboarded_at: sql`coalesce(${users.onboarded_at}, now())`,
+            founding_member_number: sql`(
+              select next_number from (
+                select coalesce(max(${users.founding_member_number}), 0) + 1 as next_number
+                from ${users}
+              ) founding_counter
+              where next_number <= 250
+            )`,
+            founding_member_since: sql`coalesce(${users.founding_member_since}, now())`,
+          })
+          .where(
+            and(
+              eq(users.id, profile.id),
+              isNull(users.founding_member_number),
+            ),
+          )
+          .returning({ number: users.founding_member_number });
+
+        if (activated) {
+          await tx.insert(growth_events).values({
+            event: "founding_forecaster_activated",
+            user_id: profile.id,
+            metadata: { number: activated.number },
+          });
+          await tx
+            .update(referrals)
+            .set({ activated_at: new Date() })
+            .where(
+              and(
+                eq(referrals.invitee_id, profile.id),
+                isNull(referrals.activated_at),
+              ),
+            );
+        } else {
+          await tx
+            .update(users)
+            .set({
+              onboarding_step: "complete",
+              onboarded_at: sql`coalesce(${users.onboarded_at}, now())`,
+            })
+            .where(eq(users.id, profile.id));
+        }
+      }
+
+      const [updated] = await tx
+        .select({
+          inviteCredits: users.invite_credits,
+          foundingMemberNumber: users.founding_member_number,
+        })
+        .from(users)
+        .where(eq(users.id, profile.id))
+        .limit(1);
+
+      return {
+        predictionId: created.id,
+        inviteUnlocked,
+        inviteCredits: updated?.inviteCredits ?? 0,
+        foundingMemberNumber: updated?.foundingMemberNumber ?? null,
+      };
     });
   } catch (err) {
     return {
@@ -97,10 +232,13 @@ export async function submitPrediction(
   revalidatePath(`/u/${profile.username}`);
   revalidatePath("/markets");
   revalidatePath("/feed");
+  revalidatePath("/onboarding");
+  revalidatePath("/invites");
 
   return {
     status: "success",
     probability: parsed.data.probability,
+    ...result,
   };
 }
 

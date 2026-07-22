@@ -31,7 +31,7 @@ export default async function SignUpPage({
           : "Create an account to start making calls. Loud opinions, public record."
       }
       submitLabel="Create account"
-      showInviteCode={env.INVITE_CODES_REQUIRED}
+      showInviteCode={env.INVITE_CODES_REQUIRED || Boolean(initialInviteCode)}
       initialInviteCode={initialInviteCode}
     />
   );
