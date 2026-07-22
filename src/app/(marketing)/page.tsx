@@ -784,14 +784,14 @@ function ProofShowcase() {
               <span className="text-muted-foreground">leaves a mark.</span>
             </h2>
             <p className="mt-7 text-body-lg text-muted-foreground max-w-md">
-              Every correct call generates a shareable card. Crypto-clean
-              numbers, the timestamp it was locked, the consensus at the time,
-              the resolved outcome. Permanent. Public. Verifiable.
+              Every call gets a shareable receipt—wins and misses alike. The
+              number, the locked timestamp, the consensus at the time, and the
+              resolved outcome. Permanent. Public. Verifiable.
             </p>
             <ul className="mt-7 flex flex-col gap-3 text-body-sm">
               <ProofPoint label="Locked at submission, never edited." />
               <ProofPoint label="Timestamped the moment it lands." />
-              <ProofPoint label="One PNG. Goes anywhere." />
+              <ProofPoint label="One link. One PNG. Goes anywhere." />
             </ul>
           </div>
 
@@ -925,7 +925,7 @@ function HowItWorks() {
     {
       number: "03",
       verb: "Share.",
-      body: "Every correct call generates a shareable card with the timeline, the consensus, and your number.",
+      body: "Every call gets a public receipt with the timeline, the consensus, and your number—wins and misses alike.",
     },
   ] as const;
 

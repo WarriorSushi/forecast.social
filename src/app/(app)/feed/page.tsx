@@ -5,8 +5,11 @@ import {
   eq,
   gt,
   inArray,
+  isNotNull,
   isNull,
+  lt,
   lte,
+  ne,
   notInArray,
   or,
   sql,
@@ -22,10 +25,12 @@ import {
 } from "@/lib/db/schema";
 import { getCurrentProfile } from "@/lib/auth";
 import { EmptyState } from "@/components/app/empty-state";
+import { Button } from "@/components/ui/button";
 import {
   MarketCard,
   type MarketCardData,
 } from "@/components/markets/market-card";
+import { VOLUME_GATE } from "@/lib/scoring/score";
 
 export const metadata = { title: "Feed" };
 
@@ -58,6 +63,63 @@ export default async function FeedPage() {
   const trendingCutoff = new Date(now - TRENDING_WINDOW_HOURS * 3600_000);
 
   /* ---------------------------------------------------------------
+     Personal desk: the signed-in user's live record and open calls.
+     Keep this server-rendered so the dashboard arrives complete and
+     ships no client-side data-fetching bundle.
+  --------------------------------------------------------------- */
+  const [resolvedRows, ownOpenRows] = await Promise.all([
+    db
+      .select({
+        count: sql<number>`COUNT(DISTINCT ${markets.id})`,
+      })
+      .from(predictions)
+      .innerJoin(markets, eq(predictions.market_id, markets.id))
+      .where(
+        and(
+          eq(predictions.user_id, me.id),
+          isNotNull(markets.resolved_at),
+          ne(markets.outcome, "invalid"),
+          lt(predictions.created_at, markets.closes_at),
+          lt(predictions.created_at, markets.resolved_at),
+        ),
+      ),
+    db
+      .select({
+        prediction_id: predictions.id,
+        probability: predictions.probability,
+        created_at: predictions.created_at,
+        market_id: markets.id,
+        market_slug: markets.slug,
+        market_title: markets.title,
+        market_closes_at: markets.closes_at,
+        market_resolves_at: markets.resolves_at,
+      })
+      .from(predictions)
+      .innerJoin(markets, eq(predictions.market_id, markets.id))
+      .where(
+        and(
+          eq(predictions.user_id, me.id),
+          isNull(markets.resolved_at),
+          lt(predictions.created_at, markets.closes_at),
+        ),
+      )
+      .orderBy(desc(predictions.created_at))
+      .limit(50),
+  ]);
+
+  const resolvedCount = Number(resolvedRows[0]?.count ?? 0);
+  const seenOpenMarkets = new Set<string>();
+  const openCalls = ownOpenRows
+    .filter((row) => {
+      if (seenOpenMarkets.has(row.market_id)) return false;
+      seenOpenMarkets.add(row.market_id);
+      return true;
+    })
+    .slice(0, 5);
+  const pendingCount = seenOpenMarkets.size;
+  const callsUntilRanked = Math.max(0, VOLUME_GATE - resolvedCount);
+
+  /* ---------------------------------------------------------------
      Lane 1: Recent calls from people I follow (last 48h).
   --------------------------------------------------------------- */
   const followLane = await db
@@ -80,6 +142,11 @@ export default async function FeedPage() {
       and(
         eq(follows.follower_id, me.id),
         gt(predictions.created_at, followCutoff),
+        lt(predictions.created_at, markets.closes_at),
+        or(
+          isNull(markets.resolved_at),
+          lt(predictions.created_at, markets.resolved_at),
+        ),
       ),
     )
     .orderBy(desc(predictions.created_at))
@@ -94,7 +161,17 @@ export default async function FeedPage() {
         market_id: predictions.market_id,
       })
       .from(predictions)
-      .where(eq(predictions.user_id, me.id))
+      .innerJoin(markets, eq(predictions.market_id, markets.id))
+      .where(
+        and(
+          eq(predictions.user_id, me.id),
+          lt(predictions.created_at, markets.closes_at),
+          or(
+            isNull(markets.resolved_at),
+            lt(predictions.created_at, markets.resolved_at),
+          ),
+        ),
+      )
   ).map((r) => r.market_id);
 
   // Filter to open, unresolved markets at the aggregate step so the
@@ -111,6 +188,7 @@ export default async function FeedPage() {
     .where(
       and(
         gt(predictions.created_at, trendingCutoff),
+        lt(predictions.created_at, markets.closes_at),
         isNull(markets.resolved_at),
         gt(markets.closes_at, new Date()),
       ),
@@ -182,6 +260,11 @@ export default async function FeedPage() {
     .where(
       and(
         gt(predictions.created_at, boldWindow),
+        lt(predictions.created_at, markets.closes_at),
+        or(
+          isNull(markets.resolved_at),
+          lt(predictions.created_at, markets.resolved_at),
+        ),
         gt(user_category_scores.score, BOLD_CALL_CATEGORY_SCORE_MIN),
         or(
           lte(predictions.probability, BOLD_CALL_THRESHOLD_LOW),
@@ -193,15 +276,88 @@ export default async function FeedPage() {
     .limit(6);
 
   return (
-    <div className="mx-auto w-full max-w-[960px] py-10 sm:py-14 flex flex-col gap-14">
-      <header>
-        <p className="text-overline text-muted-foreground mb-3">your feed</p>
-        <h1 className="font-display text-display-sm sm:text-display-md text-foreground -tracking-[0.03em]">
-          What&apos;s moving.
-        </h1>
+    <div className="mx-auto w-full max-w-[960px] py-8 sm:py-12 flex flex-col gap-12 sm:gap-14">
+      <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 border-b border-border pb-8">
+        <div>
+          <p className="text-overline text-muted-foreground mb-3">dashboard</p>
+          <h1 className="font-display text-display-sm sm:text-display-md text-foreground -tracking-[0.03em]">
+            Your forecasting desk.
+          </h1>
+          <p className="mt-3 text-body text-muted-foreground max-w-xl">
+            Your record, the calls still in play, and the best next questions—together.
+          </p>
+        </div>
+        <Button asChild size="lg" className="self-start sm:self-auto rounded-full">
+          <Link href="/markets">Make the next call</Link>
+        </Button>
       </header>
 
-      <FeedSection title="Recent calls" eyebrow="people you follow">
+      <section aria-label="Your record at a glance">
+        <div className="grid grid-cols-1 sm:grid-cols-3 border-y border-border sm:divide-x divide-border">
+          <DashboardStat
+            label="Forecast score"
+            value={resolvedCount >= VOLUME_GATE ? me.forecast_score.toLocaleString() : "Unranked"}
+            note={
+              resolvedCount >= VOLUME_GATE
+                ? `${resolvedCount} resolved calls`
+                : `${resolvedCount}/${VOLUME_GATE} resolved · ${callsUntilRanked} to unlock`
+            }
+          />
+          <DashboardStat
+            label="Calls in play"
+            value={pendingCount.toLocaleString()}
+            note={pendingCount === 1 ? "1 market awaiting an outcome" : `${pendingCount} markets awaiting outcomes`}
+          />
+          <DashboardStat
+            label="Current streak"
+            value={me.current_streak.toLocaleString()}
+            note={me.longest_streak > 0 ? `Best: ${me.longest_streak}` : "Build it one resolved call at a time"}
+          />
+        </div>
+      </section>
+
+      <FeedSection title="Your calls in play" eyebrow="latest call per market">
+        {openCalls.length === 0 ? (
+          <EmptyState
+            variant="lane"
+            title="Your desk is clear."
+            body="Make a call now and it will stay here until the market resolves."
+            cta={{ label: "Find a question", href: "/markets?status=open&sort=closing" }}
+          />
+        ) : (
+          <ul className="rounded-2xl border border-border bg-surface overflow-hidden shadow-card">
+            {openCalls.map((row) => {
+              const isClosed = row.market_closes_at.getTime() <= now;
+              return (
+                <li
+                  key={row.prediction_id}
+                  className="grid grid-cols-[1fr_auto] sm:grid-cols-[1fr_150px_88px] items-center gap-3 sm:gap-5 px-4 sm:px-5 py-4 border-b border-border last:border-b-0"
+                >
+                  <div className="min-w-0">
+                    <Link
+                      href={`/markets/${row.market_slug}`}
+                      className="block font-display font-semibold text-body text-foreground hover:underline truncate"
+                    >
+                      {row.market_title}
+                    </Link>
+                    <p className="mt-1 font-mono text-caption text-muted-foreground sm:hidden">
+                      {isClosed ? "awaiting result" : `closes ${formatDeskDate(row.market_closes_at)}`}
+                    </p>
+                  </div>
+                  <span className="hidden sm:inline font-mono text-caption text-muted-foreground text-right">
+                    {isClosed ? `resolves ${formatDeskDate(row.market_resolves_at)}` : `closes ${formatDeskDate(row.market_closes_at)}`}
+                  </span>
+                  <span className="font-display text-headline text-foreground tabular-nums text-right">
+                    {Math.round(row.probability * 100)}%
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </FeedSection>
+
+      <FeedSection title="From people you follow" eyebrow="last 48 hours">
         {followLane.length === 0 ? (
           <EmptyState
             variant="lane"
@@ -271,7 +427,7 @@ export default async function FeedPage() {
         )}
       </FeedSection>
 
-      <FeedSection title="Trending" eyebrow="markets to call">
+      <FeedSection title="Make your next call" eyebrow="open questions">
         {trendingFinal.length === 0 ? (
           <EmptyState
             variant="lane"
@@ -383,6 +539,32 @@ function FeedSection({
       {children}
     </section>
   );
+}
+
+function DashboardStat({
+  label,
+  value,
+  note,
+}: {
+  label: string;
+  value: string;
+  note: string;
+}) {
+  return (
+    <div className="py-5 sm:px-6 first:sm:pl-0 last:sm:pr-0 border-b sm:border-b-0 border-border last:border-b-0">
+      <p className="text-overline text-muted-foreground">{label}</p>
+      <p className="mt-2 font-display text-headline text-foreground tabular-nums">{value}</p>
+      <p className="mt-1 text-caption text-muted-foreground">{note}</p>
+    </div>
+  );
+}
+
+function formatDeskDate(date: Date) {
+  return new Intl.DateTimeFormat("en", {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  }).format(date);
 }
 
 function ResolutionBadge({

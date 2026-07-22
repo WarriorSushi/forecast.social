@@ -127,6 +127,20 @@
       "when": 1784722275786,
       "tag": "0017_discovery_search_indexes",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1784724558712,
+      "tag": "0018_prediction_integrity",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1784724721579,
+      "tag": "0019_prediction_resolution_integrity",
+      "breakpoints": true
     }
   ]
 }

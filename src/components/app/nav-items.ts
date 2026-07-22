@@ -35,7 +35,7 @@ export type NavItem = {
  */
 export function getNavItems(username: string): readonly NavItem[] {
   return [
-    { href: "/feed",          label: "Feed",          Icon: Compass },
+    { href: "/feed",          label: "Dashboard",     Icon: Compass },
     { href: "/markets",       label: "Markets",       Icon: LayoutGrid },
     { href: "/leaderboard",   label: "Leaderboard",   Icon: Trophy },
     {

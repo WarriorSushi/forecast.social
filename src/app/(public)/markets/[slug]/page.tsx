@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, lt } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import {
@@ -98,10 +98,18 @@ export default async function MarketDetailPage({
       })
       .from(predictions)
       .innerJoin(users, eq(predictions.user_id, users.id))
-      .where(eq(predictions.market_id, market.id))
+      .where(
+        and(
+          eq(predictions.market_id, market.id),
+          lt(predictions.created_at, market.closes_at),
+          market.resolved_at
+            ? lt(predictions.created_at, market.resolved_at)
+            : undefined,
+        ),
+      )
       .orderBy(desc(predictions.created_at))
       .limit(25),
-    buildConsensusSeries(market.id),
+    buildConsensusSeries(market.id, market.closes_at, market.resolved_at),
     getCurrentProfile(),
   ]);
 
@@ -120,6 +128,10 @@ export default async function MarketDetailPage({
               and(
                 eq(predictions.market_id, market.id),
                 eq(predictions.user_id, profile.id),
+                lt(predictions.created_at, market.closes_at),
+                market.resolved_at
+                  ? lt(predictions.created_at, market.resolved_at)
+                  : undefined,
               ),
             )
             .orderBy(desc(predictions.created_at))
@@ -417,6 +429,8 @@ async function loadComments(
  */
 async function buildConsensusSeries(
   marketId: string,
+  closesAt: Date,
+  resolvedAt: Date | null,
 ): Promise<number[] | undefined> {
   const rows = await db
     .select({
@@ -425,7 +439,13 @@ async function buildConsensusSeries(
       created_at: predictions.created_at,
     })
     .from(predictions)
-    .where(eq(predictions.market_id, marketId))
+    .where(
+      and(
+        eq(predictions.market_id, marketId),
+        lt(predictions.created_at, closesAt),
+        resolvedAt ? lt(predictions.created_at, resolvedAt) : undefined,
+      ),
+    )
     .orderBy(asc(predictions.created_at));
 
   if (rows.length === 0) return undefined;

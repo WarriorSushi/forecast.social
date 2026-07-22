@@ -14,7 +14,7 @@ const H = 1080;
 /**
  * The receipt card. Per DESIGN.md §6: the user's call, the consensus
  * at the time, the resolved outcome, score delta. Used as the
- * downloadable PNG for a resolved correct prediction.
+ * social preview/downloadable PNG for a permanent prediction receipt.
  */
 export async function GET(
   _req: Request,
@@ -31,6 +31,7 @@ export async function GET(
       market_title: markets.title,
       market_outcome: markets.outcome,
       market_resolved_at: markets.resolved_at,
+      market_closes_at: markets.closes_at,
       user_username: users.username,
       user_display_name: users.display_name,
     })
@@ -41,12 +42,12 @@ export async function GET(
     .limit(1);
 
   if (!row) return new Response("Prediction not found", { status: 404 });
-  // Share cards are receipts. Only serve them for resolved predictions
-  // — anything else leaks individual user calls via UUID enumeration.
-  if (!row.market_resolved_at || !row.market_outcome || row.market_outcome === "invalid") {
-    return new Response("Market not resolved yet", { status: 404 });
+  if (
+    row.created_at >= row.market_closes_at ||
+    (row.market_resolved_at && row.created_at >= row.market_resolved_at)
+  ) {
+    return new Response("Prediction is not a valid pre-close call", { status: 404 });
   }
-
   const callPct = Math.round(row.probability * 100);
   const consensusPct =
     row.consensus_at_time != null
@@ -62,7 +63,7 @@ export async function GET(
       ? "#3fc97a"
       : row.market_outcome === "no"
         ? "#e85a5a"
-        : "#a3aab8";
+          : "#a3aab8";
 
   return new ImageResponse(
     (
@@ -153,7 +154,7 @@ export async function GET(
           />
           <Stat
             label="outcome"
-            value={row.market_outcome ? row.market_outcome : "pending"}
+            value={row.market_resolved_at && row.market_outcome ? row.market_outcome : "pending"}
             color={outcomeColor}
             uppercase
           />

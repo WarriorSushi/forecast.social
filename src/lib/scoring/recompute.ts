@@ -3,7 +3,7 @@
 // already enforces server context) AND from CLI scripts under /scripts
 // that run via tsx. Adding "server-only" here would throw at load time
 // when the script tries to import it.
-import { and, asc, eq, isNotNull, ne, sql } from "drizzle-orm";
+import { and, asc, eq, isNotNull, isNull, lt, ne, or, sql } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import {
@@ -63,6 +63,7 @@ export async function recomputeUserScore(
         eq(predictions.user_id, userId),
         isNotNull(markets.resolved_at),
         ne(markets.outcome, "invalid"),
+        lt(predictions.created_at, markets.resolved_at),
       ),
     )
     .orderBy(asc(predictions.created_at));
@@ -108,7 +109,17 @@ export async function recomputeUserScore(
       latest: sql<Date>`MAX(${predictions.created_at})`,
     })
     .from(predictions)
-    .where(eq(predictions.user_id, userId));
+    .innerJoin(markets, eq(predictions.market_id, markets.id))
+    .where(
+      and(
+        eq(predictions.user_id, userId),
+        lt(predictions.created_at, markets.closes_at),
+        or(
+          isNull(markets.resolved_at),
+          lt(predictions.created_at, markets.resolved_at),
+        ),
+      ),
+    );
   const daysIdle = activity?.latest
     ? Math.max(
         0,
@@ -238,18 +249,24 @@ async function stampPredictionScoring(userId: string): Promise<void> {
     update predictions as p
     set
       brier = case
-        when m.outcome = 'invalid' then null
+        when p.created_at >= m.closes_at
+          or (m.resolved_at is not null and p.created_at >= m.resolved_at)
+          or m.outcome = 'invalid' then null
         when m.outcome = 'yes' then power(p.probability - 1.0, 2)::real
         when m.outcome = 'no' then power(p.probability, 2)::real
         else null
       end,
       was_correct = case
+        when p.created_at >= m.closes_at
+          or (m.resolved_at is not null and p.created_at >= m.resolved_at) then null
         when m.outcome = 'yes' then p.probability > 0.5
         when m.outcome = 'no' then p.probability < 0.5
         else null
       end,
       resolved_at = case
-        when m.outcome in ('yes', 'no') then m.resolved_at
+        when p.created_at < m.closes_at
+          and p.created_at < m.resolved_at
+          and m.outcome in ('yes', 'no') then m.resolved_at
         else null
       end
     from markets as m
@@ -264,18 +281,24 @@ async function stampMarketPredictionScoring(marketId: string): Promise<void> {
     update predictions as p
     set
       brier = case
-        when m.outcome = 'invalid' then null
+        when p.created_at >= m.closes_at
+          or (m.resolved_at is not null and p.created_at >= m.resolved_at)
+          or m.outcome = 'invalid' then null
         when m.outcome = 'yes' then power(p.probability - 1.0, 2)::real
         when m.outcome = 'no' then power(p.probability, 2)::real
         else null
       end,
       was_correct = case
+        when p.created_at >= m.closes_at
+          or (m.resolved_at is not null and p.created_at >= m.resolved_at) then null
         when m.outcome = 'yes' then p.probability > 0.5
         when m.outcome = 'no' then p.probability < 0.5
         else null
       end,
       resolved_at = case
-        when m.outcome in ('yes', 'no') then m.resolved_at
+        when p.created_at < m.closes_at
+          and p.created_at < m.resolved_at
+          and m.outcome in ('yes', 'no') then m.resolved_at
         else null
       end
     from markets as m
@@ -310,7 +333,14 @@ export async function recomputeAllActiveUsers(): Promise<number> {
     .selectDistinct({ user_id: predictions.user_id })
     .from(predictions)
     .innerJoin(markets, eq(predictions.market_id, markets.id))
-    .where(and(isNotNull(markets.resolved_at), ne(markets.outcome, "invalid")));
+    .where(
+      and(
+        isNotNull(markets.resolved_at),
+        ne(markets.outcome, "invalid"),
+        lt(predictions.created_at, markets.closes_at),
+        lt(predictions.created_at, markets.resolved_at),
+      ),
+    );
 
   const userIds = rows.map((row) => row.user_id);
   await recomputeUsers(userIds);

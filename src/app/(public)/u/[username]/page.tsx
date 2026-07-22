@@ -1,4 +1,4 @@
-import { and, desc, eq, gt, isNotNull, ne, sql } from "drizzle-orm";
+import { and, desc, eq, gt, isNotNull, isNull, lt, ne, or, sql } from "drizzle-orm";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -98,6 +98,8 @@ export default async function ProfilePage({
             eq(predictions.user_id, profile.id),
             isNotNull(markets.resolved_at),
             ne(markets.outcome, "invalid"),
+            lt(predictions.created_at, markets.closes_at),
+            lt(predictions.created_at, markets.resolved_at),
           ),
         ),
       db
@@ -113,7 +115,16 @@ export default async function ProfilePage({
         })
         .from(predictions)
         .innerJoin(markets, eq(predictions.market_id, markets.id))
-        .where(eq(predictions.user_id, profile.id))
+        .where(
+          and(
+            eq(predictions.user_id, profile.id),
+            lt(predictions.created_at, markets.closes_at),
+            or(
+              isNull(markets.resolved_at),
+              lt(predictions.created_at, markets.resolved_at),
+            ),
+          ),
+        )
         .orderBy(desc(predictions.created_at))
         .limit(25),
     ]);
@@ -277,12 +288,20 @@ export default async function ProfilePage({
                   key={row.id}
                   className="grid grid-cols-[1fr_72px_72px] sm:grid-cols-[1fr_88px_88px_96px_72px] items-center gap-3 sm:gap-5 px-5 py-4 border-b border-border last:border-b-0"
                 >
-                  <Link
-                    href={`/markets/${row.market_slug}`}
-                    className="font-display text-body text-foreground hover:underline truncate"
-                  >
-                    {row.market_title}
-                  </Link>
+                  <div className="min-w-0">
+                    <Link
+                      href={`/markets/${row.market_slug}`}
+                      className="block font-display text-body text-foreground hover:underline truncate"
+                    >
+                      {row.market_title}
+                    </Link>
+                    <Link
+                      href={`/p/${row.id}`}
+                      className="sm:hidden font-mono text-caption text-muted-foreground hover:text-foreground"
+                    >
+                      view receipt
+                    </Link>
+                  </div>
                   <span className="hidden sm:inline font-mono text-caption text-muted-foreground tabular-nums">
                     {consensusPct != null ? `consensus ${consensusPct}%` : "—"}
                   </span>
@@ -295,15 +314,13 @@ export default async function ProfilePage({
                     {callPct}%
                   </span>
                   <CallStatusPill status={status} />
-                  {status === "correct" ? (
-                    <a
-                      href={`/api/share/prediction/${row.id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                  {status !== "invalid" ? (
+                    <Link
+                      href={`/p/${row.id}`}
                       className="hidden sm:inline-flex items-center justify-center px-2 py-1 rounded-full text-caption font-mono bg-muted text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                     >
-                      share ↗
-                    </a>
+                      receipt ↗
+                    </Link>
                   ) : (
                     <span aria-hidden className="hidden sm:inline" />
                   )}
