@@ -8,7 +8,7 @@ import { users } from "@/lib/db/schema";
 
 export const metadata = {
   title: "Founding Forecasters",
-  description: "The first 250 people building a public forecasting record on forecast.social.",
+  description: "The early members building a public forecasting record on forecast.social.",
 };
 
 export default async function FoundingForecastersPage() {
@@ -29,7 +29,7 @@ export default async function FoundingForecastersPage() {
   return (
     <div className="mx-auto w-full max-w-[960px] py-12 sm:py-20">
       <header className="max-w-[720px]">
-        <p className="text-overline text-muted-foreground">the first 250</p>
+        <p className="text-overline text-muted-foreground">early members</p>
         <h1 className="mt-5 font-display text-display-md text-foreground">Founding Forecasters.</h1>
         <p className="mt-5 text-body-lg text-muted-foreground">
           Three permanent calls earn a permanent founding number. These are the people who arrived before the scoreboard mattered.
@@ -42,8 +42,8 @@ export default async function FoundingForecastersPage() {
       <section className="mt-12 border-t border-border">
         {founders.length === 0 ? (
           <div className="py-12">
-            <p className="font-display text-headline text-foreground">The first place is still open.</p>
-            <p className="mt-2 text-body text-muted-foreground">Make three calls to become Founding Forecaster #1.</p>
+            <p className="font-display text-headline text-foreground">Founding records are being verified.</p>
+            <p className="mt-2 text-body text-muted-foreground">Qualified members appear here after making three permanent calls.</p>
           </div>
         ) : (
           <ul className="divide-y divide-border">

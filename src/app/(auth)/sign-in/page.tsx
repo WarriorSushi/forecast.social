@@ -17,8 +17,11 @@ export default async function SignInPage() {
     <CredentialsForm
       action={signIn}
       title="Welcome back."
-      subtitle="Sign in to see your calls."
+      subtitle="Return to your calls, score, and the people you follow."
       submitLabel="Sign in"
+      footerPrefix="Not inside yet?"
+      footerLabel="Request an invitation"
+      footerHref="/early-access"
     />
   );
 }

@@ -31,12 +31,18 @@ export default function MarketingLayout({
             >
               FAQ
             </Link>
+            <Link
+              href="/sign-in"
+              className="hidden sm:inline-flex text-body-sm text-muted-foreground hover:text-foreground transition-colors px-3 h-9 items-center"
+            >
+              Sign in
+            </Link>
             <Button
               asChild
               size="sm"
               className="rounded-full px-4 h-9 font-medium"
             >
-              <Link href="/sign-up">Make a call</Link>
+              <Link href="/early-access">Request access</Link>
             </Button>
             <ThemeToggle />
           </nav>

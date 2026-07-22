@@ -575,7 +575,7 @@ function SignInPrompt() {
             size="lg"
             className="h-12 rounded-full px-6 flex-1 justify-center"
           >
-            <Link href="/sign-up">Get started</Link>
+            <Link href="/early-access">Request access</Link>
           </Button>
           <Button
             asChild

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { and, asc, desc, gt, isNull } from "drizzle-orm";
+import { and, asc, desc, eq, gt, isNull } from "drizzle-orm";
 import {
   ArrowRight,
   Atom,
@@ -18,7 +18,7 @@ import {
 } from "@/components/aceternity/bento-grid";
 import { SpotlightNew } from "@/components/aceternity/spotlight-new";
 import { db } from "@/lib/db";
-import { categories, markets, users } from "@/lib/db/schema";
+import { markets, users } from "@/lib/db/schema";
 import { sql } from "drizzle-orm";
 
 export const revalidate = 300; // 5-min ISR; landing isn't tied to a session
@@ -70,19 +70,20 @@ async function fetchMarketTotals(): Promise<MarketTotals> {
   const [openAgg] = await db
     .select({
       count: sql<number>`COUNT(*)::int`,
+      categories: sql<number>`COUNT(DISTINCT ${markets.category_slug})::int`,
     })
     .from(markets)
-    .where(and(isNull(markets.resolved_at), gt(markets.closes_at, new Date())));
-
-  const [catAgg] = await db
-    .select({
-      count: sql<number>`COUNT(*)::int`,
-    })
-    .from(categories);
+    .where(
+      and(
+        isNull(markets.resolved_at),
+        gt(markets.closes_at, new Date()),
+        eq(markets.discovery_state, "featured"),
+      ),
+    );
 
   return {
     openMarkets: Number(openAgg?.count ?? 0),
-    totalCategories: Number(catAgg?.count ?? 0),
+    totalCategories: Number(openAgg?.categories ?? 0),
   };
 }
 
@@ -104,7 +105,13 @@ async function fetchCategoryHighlights(): Promise<
       closes_at: markets.closes_at,
     })
     .from(markets)
-    .where(and(isNull(markets.resolved_at), gt(markets.closes_at, new Date())))
+    .where(
+      and(
+        isNull(markets.resolved_at),
+        gt(markets.closes_at, new Date()),
+        eq(markets.discovery_state, "featured"),
+      ),
+    )
     .orderBy(desc(markets.prediction_count), asc(markets.closes_at))
     .limit(160);
 
@@ -198,19 +205,27 @@ function Hero() {
             nobody can fake.
           </p>
 
-          <div className="mt-10 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            <Button
-              asChild
-              size="lg"
-              className="h-14 px-7 text-base rounded-full"
-            >
-              <Link href="/early-access" className="group">
-                Request early access
-                <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+          <div className="mt-10">
+            <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
+              <Button
+                asChild
+                size="lg"
+                className="h-14 px-7 text-base rounded-full"
+              >
+                <Link href="/early-access" className="group">
+                  Request an invitation
+                  <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+                </Link>
+              </Button>
+              <Link
+                href="/sign-up"
+                className="inline-flex h-12 items-center justify-center px-4 text-body-sm font-medium text-foreground hover:underline sm:justify-start"
+              >
+                Already invited? Enter your code
               </Link>
-            </Button>
-            <p className="text-body-sm text-muted-foreground sm:pl-3">
-              Free. No money at risk. Every call stays public.
+            </div>
+            <p className="mt-4 text-body-sm text-muted-foreground">
+              Private access. Free to use. No money at risk.
             </p>
           </div>
         </div>
@@ -1013,8 +1028,8 @@ function Categories({
             </h2>
           </div>
           <p className="text-body-lg text-muted-foreground max-w-sm">
-            Dozens of resolvable questions live right now. Your category score
-            updates with each call.
+            A focused set of resolvable questions, chosen for clarity. Your
+            category score updates with each call.
           </p>
         </div>
 
@@ -1407,6 +1422,10 @@ function FAQ() {
             a="Everyone. Calls and resolution outcomes are public by default. You can't have a track record that nobody else can audit."
           />
           <FaqItem
+            q="Why do I need an invitation?"
+            a="Access is opening through members so the network grows around people who actually make forecasts. Once inside, distinct calls unlock invitations you can send to people you trust."
+          />
+          <FaqItem
             q="Is it free?"
             a="Yes. Free to predict, free to follow other forecasters, free to share your wins. No card on file."
           />
@@ -1447,7 +1466,7 @@ function FinalCTA() {
             </span>
           </h2>
           <p className="mt-7 text-body-lg text-muted-foreground max-w-lg">
-            Early access is open. Bring an opinion.
+            Access opens through members. Bring a point of view worth recording.
           </p>
           <div className="mt-10 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             <Button
@@ -1456,13 +1475,16 @@ function FinalCTA() {
               className="h-14 px-8 text-base rounded-full"
             >
               <Link href="/early-access" className="group">
-                Get early access
+                Request an invitation
                 <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
               </Link>
             </Button>
-            <p className="text-body-sm text-muted-foreground sm:pl-3">
-              Takes 60 seconds. Pick a username, pick a category, pick a number.
-            </p>
+            <Link
+              href="/sign-up"
+              className="inline-flex h-12 items-center justify-center px-4 text-body-sm font-medium text-foreground hover:underline"
+            >
+              I have an invite code
+            </Link>
           </div>
         </div>
       </Container>

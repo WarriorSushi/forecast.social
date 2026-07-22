@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 
@@ -24,6 +25,9 @@ type Props = {
   showInviteCode?: boolean;
   /** Initial invite-code value (from ?code= query param). */
   initialInviteCode?: string;
+  footerPrefix?: string;
+  footerLabel?: string;
+  footerHref?: string;
 };
 
 export function CredentialsForm({
@@ -33,6 +37,9 @@ export function CredentialsForm({
   subtitle,
   showInviteCode = false,
   initialInviteCode = "",
+  footerPrefix,
+  footerLabel,
+  footerHref,
 }: Props) {
   const [state, formAction] = useActionState(action, initialAuthState);
 
@@ -89,6 +96,18 @@ export function CredentialsForm({
 
         <SubmitButton label={submitLabel} />
       </form>
+
+      {footerPrefix && footerLabel && footerHref ? (
+        <p className="border-t border-border pt-5 text-body-sm text-muted-foreground">
+          {footerPrefix}{" "}
+          <Link
+            href={footerHref}
+            className="font-medium text-foreground underline underline-offset-4"
+          >
+            {footerLabel}
+          </Link>
+        </p>
+      ) : null}
     </div>
   );
 }

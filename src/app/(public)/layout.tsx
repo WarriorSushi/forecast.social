@@ -88,9 +88,9 @@ export default async function PublicLayout({
               size="sm"
               className="rounded-full px-4 h-9 font-medium"
             >
-              <Link href="/sign-up">
-                <span className="sm:hidden">Join</span>
-                <span className="hidden sm:inline">Get started</span>
+              <Link href="/early-access">
+                <span className="sm:hidden">Access</span>
+                <span className="hidden sm:inline">Request access</span>
               </Link>
             </Button>
             <ThemeToggle />

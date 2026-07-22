@@ -20,19 +20,31 @@ export default async function SignUpPage({
 
   const sp = await searchParams;
   const initialInviteCode = (sp.code ?? "").toUpperCase().slice(0, 16);
+  const hasInvite = Boolean(initialInviteCode);
 
   return (
     <CredentialsForm
       action={signUp}
-      title="Start your record."
+      title={
+        hasInvite
+          ? "Your invitation is ready."
+          : env.INVITE_CODES_REQUIRED
+            ? "Enter your invitation."
+          : "Start your record."
+      }
       subtitle={
-        env.INVITE_CODES_REQUIRED
-          ? "Create an account with your invite code. Loud opinions, public record."
-          : "Create an account to start making calls. Loud opinions, public record."
+        hasInvite
+          ? "Create your account, then put your first forecasts on the record."
+          : env.INVITE_CODES_REQUIRED
+            ? "Access currently opens through single-use member invitations."
+          : "Create an account and put your first forecast on the record."
       }
       submitLabel="Create account"
       showInviteCode={env.INVITE_CODES_REQUIRED || Boolean(initialInviteCode)}
       initialInviteCode={initialInviteCode}
+      footerPrefix="No invitation yet?"
+      footerLabel="Request access"
+      footerHref="/early-access"
     />
   );
 }

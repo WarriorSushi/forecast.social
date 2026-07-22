@@ -29,7 +29,7 @@ export function EarlyAccessForm() {
         </span>
         <h2 className="mt-5 font-display text-headline text-foreground">You are on the list.</h2>
         <p className="mt-2 text-body text-muted-foreground">
-          We invite people in small groups so every new forecaster has good questions waiting.
+          We review every request. If there is a fit, your private invitation will arrive by email.
         </p>
       </div>
     );
@@ -55,8 +55,8 @@ export function EarlyAccessForm() {
       </fieldset>
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor="early-prediction">One prediction you believe (optional)</Label>
-        <Textarea id="early-prediction" name="prediction" maxLength={280} placeholder="Example: GTA VI will slip again." />
+        <Label htmlFor="early-prediction">A call you would put on record (optional)</Label>
+        <Textarea id="early-prediction" name="prediction" maxLength={280} placeholder="Example: GTA VI will slip again, 70%." />
       </div>
 
       <div className="flex flex-col gap-2">
