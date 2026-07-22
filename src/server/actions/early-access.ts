@@ -21,8 +21,6 @@ export type EarlyAccessState =
   | { status: "success" }
   | { status: "error"; message: string };
 
-export const INITIAL_EARLY_ACCESS_STATE: EarlyAccessState = { status: "idle" };
-
 const schema = z.object({
   email: z.string().trim().toLowerCase().email("Enter a valid email."),
   handle: z.string().trim().max(80).optional(),
@@ -64,41 +62,51 @@ export async function applyForEarlyAccess(
     };
   }
 
-  const [existing] = await db
-    .select({ id: early_access_applications.id })
-    .from(early_access_applications)
-    .where(sql`lower(${early_access_applications.email}) = ${parsed.data.email}`)
-    .limit(1);
+  try {
+    const [existing] = await db
+      .select({ id: early_access_applications.id })
+      .from(early_access_applications)
+      .where(sql`lower(${early_access_applications.email}) = ${parsed.data.email}`)
+      .limit(1);
 
-  await db.transaction(async (tx) => {
-    if (existing) {
-      await tx
-        .update(early_access_applications)
-        .set({
+    await db.transaction(async (tx) => {
+      if (existing) {
+        await tx
+          .update(early_access_applications)
+          .set({
+            handle: parsed.data.handle || null,
+            interests: parsed.data.interests,
+            prediction: parsed.data.prediction || null,
+            source: parsed.data.source || null,
+            updated_at: new Date(),
+          })
+          .where(eq(early_access_applications.id, existing.id));
+      } else {
+        await tx.insert(early_access_applications).values({
+          email: parsed.data.email,
           handle: parsed.data.handle || null,
           interests: parsed.data.interests,
           prediction: parsed.data.prediction || null,
           source: parsed.data.source || null,
-          updated_at: new Date(),
-        })
-        .where(eq(early_access_applications.id, existing.id));
-    } else {
-      await tx.insert(early_access_applications).values({
-        email: parsed.data.email,
-        handle: parsed.data.handle || null,
-        interests: parsed.data.interests,
-        prediction: parsed.data.prediction || null,
-        source: parsed.data.source || null,
+        });
+      }
+      await tx.insert(growth_events).values({
+        event: existing ? "early_access_updated" : "early_access_applied",
+        metadata: {
+          interests: parsed.data.interests,
+          source: parsed.data.source || null,
+        },
       });
-    }
-    await tx.insert(growth_events).values({
-      event: existing ? "early_access_updated" : "early_access_applied",
-      metadata: {
-        interests: parsed.data.interests,
-        source: parsed.data.source || null,
-      },
     });
-  });
+  } catch (error) {
+    console.error("[early-access] application failed", {
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return {
+      status: "error",
+      message: "We could not save your request. Please try again in a moment.",
+    };
+  }
 
   return { status: "success" };
 }

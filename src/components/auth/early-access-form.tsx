@@ -10,10 +10,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
   applyForEarlyAccess,
-  INITIAL_EARLY_ACCESS_STATE,
+  type EarlyAccessState,
 } from "@/server/actions/early-access";
 
 const TOPICS = ["AI & tech", "Business", "Sports", "Entertainment"] as const;
+const INITIAL_EARLY_ACCESS_STATE: EarlyAccessState = { status: "idle" };
 
 export function EarlyAccessForm() {
   const [state, action] = useActionState(
