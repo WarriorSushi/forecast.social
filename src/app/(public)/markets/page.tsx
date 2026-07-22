@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowUpDown, Check, ChevronDown, Search } from "lucide-react";
 import {
   and,
   asc,
@@ -7,7 +8,6 @@ import {
   gt,
   ilike,
   isNull,
-  lt,
   ne,
   or,
   sql,
@@ -17,6 +17,12 @@ import { db } from "@/lib/db";
 import { categories, markets, type Market } from "@/lib/db/schema";
 import { MarketCard, type MarketCardData } from "@/components/markets/market-card";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 
 export const metadata = { title: "Markets" };
@@ -76,40 +82,45 @@ export default async function MarketsListPage({
       : undefined,
   );
 
+  const shelfClause = and(
+    isNull(markets.resolved_at),
+    gt(markets.closes_at, currentTime),
+    ne(markets.discovery_state, "hidden"),
+    activeView === "featured"
+      ? eq(markets.discovery_state, "featured")
+      : undefined,
+  );
+
   const closingThreshold = new Date(
     currentTime.getTime() + 24 * 60 * 60 * 1000,
   );
-  const [allCategories, filteredRows, openRows, closingRows] =
+  const [allCategories, filteredRows, shelfRows] =
     await Promise.all([
       db
         .select({ slug: categories.slug, name: categories.name })
         .from(categories)
+        .innerJoin(markets, eq(categories.slug, markets.category_slug))
+        .where(shelfClause)
+        .groupBy(categories.slug, categories.name, categories.sort_order)
         .orderBy(asc(categories.sort_order)),
       db
         .select({ filteredCount: sql<number>`COUNT(*)::int` })
         .from(markets)
         .where(whereClause),
       db
-        .select({ totalOpen: sql<number>`COUNT(*)::int` })
+        .select({
+          totalOpen: sql<number>`COUNT(*)::int`,
+          categoryCount: sql<number>`COUNT(DISTINCT ${markets.category_slug})::int`,
+          closingToday: sql<number>`COUNT(*) FILTER (WHERE ${markets.closes_at} < ${closingThreshold.toISOString()})::int`,
+        })
         .from(markets)
-        .where(
-          and(isNull(markets.resolved_at), gt(markets.closes_at, currentTime)),
-        ),
-      db
-        .select({ closingToday: sql<number>`COUNT(*)::int` })
-        .from(markets)
-        .where(
-          and(
-            isNull(markets.resolved_at),
-            gt(markets.closes_at, currentTime),
-            lt(markets.closes_at, closingThreshold),
-          ),
-        ),
+        .where(shelfClause),
     ]);
 
   const filteredCount = filteredRows[0]?.filteredCount ?? 0;
-  const totalOpen = openRows[0]?.totalOpen ?? 0;
-  const closingToday = closingRows[0]?.closingToday ?? 0;
+  const totalOpen = shelfRows[0]?.totalOpen ?? 0;
+  const categoryCount = shelfRows[0]?.categoryCount ?? 0;
+  const closingToday = shelfRows[0]?.closingToday ?? 0;
 
   const totalPages = Math.max(1, Math.ceil(filteredCount / PAGE_SIZE));
   const activePage = Math.min(requestedPage, totalPages);
@@ -124,129 +135,158 @@ export default async function MarketsListPage({
 
   return (
     <div className="mx-auto w-full max-w-[1200px] py-10 sm:py-14">
-      <header className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between mb-8">
-        <div>
-          <p className="text-overline text-muted-foreground mb-3">
-            open markets
-          </p>
-          <h1 className="font-display text-display-md sm:text-display-lg text-foreground -tracking-[0.035em]">
-            Pick a probability.
-          </h1>
+      <header>
+        <div className="flex flex-col gap-7 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-overline text-muted-foreground mb-3">
+              market desk
+            </p>
+            <h1 className="font-display text-display-sm sm:text-display-md text-foreground -tracking-[0.035em]">
+              Pick a probability.
+            </h1>
+            <p className="mt-4 max-w-[56ch] text-body text-muted-foreground">
+              Clear questions with explicit deadlines. Make a call now, then
+              let the record speak when reality arrives.
+            </p>
+          </div>
+          <Button asChild variant="outline" className="self-start sm:self-auto">
+            <Link href="/markets/propose">Propose a market</Link>
+          </Button>
         </div>
-        <Link
-          href="/markets/propose"
-          className="text-body-sm text-foreground font-medium hover:underline self-start sm:self-end"
-        >
-          Propose a market →
-        </Link>
+        <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-2 text-caption text-muted-foreground">
+          <span>{totalOpen.toLocaleString()} open</span>
+          <span>{categoryCount.toLocaleString()} topics</span>
+          <span>
+            {closingToday > 0
+              ? `${closingToday} closing within 24 hours`
+              : "Nothing closing today"}
+          </span>
+        </div>
       </header>
 
-      <div className="grid grid-cols-3 gap-4 sm:gap-8 mb-10 border-y border-border py-5">
-        <StatCell label="open" value={totalOpen} />
-        <StatCell label="categories" value={allCategories.length} />
-        <StatCell label="closing 24h" value={closingToday} />
-      </div>
+      <section className="mb-8 mt-8 border-y border-border" aria-label="Market filters">
+        <div className="flex items-center justify-between gap-4 border-b border-border">
+          <nav className="flex items-center gap-6" aria-label="Market shelf">
+            <ShelfLink href="/markets" active={activeView === "featured"}>
+              Featured
+            </ShelfLink>
+            <ShelfLink href="/markets?view=all" active={activeView === "all"}>
+              All markets
+            </ShelfLink>
+          </nav>
+          <span className="hidden font-mono text-caption text-muted-foreground sm:inline">
+            {filteredCount.toLocaleString()} result{filteredCount === 1 ? "" : "s"}
+          </span>
+        </div>
 
-      <nav className="mb-6 flex items-center gap-1" aria-label="Market shelf">
-        <Link
-          href="/markets"
-          className={`inline-flex h-9 items-center rounded-full px-4 text-body-sm ${activeView === "featured" ? "bg-foreground text-background" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
-        >
-          Curated
-        </Link>
-        <Link
-          href="/markets?view=all"
-          className={`inline-flex h-9 items-center rounded-full px-4 text-body-sm ${activeView === "all" ? "bg-foreground text-background" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
-        >
-          All questions
-        </Link>
-      </nav>
+        <div className="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between">
+          <form action="/markets" className="flex min-w-0 flex-1 items-center gap-2">
+            {activeCategory !== "all" ? (
+              <input type="hidden" name="category" value={activeCategory} />
+            ) : null}
+            {activeSort !== DEFAULT_SORT ? (
+              <input type="hidden" name="sort" value={activeSort} />
+            ) : null}
+            {activeView === "all" ? (
+              <input type="hidden" name="view" value="all" />
+            ) : null}
+            <div className="relative min-w-0 flex-1 sm:max-w-[560px]">
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                type="search"
+                name="q"
+                defaultValue={query}
+                placeholder="Search markets"
+                aria-label="Search markets"
+                className="h-11 rounded-xl pl-10"
+              />
+            </div>
+            <Button type="submit" variant="outline" className="h-11 rounded-xl px-4">
+              Search
+            </Button>
+            {query ? (
+              <Link
+                href={buildHref({
+                  category:
+                    activeCategory === "all" ? undefined : activeCategory,
+                  sort: activeSort,
+                  view: activeView,
+                })}
+                className="hidden text-body-sm text-muted-foreground hover:text-foreground sm:inline"
+              >
+                Clear
+              </Link>
+            ) : null}
+          </form>
 
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-        <nav className="scrollbar-none -mx-5 flex flex-nowrap items-center gap-2 overflow-x-auto px-5 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
-          <CategoryPill
-            href={buildHref({
-              category: undefined,
-              sort: activeSort,
-              q: query,
-              view: activeView,
-            })}
-            active={activeCategory === "all"}
-          >
-            All
-          </CategoryPill>
-          {allCategories.map((c) => (
-            <CategoryPill
-              key={c.slug}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className="h-11 w-full justify-between rounded-xl px-4 sm:w-[210px]"
+              >
+                <span className="inline-flex items-center gap-2">
+                  <ArrowUpDown className="size-4 text-muted-foreground" />
+                  {SORTS[activeSort]}
+                </span>
+                <ChevronDown className="size-4 text-muted-foreground" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-[210px]">
+              {(Object.keys(SORTS) as SortKey[]).map((key) => (
+                <DropdownMenuItem key={key} asChild>
+                  <Link
+                    href={buildHref({
+                      category:
+                        activeCategory === "all" ? undefined : activeCategory,
+                      sort: key,
+                      q: query,
+                      view: activeView,
+                    })}
+                    className="flex w-full items-center"
+                  >
+                    {SORTS[key]}
+                    {activeSort === key ? <Check className="ml-auto size-4" /> : null}
+                  </Link>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        <div className="flex items-center gap-4 border-t border-border">
+          <span className="hidden shrink-0 text-overline text-muted-foreground sm:inline">
+            Topics
+          </span>
+          <nav className="scrollbar-none -mx-5 flex min-w-0 flex-1 items-center gap-5 overflow-x-auto px-5 sm:mx-0 sm:px-0" aria-label="Market topics">
+            <TopicLink
               href={buildHref({
-                category: c.slug,
+                category: undefined,
                 sort: activeSort,
                 q: query,
                 view: activeView,
               })}
-              active={activeCategory === c.slug}
+              active={activeCategory === "all"}
             >
-              {c.name}
-            </CategoryPill>
-          ))}
-        </nav>
-
-          <nav className="scrollbar-none flex items-center gap-1 overflow-x-auto">
-          {(Object.keys(SORTS) as SortKey[]).map((key) => (
-            <SortLink
-              key={key}
-              href={buildHref({
-                category: activeCategory === "all" ? undefined : activeCategory,
-                sort: key,
-                q: query,
-                view: activeView,
-              })}
-              active={activeSort === key}
-            >
-              {SORTS[key]}
-            </SortLink>
-          ))}
-        </nav>
-      </div>
-
-      <form
-        action="/markets"
-        className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center"
-      >
-        {activeCategory !== "all" ? (
-          <input type="hidden" name="category" value={activeCategory} />
-        ) : null}
-        {activeSort !== DEFAULT_SORT ? (
-          <input type="hidden" name="sort" value={activeSort} />
-        ) : null}
-        {activeView === "all" ? (
-          <input type="hidden" name="view" value="all" />
-        ) : null}
-        <Input
-          type="search"
-          name="q"
-          defaultValue={query}
-          placeholder="Search questions, topics, or outcomes"
-          aria-label="Search markets"
-          className="h-11 sm:max-w-md"
-        />
-        <Button type="submit" variant="outline" className="h-11">
-          Search
-        </Button>
-        {query ? (
-          <Link
-            href={buildHref({
-              category:
-                activeCategory === "all" ? undefined : activeCategory,
-              sort: activeSort,
-              view: activeView,
-            })}
-            className="text-body-sm text-muted-foreground hover:text-foreground"
-          >
-            Clear search
-          </Link>
-        ) : null}
-      </form>
+              All topics
+            </TopicLink>
+            {allCategories.map((c) => (
+              <TopicLink
+                key={c.slug}
+                href={buildHref({
+                  category: c.slug,
+                  sort: activeSort,
+                  q: query,
+                  view: activeView,
+                })}
+                active={activeCategory === c.slug}
+              >
+                {c.name}
+              </TopicLink>
+            ))}
+          </nav>
+        </div>
+      </section>
 
       <div className="mb-5 flex items-center justify-between gap-4 text-body-sm text-muted-foreground">
         <p>
@@ -353,18 +393,7 @@ function buildHref({
   return qs ? `/markets?${qs}` : "/markets";
 }
 
-function StatCell({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="flex flex-col gap-1">
-      <span className="text-overline text-muted-foreground">{label}</span>
-      <span className="font-display font-extrabold text-foreground text-headline sm:text-display-sm tabular-nums -tracking-[0.02em]">
-        {value.toLocaleString()}
-      </span>
-    </div>
-  );
-}
-
-function CategoryPill({
+function ShelfLink({
   href,
   active,
   children,
@@ -376,18 +405,19 @@ function CategoryPill({
   return (
     <Link
       href={href}
-      className={
+      aria-current={active ? "page" : undefined}
+      className={`inline-flex h-12 items-center border-b-2 text-body-sm font-medium transition-colors ${
         active
-          ? "inline-flex shrink-0 items-center px-3 h-8 rounded-full text-body-sm font-medium bg-foreground text-background"
-          : "inline-flex shrink-0 items-center px-3 h-8 rounded-full text-body-sm font-medium bg-muted text-muted-foreground hover:text-foreground transition-colors"
-      }
+          ? "border-foreground text-foreground"
+          : "border-transparent text-muted-foreground hover:text-foreground"
+      }`}
     >
       {children}
     </Link>
   );
 }
 
-function SortLink({
+function TopicLink({
   href,
   active,
   children,
@@ -399,11 +429,12 @@ function SortLink({
   return (
     <Link
       href={href}
-      className={
+      aria-current={active ? "page" : undefined}
+      className={`inline-flex h-11 shrink-0 items-center border-b-2 text-body-sm font-medium transition-colors ${
         active
-          ? "inline-flex items-center px-3 h-8 rounded-md text-body-sm font-medium text-foreground"
-          : "inline-flex items-center px-3 h-8 rounded-md text-body-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-      }
+          ? "border-foreground text-foreground"
+          : "border-transparent text-muted-foreground hover:text-foreground"
+      }`}
     >
       {children}
     </Link>
