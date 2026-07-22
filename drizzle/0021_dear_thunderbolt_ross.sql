@@ -1,0 +1,3 @@
+ALTER TABLE "early_access_applications" ADD COLUMN "invite_code" text;--> statement-breakpoint
+ALTER TABLE "early_access_applications" ADD CONSTRAINT "early_access_applications_invite_code_invite_codes_code_fk" FOREIGN KEY ("invite_code") REFERENCES "public"."invite_codes"("code") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+CREATE UNIQUE INDEX "early_access_invite_code_idx" ON "early_access_applications" USING btree ("invite_code");

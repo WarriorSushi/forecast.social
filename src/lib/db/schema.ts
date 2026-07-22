@@ -392,6 +392,9 @@ export const early_access_applications = pgTable(
     interests: text("interests").array().notNull().default(sql`'{}'::text[]`),
     prediction: text("prediction"),
     source: text("source"),
+    invite_code: text("invite_code").references(() => invite_codes.code, {
+      onDelete: "set null",
+    }),
     status: text("status", {
       enum: ["pending", "invited", "joined", "declined"],
     })
@@ -406,6 +409,7 @@ export const early_access_applications = pgTable(
   },
   (table) => [
     uniqueIndex("early_access_email_idx").on(sql`lower(${table.email})`),
+    uniqueIndex("early_access_invite_code_idx").on(table.invite_code),
     index("early_access_status_created_idx").on(
       table.status,
       table.created_at.desc(),
