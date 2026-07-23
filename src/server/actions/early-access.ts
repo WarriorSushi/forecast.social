@@ -121,7 +121,8 @@ export async function applyForEarlyAccess(
                 else ${rate_limit_buckets.window_started_at}
               end`,
               expires_at: sql`case
-                when ${rate_limit_buckets.expires_at} <= now() then ${expiresAt}
+                when ${rate_limit_buckets.expires_at} <= now()
+                  then now() + ${rule.windowMs} * interval '1 millisecond'
                 else ${rate_limit_buckets.expires_at}
               end`,
               updated_at: new Date(),
