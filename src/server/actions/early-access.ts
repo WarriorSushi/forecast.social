@@ -187,6 +187,7 @@ export async function inviteEarlyAccessApplicant(formData: FormData): Promise<
 
   if (!code) return { status: "error", message: "Application not found." };
   revalidatePath("/admin/growth");
+  revalidatePath("/admin/access-requests");
   revalidatePath("/admin/invites");
   return {
     status: "ok",

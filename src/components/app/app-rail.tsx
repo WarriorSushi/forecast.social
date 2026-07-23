@@ -2,7 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChartNoAxesColumn, Inbox, Pencil, Ticket } from "lucide-react";
+import {
+  ChartNoAxesColumn,
+  Inbox,
+  Pencil,
+  Ticket,
+  UserRoundPlus,
+} from "lucide-react";
 
 import { getNavItems, type NavItem } from "@/components/app/nav-items";
 import { UserMenu } from "@/components/app/user-menu";
@@ -13,18 +19,21 @@ import type { CurrentProfile } from "@/lib/auth";
 const ADMIN_ITEMS: readonly NavItem[] = [
   { href: "/admin/markets", label: "Markets", Icon: Pencil },
   { href: "/admin/proposals", label: "Proposals", Icon: Inbox },
+  { href: "/admin/access-requests", label: "Access requests", Icon: UserRoundPlus },
   { href: "/admin/invites", label: "Invites", Icon: Ticket },
-  { href: "/admin/growth", label: "Growth", Icon: ChartNoAxesColumn },
+  { href: "/admin/growth", label: "Analytics", Icon: ChartNoAxesColumn },
 ];
 
 export function AppRail({
   profile,
   unreadNotifications = 0,
   adminPendingProposals = 0,
+  adminPendingAccessRequests = 0,
 }: {
   profile: CurrentProfile;
   unreadNotifications?: number;
   adminPendingProposals?: number;
+  adminPendingAccessRequests?: number;
 }) {
   const pathname = usePathname();
   const items = getNavItems(profile.username);
@@ -66,6 +75,9 @@ export function AppRail({
               badge={
                 item.href === "/admin/proposals" && adminPendingProposals > 0
                   ? adminPendingProposals
+                  : item.href === "/admin/access-requests" &&
+                      adminPendingAccessRequests > 0
+                    ? adminPendingAccessRequests
                   : undefined
               }
             />

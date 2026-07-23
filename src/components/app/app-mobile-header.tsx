@@ -1,13 +1,15 @@
 import Link from "next/link";
-import { Bell, Settings } from "lucide-react";
+import { Bell, Settings, UserRoundPlus } from "lucide-react";
 
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 
 export function AppMobileHeader({
   unreadNotifications = 0,
+  adminPendingAccessRequests = 0,
 }: {
   unreadNotifications?: number;
+  adminPendingAccessRequests?: number;
 }) {
   return (
     <header className="lg:hidden sticky top-0 z-30 bg-background border-b border-border">
@@ -19,6 +21,27 @@ export function AppMobileHeader({
           forecast<span className="text-accent">.</span>social
         </Link>
         <div className="flex items-center gap-1">
+          {adminPendingAccessRequests > 0 ? (
+            <Button
+              asChild
+              variant="ghost"
+              size="icon"
+              aria-label={`Access requests, ${adminPendingAccessRequests} pending`}
+              className="relative"
+            >
+              <Link href="/admin/access-requests">
+                <UserRoundPlus className="size-4" strokeWidth={1.75} />
+                <span
+                  aria-hidden
+                  className="absolute top-1 right-1 inline-flex min-w-4 items-center justify-center rounded-full bg-accent px-1 font-mono text-[9px] font-semibold text-accent-foreground"
+                >
+                  {adminPendingAccessRequests > 99
+                    ? "99+"
+                    : adminPendingAccessRequests}
+                </span>
+              </Link>
+            </Button>
+          ) : null}
           <Button
             asChild
             variant="ghost"
