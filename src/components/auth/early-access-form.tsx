@@ -38,6 +38,17 @@ export function EarlyAccessForm() {
 
   return (
     <form action={action} className="flex flex-col gap-5" noValidate>
+      <div
+        aria-hidden="true"
+        className="absolute -left-[10000px] top-auto h-px w-px overflow-hidden"
+      >
+        <input
+          type="text"
+          name="website"
+          tabIndex={-1}
+          autoComplete="off"
+        />
+      </div>
       <div className="grid gap-5 sm:grid-cols-2">
         <Field id="early-email" name="email" label="Email" placeholder="you@example.com" type="email" required />
         <Field id="early-handle" name="handle" label="X or Reddit handle (optional)" placeholder="@yourname" />

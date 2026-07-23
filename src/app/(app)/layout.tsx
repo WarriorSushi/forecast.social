@@ -50,6 +50,7 @@ export default async function AppLayout({
     <div className="min-h-screen bg-background">
       <AppMobileHeader
         unreadNotifications={unread}
+        isAdmin={profile.is_admin}
         adminPendingAccessRequests={pendingAccessRequests}
       />
       <div className="mx-auto w-full max-w-[1320px] lg:flex lg:gap-12 lg:px-8">

@@ -417,6 +417,31 @@ export const early_access_applications = pgTable(
   ],
 );
 
+/* =====================================================================
+   rate_limit_buckets — private, persistent abuse-control counters
+
+   Keys are HMAC hashes generated on the server. Raw IP addresses and
+   email addresses are never stored in this table.
+===================================================================== */
+export const rate_limit_buckets = pgTable(
+  "rate_limit_buckets",
+  {
+    key: text("key").primaryKey(),
+    attempts: integer("attempts").notNull().default(1),
+    window_started_at: timestamp("window_started_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    expires_at: timestamp("expires_at", { withTimezone: true }).notNull(),
+    updated_at: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("rate_limit_buckets_expires_idx").on(table.expires_at),
+    check("rate_limit_buckets_attempts_check", sql`${table.attempts} > 0`),
+  ],
+);
+
 export const growth_events = pgTable(
   "growth_events",
   {

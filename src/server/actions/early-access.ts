@@ -2,7 +2,7 @@
 
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
-import { randomBytes } from "node:crypto";
+import { createHmac, randomBytes } from "node:crypto";
 import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
 
@@ -11,6 +11,7 @@ import {
   early_access_applications,
   growth_events,
   invite_codes,
+  rate_limit_buckets,
 } from "@/lib/db/schema";
 import { getCurrentProfile } from "@/lib/auth";
 import { env } from "@/lib/env";
@@ -22,7 +23,12 @@ export type EarlyAccessState =
   | { status: "error"; message: string };
 
 const schema = z.object({
-  email: z.string().trim().toLowerCase().email("Enter a valid email."),
+  email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .email("Enter a valid email.")
+    .max(320, "Enter a valid email."),
   handle: z.string().trim().max(80).optional(),
   interests: z.array(z.string().trim().min(1)).min(1).max(4),
   prediction: z.string().trim().max(280).optional(),
@@ -33,10 +39,14 @@ export async function applyForEarlyAccess(
   _previous: EarlyAccessState,
   formData: FormData,
 ): Promise<EarlyAccessState> {
+  if (String(formData.get("website") ?? "").trim()) {
+    return { status: "success" };
+  }
+
   const requestHeaders = await headers();
   const actor =
-    requestHeaders.get("x-forwarded-for")?.split(",")[0]?.trim() ??
     requestHeaders.get("x-real-ip") ??
+    requestHeaders.get("x-forwarded-for")?.split(",")[0]?.trim() ??
     "unknown";
   const limit = rateLimit({
     actor,
@@ -63,13 +73,74 @@ export async function applyForEarlyAccess(
   }
 
   try {
-    const [existing] = await db
-      .select({ id: early_access_applications.id })
-      .from(early_access_applications)
-      .where(sql`lower(${early_access_applications.email}) = ${parsed.data.email}`)
-      .limit(1);
+    const HOUR = 60 * 60 * 1000;
+    const DAY = 24 * HOUR;
+    const limits = [
+      {
+        key: makeRateLimitKey("actor-hour", actor),
+        max: 8,
+        windowMs: HOUR,
+      },
+      {
+        key: makeRateLimitKey("actor-day", actor),
+        max: 30,
+        windowMs: DAY,
+      },
+      {
+        key: makeRateLimitKey("email-hour", parsed.data.email),
+        max: 3,
+        windowMs: HOUR,
+      },
+      {
+        key: makeRateLimitKey("email-day", parsed.data.email),
+        max: 6,
+        windowMs: DAY,
+      },
+    ].sort((left, right) => left.key.localeCompare(right.key));
 
-    await db.transaction(async (tx) => {
+    const result = await db.transaction(async (tx) => {
+      let blocked = false;
+      for (const rule of limits) {
+        const expiresAt = new Date(Date.now() + rule.windowMs);
+        const [bucket] = await tx
+          .insert(rate_limit_buckets)
+          .values({
+            key: rule.key,
+            attempts: 1,
+            expires_at: expiresAt,
+          })
+          .onConflictDoUpdate({
+            target: rate_limit_buckets.key,
+            set: {
+              attempts: sql`case
+                when ${rate_limit_buckets.expires_at} <= now() then 1
+                else ${rate_limit_buckets.attempts} + 1
+              end`,
+              window_started_at: sql`case
+                when ${rate_limit_buckets.expires_at} <= now() then now()
+                else ${rate_limit_buckets.window_started_at}
+              end`,
+              expires_at: sql`case
+                when ${rate_limit_buckets.expires_at} <= now() then ${expiresAt}
+                else ${rate_limit_buckets.expires_at}
+              end`,
+              updated_at: new Date(),
+            },
+          })
+          .returning({ attempts: rate_limit_buckets.attempts });
+        if (!bucket || bucket.attempts > rule.max) blocked = true;
+      }
+
+      if (blocked) return { allowed: false } as const;
+
+      const emailLock = makeRateLimitKey("application", parsed.data.email);
+      await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${emailLock}))`);
+      const [existing] = await tx
+        .select({ id: early_access_applications.id })
+        .from(early_access_applications)
+        .where(sql`lower(${early_access_applications.email}) = ${parsed.data.email}`)
+        .limit(1);
+
       if (existing) {
         await tx
           .update(early_access_applications)
@@ -97,7 +168,15 @@ export async function applyForEarlyAccess(
           source: parsed.data.source || null,
         },
       });
+      return { allowed: true } as const;
     });
+
+    if (!result.allowed) {
+      return {
+        status: "error",
+        message: "Too many requests. Please try again later.",
+      };
+    }
   } catch (error) {
     console.error("[early-access] application failed", {
       error: error instanceof Error ? error.message : String(error),
@@ -109,6 +188,12 @@ export async function applyForEarlyAccess(
   }
 
   return { status: "success" };
+}
+
+function makeRateLimitKey(scope: string, value: string) {
+  return createHmac("sha256", env.SUPABASE_SERVICE_ROLE_KEY)
+    .update(`${scope}\u0000${value}`)
+    .digest("hex");
 }
 
 const applicationInviteSchema = z.object({

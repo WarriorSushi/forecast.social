@@ -6,9 +6,11 @@ import { Button } from "@/components/ui/button";
 
 export function AppMobileHeader({
   unreadNotifications = 0,
+  isAdmin = false,
   adminPendingAccessRequests = 0,
 }: {
   unreadNotifications?: number;
+  isAdmin?: boolean;
   adminPendingAccessRequests?: number;
 }) {
   return (
@@ -21,7 +23,7 @@ export function AppMobileHeader({
           forecast<span className="text-accent">.</span>social
         </Link>
         <div className="flex items-center gap-1">
-          {adminPendingAccessRequests > 0 ? (
+          {isAdmin ? (
             <Button
               asChild
               variant="ghost"
@@ -31,14 +33,16 @@ export function AppMobileHeader({
             >
               <Link href="/admin/access-requests">
                 <UserRoundPlus className="size-4" strokeWidth={1.75} />
-                <span
-                  aria-hidden
-                  className="absolute top-1 right-1 inline-flex min-w-4 items-center justify-center rounded-full bg-accent px-1 font-mono text-[9px] font-semibold text-accent-foreground"
-                >
-                  {adminPendingAccessRequests > 99
-                    ? "99+"
-                    : adminPendingAccessRequests}
-                </span>
+                {adminPendingAccessRequests > 0 ? (
+                  <span
+                    aria-hidden
+                    className="absolute top-1 right-1 inline-flex min-w-4 items-center justify-center rounded-full bg-accent px-1 font-mono text-[9px] font-semibold text-accent-foreground"
+                  >
+                    {adminPendingAccessRequests > 99
+                      ? "99+"
+                      : adminPendingAccessRequests}
+                  </span>
+                ) : null}
               </Link>
             </Button>
           ) : null}
