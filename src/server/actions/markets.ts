@@ -204,6 +204,7 @@ export async function configureMarketResolution(
       resolution_status: "pending",
       resolution_evidence: null,
       resolution_checked_at: null,
+      resolution_locked_at: null,
     })
     .where(eq(markets.id, marketId))
     .returning({ slug: markets.slug });

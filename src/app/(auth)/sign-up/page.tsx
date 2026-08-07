@@ -40,6 +40,7 @@ export default async function SignUpPage({
           : "Create an account and put your first forecast on the record."
       }
       submitLabel="Create account"
+      passwordAutoComplete="new-password"
       showInviteCode={env.INVITE_CODES_REQUIRED || Boolean(initialInviteCode)}
       initialInviteCode={initialInviteCode}
       footerPrefix="No invitation yet?"

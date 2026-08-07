@@ -66,7 +66,7 @@ export default async function LeaderboardPage({
       .from(user_category_scores)
       .innerJoin(users, eq(user_category_scores.user_id, users.id))
       .where(
-        sql`${user_category_scores.category_slug} = ${activeCategory} AND ${user_category_scores.score} > 0`,
+        sql`${user_category_scores.category_slug} = ${activeCategory} AND ${user_category_scores.resolved_count} >= 5`,
       )
       .orderBy(
         desc(user_category_scores.score),
@@ -141,9 +141,13 @@ export default async function LeaderboardPage({
                   </Link>
                   <div className="sm:hidden flex items-center gap-2 font-mono text-caption text-muted-foreground tabular-nums">
                     <span className="truncate">@{row.username}</span>
-                    {row.streak > 0 ? (
+                    {activeCategory === "all" && row.streak > 0 ? (
                       <span className="text-signal-positive shrink-0">
                         · {row.streak}d
+                      </span>
+                    ) : activeCategory !== "all" ? (
+                      <span className="shrink-0">
+                        · {row.resolved_count ?? 0} resolved
                       </span>
                     ) : null}
                   </div>
@@ -154,12 +158,16 @@ export default async function LeaderboardPage({
                 <span
                   className={
                     "hidden sm:inline font-mono text-caption tabular-nums " +
-                    (row.streak > 0
+                    (activeCategory === "all" && row.streak > 0
                       ? "text-signal-positive"
                       : "text-muted-foreground")
                   }
                 >
-                  {row.streak > 0 ? `${row.streak}-call streak` : "—"}
+                  {activeCategory === "all"
+                    ? row.streak > 0
+                      ? `${row.streak}-call streak`
+                      : "—"
+                    : `${row.resolved_count ?? 0} resolved`}
                 </span>
                 <span className="font-display text-headline font-bold text-foreground tabular-nums text-right">
                   {row.score.toLocaleString()}

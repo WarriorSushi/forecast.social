@@ -55,22 +55,31 @@ export type NotificationPayload =
 export async function createNotification(
   userId: string,
   payload: NotificationPayload,
+  dedupeKey?: string,
 ): Promise<void> {
-  await createNotifications([{ userId, payload }]);
+  await createNotifications([{ userId, payload, dedupeKey }]);
 }
 
 export async function createNotifications(
-  entries: { userId: string; payload: NotificationPayload }[],
+  entries: {
+    userId: string;
+    payload: NotificationPayload;
+    dedupeKey?: string;
+  }[],
 ): Promise<void> {
   if (entries.length === 0) return;
 
-  await db.insert(notifications).values(
-    entries.map(({ userId, payload }) => ({
-      user_id: userId,
-      kind: payload.kind as NotificationKind,
-      payload,
-    })),
-  );
+  await db
+    .insert(notifications)
+    .values(
+      entries.map(({ userId, payload, dedupeKey }) => ({
+        user_id: userId,
+        kind: payload.kind as NotificationKind,
+        payload,
+        dedupe_key: dedupeKey ?? null,
+      })),
+    )
+    .onConflictDoNothing({ target: notifications.dedupe_key });
 }
 
 /**

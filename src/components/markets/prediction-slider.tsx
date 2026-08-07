@@ -79,11 +79,26 @@ export function PredictionSlider({
   const valuePct = Math.round(value);
   const consensusPct = consensus != null ? Math.round(consensus * 100) : null;
   const isHigh = valuePct >= 50;
+  const helpId = `prediction-help-${marketId}`;
 
   return (
     <form action={formAction} className="flex flex-col gap-5">
       <input type="hidden" name="marketId" value={marketId} />
       <input type="hidden" name="probability" value={valuePct} />
+      <p id={helpId} className="sr-only">
+        {consensusPct == null
+          ? "No consensus is available yet."
+          : `Current market consensus is ${consensusPct} percent.`}{" "}
+        Submitted calls are permanent and timestamped. You can make a new call
+        later without changing this one.
+      </p>
+      <p className="sr-only" role="status" aria-live="polite">
+        {state.status === "success"
+          ? `Call locked at ${Math.round(state.probability * 100)} percent.`
+          : state.status === "error"
+            ? state.message
+            : ""}
+      </p>
 
       <div className="flex flex-col gap-2">
         <div className="flex items-baseline justify-between">
@@ -133,7 +148,6 @@ export function PredictionSlider({
           max={100}
           step={1}
           disabled={disabled}
-          aria-label="Probability slider"
           className={cn(
             "relative flex items-center select-none touch-none w-full h-6",
             disabled && "opacity-60 cursor-not-allowed",
@@ -156,6 +170,9 @@ export function PredictionSlider({
             ) : null}
           </SliderPrimitive.Track>
           <SliderPrimitive.Thumb
+            aria-label="Your probability"
+            aria-valuetext={`${valuePct} percent${consensusPct == null ? "" : `, market consensus ${consensusPct} percent`}`}
+            aria-describedby={helpId}
             className={cn(
               "block size-6 rounded-full border-2 border-background transition-colors",
               "ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
@@ -168,7 +185,7 @@ export function PredictionSlider({
         <div className="mt-5 flex justify-between text-caption text-muted-foreground font-mono tabular-nums">
           <span>0%</span>
           {consensusPct != null ? (
-            <span aria-hidden>consensus {consensusPct}%</span>
+            <span>consensus {consensusPct}%</span>
           ) : null}
           <span>100%</span>
         </div>

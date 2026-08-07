@@ -17,7 +17,7 @@ import { ShareProfileButton } from "@/components/profile/share-profile-button";
 import { EmptyState } from "@/components/app/empty-state";
 import { JsonLd } from "@/components/seo/json-ld";
 import { env } from "@/lib/env";
-import { VOLUME_GATE } from "@/lib/scoring/score";
+import { VOLUME_GATE, wasCorrect } from "@/lib/scoring/score";
 
 type Params = { username: string };
 
@@ -348,12 +348,7 @@ function deriveCallStatus(
 ): CallStatus {
   if (!resolvedAt || !outcome) return "pending";
   if (outcome === "invalid") return "invalid";
-  // "Correct" if the user leaned the same way as the resolution.
-  // For a binary market, leaning ≥50% on Yes when Yes resolved = correct.
-  const leanedYes = probability >= 0.5;
-  if (outcome === "yes" && leanedYes) return "correct";
-  if (outcome === "no" && !leanedYes) return "correct";
-  return "missed";
+  return wasCorrect(probability, outcome === "yes") ? "correct" : "missed";
 }
 
 function CallStatusPill({ status }: { status: CallStatus }) {

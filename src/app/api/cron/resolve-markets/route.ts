@@ -1,12 +1,29 @@
-import { and, asc, eq, inArray, isNull, lte, ne, or } from "drizzle-orm";
+import {
+  and,
+  asc,
+  eq,
+  inArray,
+  isNotNull,
+  isNull,
+  lt,
+  lte,
+  or,
+} from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { growth_events, markets } from "@/lib/db/schema";
 import { evaluateHttpJsonResolution } from "@/lib/resolution/evaluate";
-import { finalizeMarketResolution } from "@/lib/resolution/finalize";
+import {
+  finalizeMarketResolution,
+  retryResolutionEffects,
+} from "@/lib/resolution/finalize";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
+
+const LEASE_MS = 15 * 60 * 1000;
+const SOURCE_BATCH_SIZE = 6;
+const RETRY_BATCH_SIZE = 4;
 
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET;
@@ -15,11 +32,68 @@ export async function GET(request: Request) {
   }
 
   const now = new Date();
+  const staleBefore = new Date(now.getTime() - LEASE_MS);
+  const summary = {
+    checked: 0,
+    resolved: 0,
+    review: 0,
+    failed: 0,
+    effectsRetried: 0,
+    effectsPending: 0,
+  };
+
+  // Retry committed outcomes whose idempotent scoring/notification effects
+  // were interrupted. A stale resolving lease is safe to reclaim.
+  const retryQueue = await db
+    .select({ id: markets.id })
+    .from(markets)
+    .where(
+      and(
+        isNotNull(markets.resolved_at),
+        or(
+          eq(markets.resolution_status, "failed"),
+          and(
+            eq(markets.resolution_status, "resolving"),
+            or(
+              isNull(markets.resolution_locked_at),
+              lt(markets.resolution_locked_at, staleBefore),
+            ),
+          ),
+        ),
+      ),
+    )
+    .orderBy(asc(markets.resolution_checked_at))
+    .limit(RETRY_BATCH_SIZE);
+  for (const market of retryQueue) {
+    const retried = await retryResolutionEffects(market.id);
+    if (!retried) continue;
+    summary.effectsRetried += 1;
+    if (retried.effectsPending) summary.effectsPending += 1;
+  }
+
+  // Manual work is escalated once, outside the automatic source queue. Rows
+  // already in review never consume the limited automatic batch again.
+  const manualReviews = await db
+    .update(markets)
+    .set({
+      resolution_status: "review",
+      resolution_checked_at: now,
+      resolution_locked_at: null,
+    })
+    .where(
+      and(
+        isNull(markets.resolved_at),
+        eq(markets.resolution_method, "manual"),
+        inArray(markets.resolution_status, ["pending", "failed"]),
+        lte(markets.resolves_at, now),
+      ),
+    )
+    .returning({ id: markets.id });
+  summary.review = manualReviews.length;
+
   const queue = await db
     .select({
       id: markets.id,
-      title: markets.title,
-      method: markets.resolution_method,
       config: markets.resolution_config,
       resolvesAt: markets.resolves_at,
     })
@@ -27,36 +101,49 @@ export async function GET(request: Request) {
     .where(
       and(
         isNull(markets.resolved_at),
-        inArray(markets.resolution_status, ["pending", "review", "failed"]),
-        or(ne(markets.resolution_method, "manual"), lte(markets.resolves_at, now)),
+        eq(markets.resolution_method, "http_json"),
+        or(
+          inArray(markets.resolution_status, ["pending", "failed"]),
+          and(
+            eq(markets.resolution_status, "resolving"),
+            or(
+              isNull(markets.resolution_locked_at),
+              lt(markets.resolution_locked_at, staleBefore),
+            ),
+          ),
+        ),
       ),
     )
     .orderBy(asc(markets.resolves_at))
-    .limit(20);
+    .limit(SOURCE_BATCH_SIZE);
 
-  const summary = { checked: 0, resolved: 0, review: 0, failed: 0 };
   for (const market of queue) {
-    summary.checked += 1;
-    if (market.method === "manual") {
-      await db
-        .update(markets)
-        .set({ resolution_status: "review", resolution_checked_at: now })
-        .where(eq(markets.id, market.id));
-      summary.review += 1;
-      continue;
-    }
-
-    const [locked] = await db
+    const [claimed] = await db
       .update(markets)
-      .set({ resolution_status: "resolving", resolution_checked_at: now })
+      .set({
+        resolution_status: "resolving",
+        resolution_checked_at: now,
+        resolution_locked_at: now,
+      })
       .where(
         and(
           eq(markets.id, market.id),
-          inArray(markets.resolution_status, ["pending", "review", "failed"]),
+          isNull(markets.resolved_at),
+          or(
+            inArray(markets.resolution_status, ["pending", "failed"]),
+            and(
+              eq(markets.resolution_status, "resolving"),
+              or(
+                isNull(markets.resolution_locked_at),
+                lt(markets.resolution_locked_at, staleBefore),
+              ),
+            ),
+          ),
         ),
       )
       .returning({ id: markets.id });
-    if (!locked) continue;
+    if (!claimed) continue;
+    summary.checked += 1;
 
     try {
       const evaluation = await evaluateHttpJsonResolution({
@@ -71,33 +158,46 @@ export async function GET(request: Request) {
             resolution_status: "pending",
             resolution_evidence: evaluation.evidence,
             resolution_checked_at: now,
+            resolution_locked_at: null,
           })
-          .where(eq(markets.id, market.id));
+          .where(and(eq(markets.id, market.id), isNull(markets.resolved_at)));
         continue;
       }
-      await finalizeMarketResolution({
+
+      const result = await finalizeMarketResolution({
         marketId: market.id,
         outcome: evaluation.outcome,
         resolvedBy: null,
         resolver: "automation",
         notes: "Resolved automatically from a configured machine-readable source.",
         evidence: evaluation.evidence,
+        useExistingLease: true,
       });
       await db.insert(growth_events).values({
         event: "market_auto_resolved",
-        metadata: { marketId: market.id, outcome: evaluation.outcome },
+        metadata: {
+          marketId: market.id,
+          outcome: evaluation.outcome,
+          effectsPending: result.effectsPending,
+        },
       });
       summary.resolved += 1;
+      if (result.effectsPending) summary.effectsPending += 1;
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Unknown resolution error";
+      const message =
+        error instanceof Error ? error.message : "Unknown resolution error";
       await db
         .update(markets)
         .set({
           resolution_status: "failed",
           resolution_checked_at: now,
-          resolution_evidence: { error: message, checkedAt: now.toISOString() },
+          resolution_locked_at: null,
+          resolution_evidence: {
+            error: message,
+            checkedAt: now.toISOString(),
+          },
         })
-        .where(eq(markets.id, market.id));
+        .where(and(eq(markets.id, market.id), isNull(markets.resolved_at)));
       summary.failed += 1;
     }
   }

@@ -69,6 +69,14 @@ export const users = pgTable(
     uniqueIndex("users_founding_member_number_idx")
       .on(table.founding_member_number)
       .where(sql`${table.founding_member_number} is not null`),
+    check(
+      "users_founding_member_number_range",
+      sql`${table.founding_member_number} is null OR (${table.founding_member_number} >= 1 AND ${table.founding_member_number} <= 250)`,
+    ),
+    check(
+      "users_founding_member_since_consistency",
+      sql`${table.founding_member_since} is null OR ${table.founding_member_number} is not null`,
+    ),
   ],
 );
 
@@ -147,6 +155,9 @@ export const markets = pgTable(
       .default("pending"),
     resolution_evidence: jsonb("resolution_evidence"),
     resolution_checked_at: timestamp("resolution_checked_at", {
+      withTimezone: true,
+    }),
+    resolution_locked_at: timestamp("resolution_locked_at", {
       withTimezone: true,
     }),
     created_at: timestamp("created_at", { withTimezone: true })
@@ -442,6 +453,33 @@ export const rate_limit_buckets = pgTable(
   ],
 );
 
+/* =====================================================================
+   registration_intents — one-time server-issued admission tickets
+
+   Supabase's public signup endpoint is intentionally reachable from the
+   browser. A BEFORE INSERT trigger on auth.users consumes one of these
+   short-lived, email-bound tickets so account admission cannot be bypassed
+   by calling the Auth API directly.
+===================================================================== */
+export const registration_intents = pgTable(
+  "registration_intents",
+  {
+    token: text("token").primaryKey(),
+    email: text("email").notNull(),
+    expires_at: timestamp("expires_at", { withTimezone: true }).notNull(),
+    created_at: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("registration_intents_expires_idx").on(table.expires_at),
+    check(
+      "registration_intents_email_normalized",
+      sql`${table.email} = lower(trim(${table.email}))`,
+    ),
+  ],
+);
+
 export const growth_events = pgTable(
   "growth_events",
   {
@@ -628,6 +666,7 @@ export const notifications = pgTable(
       ],
     }).notNull(),
     payload: jsonb("payload").notNull(),
+    dedupe_key: text("dedupe_key"),
     read_at: timestamp("read_at", { withTimezone: true }),
     created_at: timestamp("created_at", { withTimezone: true })
       .defaultNow()
@@ -638,6 +677,7 @@ export const notifications = pgTable(
       table.user_id,
       table.created_at.desc(),
     ),
+    uniqueIndex("notifications_dedupe_key_idx").on(table.dedupe_key),
   ],
 );
 

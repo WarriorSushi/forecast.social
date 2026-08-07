@@ -56,7 +56,15 @@ export default function MarketingLayout({
           <p className="font-stylized text-title font-semibold text-foreground leading-none tracking-tight">
             forecast<span className="text-accent">.</span>social
           </p>
-          <p className="text-overline">© 2026 · say it before it happens</p>
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            <Link href="/founding" className="hover:text-foreground">
+              Founding forecasters
+            </Link>
+            <Link href="/leaderboard" className="hover:text-foreground">
+              Leaderboard
+            </Link>
+            <p className="text-overline">© 2026 · say it before it happens</p>
+          </div>
         </div>
       </footer>
     </div>

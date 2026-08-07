@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpDown, Check, ChevronDown, Search } from "lucide-react";
+import { ArrowUpDown, Check, ChevronDown, Search, X } from "lucide-react";
 import {
   and,
   asc,
@@ -212,9 +212,11 @@ export default async function MarketsListPage({
                   sort: activeSort,
                   view: activeView,
                 })}
-                className="hidden text-body-sm text-muted-foreground hover:text-foreground sm:inline"
+                aria-label="Clear search"
+                className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-lg px-2 text-body-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground sm:px-3"
               >
-                Clear
+                <X className="size-4" />
+                <span className="sr-only sm:not-sr-only">Clear</span>
               </Link>
             ) : null}
           </form>
@@ -302,7 +304,20 @@ export default async function MarketsListPage({
       </div>
 
       {rows.length === 0 ? (
-        <EmptyState />
+        <EmptyState
+          resetHref={
+            query || activeCategory !== "all" || activeSort !== DEFAULT_SORT
+              ? buildHref({ sort: DEFAULT_SORT, view: activeView })
+              : activeView === "featured"
+                ? "/markets?view=all"
+                : null
+          }
+          resetLabel={
+            query || activeCategory !== "all" || activeSort !== DEFAULT_SORT
+              ? "Clear filters"
+              : "Browse all markets"
+          }
+        />
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
@@ -441,7 +456,13 @@ function TopicLink({
   );
 }
 
-function EmptyState() {
+function EmptyState({
+  resetHref,
+  resetLabel,
+}: {
+  resetHref: string | null;
+  resetLabel: string;
+}) {
   return (
     <div className="border border-dashed border-border rounded-2xl py-16 px-6 flex flex-col items-start gap-4 max-w-xl">
       <h3 className="font-display text-display-sm text-foreground">
@@ -451,12 +472,19 @@ function EmptyState() {
         Try another category, clear the search, or propose a question worth
         tracking.
       </p>
-      <Link
-        href="/markets/propose"
-        className="text-body-sm text-foreground font-medium hover:underline underline-offset-4"
-      >
-        Propose a market →
-      </Link>
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
+        {resetHref ? (
+          <Button asChild variant="outline">
+            <Link href={resetHref}>{resetLabel}</Link>
+          </Button>
+        ) : null}
+        <Link
+          href="/markets/propose"
+          className="text-body-sm text-foreground font-medium hover:underline underline-offset-4"
+        >
+          Propose a market →
+        </Link>
+      </div>
     </div>
   );
 }

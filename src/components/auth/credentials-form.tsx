@@ -28,6 +28,7 @@ type Props = {
   footerPrefix?: string;
   footerLabel?: string;
   footerHref?: string;
+  passwordAutoComplete?: "current-password" | "new-password";
 };
 
 export function CredentialsForm({
@@ -40,6 +41,7 @@ export function CredentialsForm({
   footerPrefix,
   footerLabel,
   footerHref,
+  passwordAutoComplete = "current-password",
 }: Props) {
   const [state, formAction] = useActionState(action, initialAuthState);
 
@@ -68,7 +70,7 @@ export function CredentialsForm({
           name="password"
           label="Password"
           type="password"
-          autoComplete="current-password"
+          autoComplete={passwordAutoComplete}
           required
           placeholder="At least 8 characters"
         />

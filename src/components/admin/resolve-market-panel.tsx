@@ -49,10 +49,13 @@ export function ResolveMarketPanel({
       fd.set("marketId", marketId);
       fd.set("outcome", outcome);
       fd.set("notes", notes);
+      fd.set("correction", String(alreadyResolved));
       const result = await resolveMarket(fd);
       if (result.status === "ok") {
         toast.success(
-          `Resolved as ${result.outcome}. ${result.affectedUsers} forecaster${result.affectedUsers === 1 ? "" : "s"} recomputed.`,
+          result.effectsPending
+            ? `Resolved as ${result.outcome}. Score updates are queued for retry.`
+            : `Resolved as ${result.outcome}. ${result.affectedUsers} forecaster${result.affectedUsers === 1 ? "" : "s"} recomputed.`,
         );
         setNotes("");
       } else {
