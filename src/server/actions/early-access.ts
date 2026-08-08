@@ -20,7 +20,20 @@ import { rateLimit } from "@/lib/rate-limit";
 export type EarlyAccessState =
   | { status: "idle" }
   | { status: "success" }
-  | { status: "error"; message: string };
+  | {
+      status: "error";
+      message: string;
+      fields?: EarlyAccessFields;
+      fieldErrors?: Partial<Record<keyof EarlyAccessFields, string>>;
+    };
+
+export type EarlyAccessFields = {
+  email: string;
+  handle: string;
+  interests: string[];
+  prediction: string;
+  source: string;
+};
 
 const schema = z.object({
   email: z
@@ -30,7 +43,10 @@ const schema = z.object({
     .email("Enter a valid email.")
     .max(320, "Enter a valid email."),
   handle: z.string().trim().max(80).optional(),
-  interests: z.array(z.string().trim().min(1)).min(1).max(4),
+  interests: z
+    .array(z.string().trim().min(1))
+    .min(1, "Choose at least one topic.")
+    .max(4),
   prediction: z.string().trim().max(280).optional(),
   source: z.string().trim().max(80).optional(),
 });
@@ -58,17 +74,25 @@ export async function applyForEarlyAccess(
     return { status: "error", message: "Too many attempts. Try again later." };
   }
 
-  const parsed = schema.safeParse({
+  const fields: EarlyAccessFields = {
     email: String(formData.get("email") ?? ""),
     handle: String(formData.get("handle") ?? ""),
     interests: formData.getAll("interests").map(String),
     prediction: String(formData.get("prediction") ?? ""),
     source: String(formData.get("source") ?? ""),
-  });
+  };
+  const parsed = schema.safeParse(fields);
   if (!parsed.success) {
+    const flattened = parsed.error.flatten().fieldErrors;
     return {
       status: "error",
-      message: parsed.error.issues[0]?.message ?? "Check your application.",
+      message: "Check the highlighted fields and try again.",
+      fields,
+      fieldErrors: Object.fromEntries(
+        Object.entries(flattened).flatMap(([field, messages]) =>
+          messages?.[0] ? [[field, messages[0]]] : [],
+        ),
+      ),
     };
   }
 
@@ -176,6 +200,7 @@ export async function applyForEarlyAccess(
       return {
         status: "error",
         message: "Too many requests. Please try again later.",
+        fields,
       };
     }
   } catch (error) {
@@ -185,6 +210,7 @@ export async function applyForEarlyAccess(
     return {
       status: "error",
       message: "We could not save your request. Please try again in a moment.",
+      fields,
     };
   }
 

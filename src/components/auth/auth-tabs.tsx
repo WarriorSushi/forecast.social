@@ -21,8 +21,7 @@ export function AuthTabs() {
   const active = pathname?.startsWith("/sign-up") ? "/sign-up" : "/sign-in";
 
   return (
-    <div
-      role="tablist"
+    <nav
       aria-label="Authentication"
       className="relative mx-auto grid max-w-[420px] grid-cols-2 rounded-full border border-border bg-card p-1 mb-8"
     >
@@ -32,8 +31,7 @@ export function AuthTabs() {
           <Link
             key={tab.href}
             href={tab.href}
-            role="tab"
-            aria-selected={isActive}
+            aria-current={isActive ? "page" : undefined}
             className={cn(
               "relative z-10 inline-flex h-9 items-center justify-center rounded-full text-body-sm font-medium transition-colors",
               isActive
@@ -45,6 +43,6 @@ export function AuthTabs() {
           </Link>
         );
       })}
-    </div>
+    </nav>
   );
 }

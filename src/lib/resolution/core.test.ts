@@ -30,5 +30,20 @@ describe("automatic resolution core", () => {
         expected: 100_000,
       }),
     );
+    for (const url of [
+      "http://api.github.com/repos/openai/codex",
+      "https://token@example.com/data",
+      "https://api.github.com/data?api_key=secret",
+      "https://api.github.com/data#private",
+    ]) {
+      assert.throws(() =>
+        parseHttpJsonResolutionConfig({
+          url,
+          path: "value",
+          operator: "eq",
+          expected: true,
+        }),
+      );
+    }
   });
 });

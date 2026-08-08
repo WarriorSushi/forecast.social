@@ -72,6 +72,12 @@ export default async function PublicLayout({
           </Link>
           <nav className="flex items-center gap-1 sm:gap-2">
             <Link
+              href="/founding"
+              className="hidden md:inline-flex text-body-sm text-muted-foreground hover:text-foreground transition-colors px-3 h-9 items-center"
+            >
+              Founding
+            </Link>
+            <Link
               href="/leaderboard"
               className="hidden sm:inline-flex text-body-sm text-muted-foreground hover:text-foreground transition-colors px-3 h-9 items-center"
             >
@@ -105,7 +111,15 @@ export default async function PublicLayout({
           <p className="font-stylized text-title font-semibold text-foreground leading-none tracking-tight">
             forecast<span className="text-accent">.</span>social
           </p>
-          <p className="text-overline">© 2026 · say it before it happens</p>
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            <Link href="/founding" className="hover:text-foreground">
+              Founding forecasters
+            </Link>
+            <Link href="/leaderboard" className="hover:text-foreground">
+              Leaderboard
+            </Link>
+            <p className="text-overline">© 2026 · say it before it happens</p>
+          </div>
         </div>
       </footer>
     </div>

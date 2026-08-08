@@ -1,7 +1,21 @@
 import { z } from "zod";
 
 const httpJsonResolutionConfigSchema = z.object({
-  url: z.string().url(),
+  url: z
+    .string()
+    .url()
+    .superRefine((value, ctx) => {
+      const url = new URL(value);
+      if (url.protocol !== "https:") {
+        ctx.addIssue({ code: "custom", message: "Resolver URLs must use HTTPS." });
+      }
+      if (url.username || url.password || url.search || url.hash) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Resolver URLs cannot contain credentials, query strings, or fragments.",
+        });
+      }
+    }),
   path: z.string().min(1).max(240),
   operator: z.enum(["eq", "neq", "gt", "gte", "lt", "lte"]),
   expected: z.union([z.string(), z.number(), z.boolean()]),

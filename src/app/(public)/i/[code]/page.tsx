@@ -1,4 +1,4 @@
-import { and, eq, gt, isNull, or } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, LockKeyhole } from "lucide-react";
@@ -19,6 +19,7 @@ export default async function InviteLandingPage({ params }: { params: Promise<Pa
     .select({
       code: invite_codes.code,
       usedAt: invite_codes.used_at,
+      expiresAt: invite_codes.expires_at,
       inviterUsername: users.username,
       inviterName: users.display_name,
       inviterAvatar: users.avatar_url,
@@ -32,16 +33,17 @@ export default async function InviteLandingPage({ params }: { params: Promise<Pa
     .innerJoin(users, eq(invite_codes.created_by, users.id))
     .leftJoin(predictions, eq(invite_codes.source_prediction_id, predictions.id))
     .leftJoin(markets, eq(predictions.market_id, markets.id))
-    .where(
-      and(
-        eq(invite_codes.code, code),
-        or(isNull(invite_codes.expires_at), gt(invite_codes.expires_at, new Date())),
-      ),
-    )
+    .where(eq(invite_codes.code, code))
     .limit(1);
 
   if (!invite) notFound();
-  const available = !invite.usedAt;
+  // Server-component expiry checks are evaluated once for this request.
+  // eslint-disable-next-line react-hooks/purity -- intentional request-time state
+  const now = Date.now();
+  const expired = Boolean(
+    invite.expiresAt && new Date(invite.expiresAt).getTime() <= now,
+  );
+  const available = !invite.usedAt && !expired;
 
   return (
     <div className="mx-auto flex min-h-[70vh] w-full max-w-[760px] flex-col justify-center py-12 sm:py-20">
@@ -58,7 +60,12 @@ export default async function InviteLandingPage({ params }: { params: Promise<Pa
         </Avatar>
         <div>
           <p className="font-display font-semibold text-foreground">{invite.inviterName}</p>
-          <p className="font-mono text-caption text-muted-foreground">@{invite.inviterUsername} invited you</p>
+          <p className="font-mono text-caption text-muted-foreground">
+            @{invite.inviterUsername} invited you
+            {invite.inviterScore > 0
+              ? ` · ${invite.inviterScore.toLocaleString()} score`
+              : ""}
+          </p>
         </div>
       </div>
 
@@ -102,7 +109,11 @@ export default async function InviteLandingPage({ params }: { params: Promise<Pa
       </div>
       <p className="mt-4 inline-flex items-center gap-2 text-caption text-muted-foreground">
         <LockKeyhole className="size-3.5" />
-        {available ? "Single-use invitation" : "This invitation has already been claimed"}
+        {available
+          ? "Single-use invitation"
+          : expired
+            ? "This invitation has expired. Request access and we will review your application."
+            : "This invitation has already been claimed"}
       </p>
     </div>
   );

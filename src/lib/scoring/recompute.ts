@@ -17,6 +17,7 @@ import {
   brier,
   computeForecastScore,
   computeStreaks,
+  gateForecastScore,
   VOLUME_GATE,
   wasCorrect,
   type Prediction,
@@ -147,7 +148,7 @@ export async function recomputeUserScore(
   });
 
   const ranked = globalPreds.length >= VOLUME_GATE;
-  const publicScore = ranked ? internalScore : 0;
+  const publicScore = gateForecastScore(internalScore, globalPreds.length);
 
   const correctCount = streakRows.filter((r) => r.wasCorrect).length;
 
@@ -179,11 +180,15 @@ export async function recomputeUserScore(
         wasCorrect: wasCorrect(p.probability, p.outcome === "yes"),
       }));
     const catStreaks = computeStreaks(catStreakRows);
-    const catScore = computeForecastScore({
+    const internalCategoryScore = computeForecastScore({
       predictions: preds,
       currentStreak: catStreaks.current,
       daysIdle,
     });
+    const categoryScore = gateForecastScore(
+      internalCategoryScore,
+      preds.length,
+    );
     const correct = catStreakRows.filter((r) => r.wasCorrect).length;
     const avgBrier =
       preds.reduce(
@@ -194,7 +199,7 @@ export async function recomputeUserScore(
     categoryValues.push({
       user_id: userId,
       category_slug: categorySlug,
-      score: catScore,
+      score: categoryScore,
       resolved_count: preds.length,
       correct_count: correct,
       avg_brier: avgBrier,

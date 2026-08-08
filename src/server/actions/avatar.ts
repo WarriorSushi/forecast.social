@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
+import { env } from "@/lib/env";
 import { getCurrentProfile } from "@/lib/auth";
 
 const setSchema = z.object({
@@ -32,9 +33,17 @@ export async function setAvatarUrl(formData: FormData): Promise<Result> {
     return { status: "error", message: "Invalid avatar URL." };
   }
 
-  // Guard against arbitrary URLs: the avatar must be hosted in our
-  // Supabase storage bucket. Cheap string check.
-  if (!parsed.data.url.includes("/storage/v1/object/public/avatars/")) {
+  // Require the exact project origin and the signed-in user's storage
+  // folder. A matching path on an attacker-controlled host is not enough.
+  const avatarUrl = new URL(parsed.data.url);
+  const supabaseOrigin = new URL(env.NEXT_PUBLIC_SUPABASE_URL).origin;
+  const expectedPrefix = `/storage/v1/object/public/avatars/${me.id}/`;
+  if (
+    avatarUrl.origin !== supabaseOrigin ||
+    !avatarUrl.pathname.startsWith(expectedPrefix) ||
+    avatarUrl.username ||
+    avatarUrl.password
+  ) {
     return { status: "error", message: "Avatar must be hosted in storage." };
   }
 

@@ -1,4 +1,4 @@
-import { and, asc, eq, gt, isNotNull, ne } from "drizzle-orm";
+import { and, asc, eq, gt, isNotNull, ne, sql } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { Check, LockKeyhole } from "lucide-react";
 
@@ -81,12 +81,19 @@ export default async function OnboardingPage() {
       .from(user_interests)
       .where(eq(user_interests.user_id, user.id)),
     db
-      .selectDistinct({ marketId: predictions.market_id })
+      .selectDistinctOn([predictions.market_id], {
+        marketId: predictions.market_id,
+        probability: predictions.probability,
+      })
       .from(predictions)
-      .where(eq(predictions.user_id, user.id)),
+      .where(eq(predictions.user_id, user.id))
+      .orderBy(predictions.market_id, sql`${predictions.created_at} desc`, sql`${predictions.id} desc`),
   ]);
   const interestSet = new Set(interestRows.map((row) => row.slug));
   const calledSet = new Set(myCalls.map((row) => row.marketId));
+  const latestCallByMarket = new Map(
+    myCalls.map((row) => [row.marketId, row.probability]),
+  );
 
   const starterRows = await db
     .select({ market: markets, categoryName: categories.name })
@@ -104,6 +111,9 @@ export default async function OnboardingPage() {
 
   const starters = starterRows
     .sort((a, b) => {
+      const aCalled = calledSet.has(a.market.id) ? 1 : 0;
+      const bCalled = calledSet.has(b.market.id) ? 1 : 0;
+      if (aCalled !== bCalled) return aCalled - bCalled;
       const aFit = interestSet.has(a.market.category_slug) ? 0 : 1;
       const bFit = interestSet.has(b.market.category_slug) ? 0 : 1;
       return aFit - bFit;
@@ -171,16 +181,30 @@ export default async function OnboardingPage() {
                 {market.title}
               </h2>
               <div className="mt-6 border-t border-border pt-5">
-                <PredictionSlider
-                  marketId={market.id}
-                  initialValue={
-                    market.consensus_probability == null
-                      ? 50
-                      : Math.round(market.consensus_probability * 100)
-                  }
-                  consensus={market.consensus_probability}
-                  hasPrevious={called}
-                />
+                {called ? (
+                  <div className="flex items-end justify-between gap-4">
+                    <div>
+                      <p className="text-overline text-muted-foreground">your locked call</p>
+                      <p className="mt-2 font-display text-display-sm font-extrabold tabular-nums text-foreground">
+                        {Math.round((latestCallByMarket.get(market.id) ?? 0.5) * 100)}%
+                      </p>
+                    </div>
+                    <p className="max-w-[18ch] text-right text-caption text-muted-foreground">
+                      Complete. Choose a new market to advance.
+                    </p>
+                  </div>
+                ) : (
+                  <PredictionSlider
+                    marketId={market.id}
+                    initialValue={
+                      market.consensus_probability == null
+                        ? 50
+                        : Math.round(market.consensus_probability * 100)
+                    }
+                    consensus={market.consensus_probability}
+                    hasPrevious={false}
+                  />
+                )}
               </div>
             </article>
           );

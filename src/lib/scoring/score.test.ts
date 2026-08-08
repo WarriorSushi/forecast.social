@@ -12,6 +12,7 @@ import {
   skill,
   streakBonus,
   wasCorrect,
+  gateForecastScore,
 } from "./score";
 
 describe("Forecast Score", () => {
@@ -35,6 +36,11 @@ describe("Forecast Score", () => {
     assert.equal(wasCorrect(0.5, false), false);
     assert.equal(wasCorrect(0.51, true), true);
     assert.equal(wasCorrect(0.49, false), true);
+  });
+
+  it("keeps provisional global and category scores off leaderboards", () => {
+    assert.equal(gateForecastScore(2_450, 4), 0);
+    assert.equal(gateForecastScore(2_450, 5), 2_450);
   });
 
   it("caps streak bonus and follows every decay boundary", () => {

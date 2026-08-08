@@ -340,6 +340,7 @@ function ProfileCard() {
 function AvatarSlot({ initial }: { initial: string }) {
   return (
     <div
+      role="img"
       aria-label="Profile picture placeholder"
       className="shrink-0 size-12 rounded-md bg-muted border border-border-strong flex items-center justify-center font-mono text-body-sm text-muted-foreground tabular-nums"
     >

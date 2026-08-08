@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import { useTheme } from "next-themes";
 import { Moon, Sun } from "lucide-react";
 
@@ -13,37 +12,29 @@ import { cn } from "@/lib/utils";
  * you'd switch TO (sun when dark, moon when light) so the action reads
  * as the affordance.
  *
- * Uses useSyncExternalStore for the SSR-safe mount check so we don't
- * trip the react-hooks/set-state-in-effect rule from the React
- * Compiler.
+ * The visible icon is selected by the same `dark` class that drives the
+ * stylesheet. This keeps the affordance correct during hydration without a
+ * separate mounted state that can drift from next-themes.
  */
-const subscribe = () => () => {};
-const getSnapshot = () => true; // post-mount
-const getServerSnapshot = () => false;
-
 export function ThemeToggle({ className }: { className?: string }) {
-  const { resolvedTheme, setTheme } = useTheme();
-  const mounted = React.useSyncExternalStore(
-    subscribe,
-    getSnapshot,
-    getServerSnapshot,
-  );
-
-  // Before hydration, render a stable icon to avoid mismatch. After
-  // mount, swap to the correct affordance for the current theme.
-  const isDark = mounted ? resolvedTheme === "dark" : false;
-  const Icon = isDark ? Sun : Moon;
-  const next = isDark ? "light" : "dark";
+  const { setTheme } = useTheme();
 
   return (
     <Button
       variant="outline"
       size="icon"
-      aria-label={`Switch to ${next} theme`}
+      aria-label="Toggle color theme"
       className={cn("relative", className)}
-      onClick={() => setTheme(next)}
+      onClick={() =>
+        setTheme(
+          document.documentElement.classList.contains("dark")
+            ? "light"
+            : "dark",
+        )
+      }
     >
-      <Icon className="size-4" />
+      <Moon className="size-4 dark:hidden" aria-hidden="true" />
+      <Sun className="hidden size-4 dark:block" aria-hidden="true" />
     </Button>
   );
 }

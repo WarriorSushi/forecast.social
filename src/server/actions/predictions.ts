@@ -156,27 +156,31 @@ export async function submitPrediction(
         await tx.execute(
           sql`select pg_advisory_xact_lock(hashtext('founding-forecaster-number'))`,
         );
-        const [activated] = await tx
-          .update(users)
-          .set({
-            onboarding_step: "complete",
-            onboarded_at: sql`coalesce(${users.onboarded_at}, now())`,
-            founding_member_number: sql`(
-              select next_number from (
-                select coalesce(max(${users.founding_member_number}), 0) + 1 as next_number
-                from ${users}
-              ) founding_counter
-              where next_number <= 250
-            )`,
-            founding_member_since: sql`coalesce(${users.founding_member_since}, now())`,
+        const [counter] = await tx
+          .select({
+            nextNumber: sql<number>`coalesce(max(${users.founding_member_number}), 0) + 1`,
           })
-          .where(
-            and(
-              eq(users.id, profile.id),
-              isNull(users.founding_member_number),
-            ),
-          )
-          .returning({ number: users.founding_member_number });
+          .from(users);
+        const nextNumber = Number(counter?.nextNumber ?? 251);
+
+        const [activated] =
+          nextNumber <= 250
+            ? await tx
+                .update(users)
+                .set({
+                  onboarding_step: "complete",
+                  onboarded_at: sql`coalesce(${users.onboarded_at}, now())`,
+                  founding_member_number: nextNumber,
+                  founding_member_since: sql`coalesce(${users.founding_member_since}, now())`,
+                })
+                .where(
+                  and(
+                    eq(users.id, profile.id),
+                    isNull(users.founding_member_number),
+                  ),
+                )
+                .returning({ number: users.founding_member_number })
+            : [];
 
         if (activated) {
           await tx.insert(growth_events).values({

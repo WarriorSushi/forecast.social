@@ -53,8 +53,13 @@ export async function evaluateHttpJsonResolution(input: {
   const actual = readJsonPath(payload, config.path);
   const matched = compareResolutionValue(actual, config.operator, config.expected);
   const now = input.now ?? new Date();
+  const publicSource = new URL(url);
+  publicSource.search = "";
+  publicSource.hash = "";
   const evidence = {
-    source: config.url,
+    // Evidence is public. Never persist query strings or fragments because a
+    // resolver URL may contain a provider token even on an approved host.
+    source: publicSource.toString(),
     path: config.path,
     operator: config.operator,
     expected: config.expected,

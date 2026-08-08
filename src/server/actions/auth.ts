@@ -1,13 +1,16 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { and, eq, gt, isNull, or } from "drizzle-orm";
+import { randomUUID } from "node:crypto";
+import { and, eq, gt, isNull, lt, or } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "@/lib/db";
 import {
+  early_access_applications,
   growth_events,
   invite_codes,
+  registration_intents,
   referrals,
   users,
 } from "@/lib/db/schema";
@@ -95,14 +98,39 @@ export async function signUp(
     validCodeRow = row;
   }
 
-  const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.auth.signUp({
-    email: parsed.data.email,
-    password: parsed.data.password,
-    options: {
-      emailRedirectTo: `${env.NEXT_PUBLIC_SITE_URL.replace(/\/+$/, "")}/auth/callback`,
-    },
+  // Supabase's public Auth endpoint cannot be the admission boundary. Mint a
+  // short-lived, email-bound ticket that the auth.users BEFORE INSERT trigger
+  // must atomically consume. Direct calls to /auth/v1/signup do not have one.
+  const registrationToken = randomUUID();
+  await db
+    .delete(registration_intents)
+    .where(lt(registration_intents.expires_at, new Date()));
+  await db.insert(registration_intents).values({
+    token: registrationToken,
+    email: parsed.data.email.trim().toLowerCase(),
+    expires_at: new Date(Date.now() + 10 * 60 * 1000),
   });
+
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await (async () => {
+    try {
+      return await supabase.auth.signUp({
+        email: parsed.data.email,
+        password: parsed.data.password,
+        options: {
+          emailRedirectTo: `${env.NEXT_PUBLIC_SITE_URL.replace(/\/+$/, "")}/auth/callback`,
+          data: { registration_intent: registrationToken },
+        },
+      });
+    } finally {
+      // The database trigger consumes valid tickets inside the signup
+      // transaction. Always remove leftovers from rejected or interrupted
+      // attempts so bearer tickets cannot outlive the request that minted them.
+      await db
+        .delete(registration_intents)
+        .where(eq(registration_intents.token, registrationToken));
+    }
+  })();
 
   if (error) {
     return {
@@ -153,6 +181,18 @@ export async function signUp(
           sourcePredictionId: validCodeRow.sourcePredictionId,
         },
       });
+      await tx
+        .update(early_access_applications)
+        .set({ status: "joined", updated_at: new Date() })
+        .where(
+          and(
+            eq(early_access_applications.invite_code, validCodeRow.code),
+            eq(
+              early_access_applications.email,
+              parsed.data.email.trim().toLowerCase(),
+            ),
+          ),
+        );
       return true;
     });
 

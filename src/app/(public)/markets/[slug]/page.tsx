@@ -455,11 +455,13 @@ async function buildConsensusSeries(
 
   const series: number[] = [];
   const latest = new Map<string, number>();
+  let latestTotal = 0;
   for (const row of rows) {
+    const previous = latest.get(row.user_id);
+    if (previous != null) latestTotal -= previous;
     latest.set(row.user_id, row.probability);
-    const avg =
-      Array.from(latest.values()).reduce((s, v) => s + v, 0) / latest.size;
-    series.push(avg);
+    latestTotal += row.probability;
+    series.push(latestTotal / latest.size);
   }
 
   // Down/up-sample to 12 evenly spaced points so the SVG path is concise.

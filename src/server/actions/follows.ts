@@ -8,6 +8,7 @@ import { db } from "@/lib/db";
 import { follows, users } from "@/lib/db/schema";
 import { getCurrentProfile } from "@/lib/auth";
 import { createNotification } from "@/lib/notifications";
+import { rateLimit } from "@/lib/rate-limit";
 
 const schema = z.object({
   target_user_id: z.string().uuid(),
@@ -36,6 +37,15 @@ export async function toggleFollow(formData: FormData): Promise<Result> {
   if (parsed.data.target_user_id === me.id) {
     return { status: "error", message: "You can't follow yourself." };
   }
+  const limit = rateLimit({
+    actor: me.id,
+    action: "toggleFollow",
+    max: 10,
+    windowMs: 60_000,
+  });
+  if (!limit.allowed) {
+    return { status: "error", message: "Too many follow changes. Try again shortly." };
+  }
 
   // Verify the target exists; we need their handle for the cache bust.
   const [target] = await db
@@ -49,21 +59,24 @@ export async function toggleFollow(formData: FormData): Promise<Result> {
 
   if (parsed.data.action === "follow") {
     try {
-      await db
+      const [created] = await db
         .insert(follows)
         .values({ follower_id: me.id, followee_id: target.id })
-        .onConflictDoNothing();
+        .onConflictDoNothing()
+        .returning({ followeeId: follows.followee_id });
+      if (created) {
+        await createNotification(target.id, {
+          kind: "follow",
+          actor_username: me.username,
+          actor_display_name: me.display_name,
+        });
+      }
     } catch (err) {
       return {
         status: "error",
         message: err instanceof Error ? err.message : "Could not follow.",
       };
     }
-    await createNotification(target.id, {
-      kind: "follow",
-      actor_username: me.username,
-      actor_display_name: me.display_name,
-    });
   } else {
     await db
       .delete(follows)

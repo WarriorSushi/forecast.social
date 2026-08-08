@@ -16,6 +16,11 @@ export const PRIOR_SKILL = 0.25;
 export const SCALE = 3000;
 export const VOLUME_GATE = 5;
 
+/** Keep provisional scores private until the documented ranking threshold. */
+export function gateForecastScore(score: number, resolvedCount: number): number {
+  return resolvedCount >= VOLUME_GATE ? score : 0;
+}
+
 /** Brier score for one prediction. 0 = perfect, 1 = worst. */
 export function brier(p: number, outcomeYes: boolean): number {
   return (p - (outcomeYes ? 1 : 0)) ** 2;

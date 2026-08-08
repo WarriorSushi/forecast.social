@@ -15,10 +15,16 @@ const schema = z.object({
     .optional()
     .or(z.literal(""))
     .transform((value) => (value ? value : null)),
+  correction: z.boolean(),
 });
 
 type ResolveResult =
-  | { status: "ok"; affectedUsers: number; outcome: "yes" | "no" | "invalid" }
+  | {
+      status: "ok";
+      affectedUsers: number;
+      outcome: "yes" | "no" | "invalid";
+      effectsPending: boolean;
+    }
   | { status: "error"; message: string };
 
 export async function resolveMarket(formData: FormData): Promise<ResolveResult> {
@@ -30,6 +36,7 @@ export async function resolveMarket(formData: FormData): Promise<ResolveResult> 
     marketId: formData.get("marketId")?.toString() ?? "",
     outcome: formData.get("outcome")?.toString() ?? "",
     notes: formData.get("notes")?.toString() ?? "",
+    correction: formData.get("correction") === "true",
   });
   if (!parsed.success) {
     return {
@@ -45,11 +52,13 @@ export async function resolveMarket(formData: FormData): Promise<ResolveResult> 
       resolvedBy: profile.id,
       resolver: "admin",
       notes: parsed.data.notes,
+      allowCorrection: parsed.data.correction,
     });
     return {
       status: "ok",
       affectedUsers: result.affectedUsers,
       outcome: parsed.data.outcome,
+      effectsPending: result.effectsPending,
     };
   } catch (error) {
     return {
